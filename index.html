@@ -116,7 +116,7 @@
         .nav-btn:disabled { color: #444; border: 1px solid #222; background-color: #050505; cursor: not-allowed; }
     </style>
 </head>
-<body>
+<body onclick="initAudioContext()">
 
     <div class="header-status">
         <div>勇者 Lv.<span id="player-lv">1</span> (HP: <span id="player-hp">100</span>/<span id="player-max-hp">100</span>)</div>
@@ -236,6 +236,62 @@
     </div>
 
 <script>
+// ==================== オーディオシステムの設定 ====================
+const audioFiles = {
+    normalBgm: 'normal_bgm.mp3',
+    battleEasyNormalHard: 'battle_easy_normal_hard.mp3',
+    battleInferno: 'battle_inferno.mp3',
+    battleDespair: 'battle_despair.mp3',
+    seDamageGive: 'se_damage_give.mp3',
+    seDamageTake: 'se_damage_take.mp3',
+    seGacha: 'se_gacha.mp3',
+    seVictory: 'se_victory.mp3',
+    seGameOver: 'se_gameover.mp3'
+};
+
+let currentBgm = null;
+let audioInitialized = false;
+
+// ユーザーが初めて画面を触った瞬間にオーディオを初期化
+function initAudioContext() {
+    if (audioInitialized) return;
+    audioInitialized = true;
+    // 初期ハブ用BGMの再生
+    playBgm('normalBgm');
+}
+
+function playBgm(key) {
+    if (!audioInitialized) return;
+    
+    const src = audioFiles[key];
+    if (currentBgm) {
+        // すでに同じBGMが流れている場合は何もしない
+        if (currentBgm.getAttribute('src') === src) return;
+        currentBgm.pause();
+        currentBgm = null;
+    }
+    
+    currentBgm = new Audio(src);
+    currentBgm.loop = true;
+    currentBgm.volume = 0.5; // BGMの音量調整
+    currentBgm.play().catch(e => console.log("BGM再生ブロック:", e));
+}
+
+function stopBgm() {
+    if (currentBgm) {
+        currentBgm.pause();
+        currentBgm = null;
+    }
+}
+
+function playSe(key) {
+    if (!audioInitialized) return;
+    const se = new Audio(audioFiles[key]);
+    se.volume = 0.7; // 効果音の音量調整
+    se.play().catch(e => console.log("SE再生ブロック:", e));
+}
+// ================================================================
+
 const vocabulary = [
     { w: "agree", j: "賛成する", ex: "I agree with your opinion.", tr: "私はあなたの意見に賛成する。", simW: ["argue", "apologize", "advise"], simJ: ["意見が一致する", "主張する", "文句を言う", "許す"] },
     { w: "oppose", j: "～に反対する", ex: "oppose the plan", tr: "その計画に反対する", simW: ["offer", "apologize", "complain"], simJ: ["文句を言う", "責任があるとする", "言い訳", "否定する"] },
@@ -438,6 +494,11 @@ function switchPage(pageName) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`page-${pageName}`).classList.add('active');
     document.getElementById(`btn-${pageName === 'quest-battle' ? 'quest' : pageName}`).classList.add('active');
+    
+    // 通常ハブ画面に戻ったら通常BGMに切り替える
+    if (pageName === 'quest-hub' || pageName === 'equip' || pageName === 'gacha') {
+        playBgm('normalBgm');
+    }
     if(pageName === 'gacha') document.getElementById("gacha-result").style.display = "none";
 }
 
@@ -529,6 +590,10 @@ function sellItem(type, name, price) {
 function drawGacha() {
     if (saveData.gold < 100) { alert("ゴールドが足りません！"); return; }
     saveData.gold -= 100;
+    
+    // ガチャSEの再生
+    playSe('seGacha');
+    
     const rand = Math.random() * 100;
     let reward = ""; let isYakuso = false; let rewardRarity = "N";
     let breakNotice = "";
@@ -610,6 +675,16 @@ function startQuest(difficulty) {
     playerStunned = false;
     isInBattle = true;
     battleNextAction = null;
+
+    // ----- クエストに応じたバトルBGMへの切り替え -----
+    if (difficulty === 'easy' || difficulty === 'normal' || difficulty === 'hard') {
+        playBgm('battleEasyNormalHard');
+    } else if (difficulty === 'inferno') {
+        playBgm('battleInferno');
+    } else if (difficulty === 'despair') {
+        playBgm('battleDespair');
+    }
+    // ---------------------------------------------
 
     updateNavBarState();
     switchPage('quest-battle');
@@ -851,6 +926,8 @@ function processEndTurn() {
     if (enemyHp <= 0) {
         isInBattle = false;
         updateNavBarState();
+        stopBgm(); // 戦闘用BGMを止める
+        playSe('seVictory'); // 勝利SEを再生！
         
         const config = questConfigs[currentDifficulty];
         saveData.gold += config.gold; 
@@ -1047,33 +1124,30 @@ function processEndTurn() {
     }
 }
 
-// ド派手な特大ダメージポップアップ機能
 function popDamageEffect(target, amount) {
     const parent = document.getElementById('battle-box');
     const pop = document.createElement("div"); 
     pop.className = "damage-pop"; 
     pop.innerText = `-${amount}`;
     
-    // スタイルをJS側で完全に固定し、画面の真ん中の一番手前に強制表示
     pop.style.position = "absolute";
     pop.style.left = "50%";
     pop.style.top = "40%";
-    pop.style.fontSize = "52px"; // 特大サイズ！
+    pop.style.fontSize = "52px"; 
     pop.style.fontWeight = "bold";
     pop.style.fontFamily = "sans-serif";
-    pop.style.zIndex = "999"; // 他のすべての要素よりも手前に
-    // クッキリ見えるように4方向から太い黒のフチ取りを追加
+    pop.style.zIndex = "999"; 
     pop.style.textShadow = "3px 3px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000";
 
     if (target === 'monster') { 
-        pop.style.color = "#ff3333"; // 🔴 モンスターへのダメージは赤
+        pop.style.color = "#ff3333"; 
+        playSe('seDamageGive'); // 🔴 敵へダメージを与えるSEを再生！
     } else { 
-        pop.style.color = "#ffff33"; // 🟡 プレイヤーのダメージは黄色
+        pop.style.color = "#ffff33"; 
+        playSe('seDamageTake'); // 🟡 プレイヤーがダメージを受けるSEを再生！
     }
     
     parent.appendChild(pop); 
-    
-    // 1.2秒後に消去
     setTimeout(() => { pop.remove(); }, 1200); 
 }
 
@@ -1081,6 +1155,9 @@ function gameOver() {
     isDead = true; 
     isInBattle = false;
     updateNavBarState();
+    stopBgm(); // 戦闘用BGMを止める
+    playSe('seGameOver'); // 全滅SEを再生！
+    
     document.getElementById("monster").innerText = "💀";
     saveData.gold = Math.floor(saveData.gold / 2);
     document.getElementById("message").innerText = `勇者は倒れた…所持金が半分になりました。`;
