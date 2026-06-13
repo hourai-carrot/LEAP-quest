@@ -14,6 +14,60 @@
             padding-bottom: 70px;
             touch-action: manipulation;
         }
+        
+        /* タイトル・スタート画面のスタイル */
+        #page-start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        .title-logo {
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px #ff3366, 0 0 20px #000;
+            margin-bottom: 10px;
+            color: #fff;
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.98); text-shadow: 0 0 10px #ff3366; }
+            100% { transform: scale(1.02); text-shadow: 0 0 25px #ff3366, 0 0 40px #ffcc00; }
+        }
+        .title-sub {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 60px;
+        }
+        .start-btn {
+            background-color: #000;
+            color: #00ffcc;
+            border: 3px solid #00ffcc;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            transition: all 0.2s;
+        }
+        .start-btn:active {
+            background-color: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.7);
+        }
+
         .header-status {
             background-color: #111;
             border-bottom: 2px solid #fff;
@@ -76,7 +130,7 @@
         .skill-btn { background-color: #220033; color: #ff99ff; border: 2px solid #ff99ff; padding: 8px 2px; font-size: 11px; font-weight: bold; border-radius: 4px; text-align: center; }
         .skill-btn:active { background-color: #ff99ff; color: #000; }
 
-        /* 特大ダメージポップアップのCSS設定 */
+        /* 特大ダメージポップアップ */
         .damage-pop {
             position: absolute;
             animation: fadeUp 1.2s ease-out forwards;
@@ -116,7 +170,13 @@
         .nav-btn:disabled { color: #444; border: 1px solid #222; background-color: #050505; cursor: not-allowed; }
     </style>
 </head>
-<body onclick="initAudioContext()">
+<body>
+
+    <div id="page-start-screen">
+        <div class="title-logo">LEAP QUEST</div>
+        <div class="title-sub">~ 英単語バトルRPG ~</div>
+        <button class="start-btn" onclick="clickStartGame()">START GAME</button>
+    </div>
 
     <div class="header-status">
         <div>勇者 Lv.<span id="player-lv">1</span> (HP: <span id="player-hp">100</span>/<span id="player-max-hp">100</span>)</div>
@@ -252,11 +312,16 @@ const audioFiles = {
 let currentBgm = null;
 let audioInitialized = false;
 
-// ユーザーが初めて画面を触った瞬間にオーディオを初期化
-function initAudioContext() {
+// 🌟 スタートボタンを押したときに作動する関数
+function clickStartGame() {
     if (audioInitialized) return;
     audioInitialized = true;
-    // 初期ハブ用BGMの再生
+    
+    // タイトル画面を画面から消し去る
+    const startScreen = document.getElementById("page-start-screen");
+    startScreen.style.display = "none";
+    
+    // 通常BGMを鳴らしながらゲーム本編を開始！
     playBgm('normalBgm');
 }
 
@@ -265,7 +330,6 @@ function playBgm(key) {
     
     const src = audioFiles[key];
     if (currentBgm) {
-        // すでに同じBGMが流れている場合は何もしない
         if (currentBgm.getAttribute('src') === src) return;
         currentBgm.pause();
         currentBgm = null;
@@ -273,7 +337,7 @@ function playBgm(key) {
     
     currentBgm = new Audio(src);
     currentBgm.loop = true;
-    currentBgm.volume = 0.5; // BGMの音量調整
+    currentBgm.volume = 0.5;
     currentBgm.play().catch(e => console.log("BGM再生ブロック:", e));
 }
 
@@ -287,7 +351,7 @@ function stopBgm() {
 function playSe(key) {
     if (!audioInitialized) return;
     const se = new Audio(audioFiles[key]);
-    se.volume = 0.7; // 効果音の音量調整
+    se.volume = 0.7;
     se.play().catch(e => console.log("SE再生ブロック:", e));
 }
 // ================================================================
@@ -495,7 +559,6 @@ function switchPage(pageName) {
     document.getElementById(`page-${pageName}`).classList.add('active');
     document.getElementById(`btn-${pageName === 'quest-battle' ? 'quest' : pageName}`).classList.add('active');
     
-    // 通常ハブ画面に戻ったら通常BGMに切り替える
     if (pageName === 'quest-hub' || pageName === 'equip' || pageName === 'gacha') {
         playBgm('normalBgm');
     }
@@ -561,37 +624,22 @@ function sellItem(type, name, price) {
         alert("装備中のアイテムは危険なため売却できません！他の装備に変更してから売却してください。");
         return;
     }
-    
     if (!confirm(`${name} を ${price}G で売却しますか？`)) return;
-    
     saveData.gold += price;
 
     if (type === 'weapon') {
-        if (saveData.ownedWeapons[name] > 0) {
-            saveData.ownedWeapons[name]--;
-            alert(`${name} の強化値を1段階引き下げて売却しました。`);
-        } else {
-            delete saveData.ownedWeapons[name];
-            alert(`${name} をすべて売却しました。`);
-        }
+        if (saveData.ownedWeapons[name] > 0) { saveData.ownedWeapons[name]--; alert(`${name} の強化値を1段階引き下げて売却しました。`); }
+        else { delete saveData.ownedWeapons[name]; alert(`${name} をすべて売却しました。`); }
     } else if (type === 'armor') {
-        if (saveData.ownedArmors[name] > 0) {
-            saveData.ownedArmors[name]--;
-            alert(`${name} の強化値を1段階引き下げて売却しました。`);
-        } else {
-            delete saveData.ownedArmors[name];
-            alert(`${name} をすべて売却しました。`);
-        }
+        if (saveData.ownedArmors[name] > 0) { saveData.ownedArmors[name]--; alert(`${name} の強化値を1段階引き下げて売却しました。`); }
+        else { delete saveData.ownedArmors[name]; alert(`${name} をすべて売却しました。`); }
     }
-    
     saveGame();
 }
 
 function drawGacha() {
     if (saveData.gold < 100) { alert("ゴールドが足りません！"); return; }
     saveData.gold -= 100;
-    
-    // ガチャSEの再生
     playSe('seGacha');
     
     const rand = Math.random() * 100;
@@ -655,28 +703,17 @@ function drawGacha() {
 }
 
 let currentDifficulty = 'easy'; let enemyHp = 30; let currentQuiz = null;
-let isDead = false;
-let spGauge = 0;
-let hasBarrier = false;
-let currentTurnCount = 0;
-let enemyGuardTurns = 0;   
-let playerBurnTurns = 0;    
-let playerStunned = false;  
-let isInBattle = false;
-let battleNextAction = null;
+let isDead = false; let spGauge = 0; let hasBarrier = false;
+let currentTurnCount = 0; let enemyGuardTurns = 0;   
+let playerBurnTurns = 0; let playerStunned = false;  
+let isInBattle = false; let battleNextAction = null;
 
 function startQuest(difficulty) {
     if (saveData.hp <= 0) { alert("HPが0です！教会で復活するか薬草を使ってください。"); return; }
     currentDifficulty = difficulty; enemyHp = questConfigs[difficulty].hp; isDead = false;
-    spGauge = 0; hasBarrier = false;
-    currentTurnCount = 0; 
-    enemyGuardTurns = 0;
-    playerBurnTurns = 0;
-    playerStunned = false;
-    isInBattle = true;
-    battleNextAction = null;
+    spGauge = 0; hasBarrier = false; currentTurnCount = 0; enemyGuardTurns = 0; playerBurnTurns = 0;
+    playerStunned = false; isInBattle = true; battleNextAction = null;
 
-    // ----- クエストに応じたバトルBGMへの切り替え -----
     if (difficulty === 'easy' || difficulty === 'normal' || difficulty === 'hard') {
         playBgm('battleEasyNormalHard');
     } else if (difficulty === 'inferno') {
@@ -684,7 +721,6 @@ function startQuest(difficulty) {
     } else if (difficulty === 'despair') {
         playBgm('battleDespair');
     }
-    // ---------------------------------------------
 
     updateNavBarState();
     switchPage('quest-battle');
@@ -697,7 +733,6 @@ function startQuest(difficulty) {
     document.getElementById("btn-escape").disabled = false;
     
     document.getElementById("message").innerText = `${questConfigs[difficulty].name} が現れた！\n指定ターン経過で強烈な攻撃を仕掛けてくるぞ！`;
-    
     nextTurn();
 }
 
@@ -744,8 +779,7 @@ function updateStatusBadges() {
 function setupNextButton(callbackAction) {
     battleNextAction = callbackAction;
     updateSpUI();
-    const container = document.getElementById("choices");
-    container.innerHTML = "";
+    const container = document.getElementById("choices"); container.innerHTML = "";
     const nextBtn = document.createElement("button");
     nextBtn.className = "choice-btn";
     nextBtn.style.backgroundColor = "#222";
@@ -754,11 +788,7 @@ function setupNextButton(callbackAction) {
     nextBtn.style.textAlign = "center";
     nextBtn.style.fontWeight = "bold";
     nextBtn.innerText = "▶ 次へ進む";
-    nextBtn.onclick = () => {
-        battleNextAction = null;
-        updateSpUI();
-        callbackAction();
-    };
+    nextBtn.onclick = () => { battleNextAction = null; updateSpUI(); callbackAction(); };
     container.appendChild(nextBtn);
 }
 
@@ -779,19 +809,12 @@ function useUltimate(type) {
         document.getElementById("monster").classList.add("shake");
         document.getElementById("message").innerText = `必殺技：ギガスラッシュ！！！\n敵に ${d} の超絶ダメージ！！`;
         
-        if (playerStunned) {
-            playerStunned = false;
-            updateStatusBadges();
-        }
+        if (playerStunned) { playerStunned = false; updateStatusBadges(); }
 
         setTimeout(() => {
             document.getElementById("monster").classList.remove("shake");
-            if (enemyHp <= 0) {
-                document.getElementById("monster").innerText = "💥";
-            }
-            setupNextButton(() => {
-                processEndTurn();
-            });
+            if (enemyHp <= 0) document.getElementById("monster").innerText = "💥";
+            setupNextButton(() => { processEndTurn(); });
         }, 600);
     } else if (type === 'heal') {
         const maxHp = getPlayerMaxHp();
@@ -799,17 +822,11 @@ function useUltimate(type) {
         document.getElementById("player-hp").innerText = saveData.hp;
         document.getElementById("message").innerText = `必殺技：瞑想（めいそう）！\n自分のHPが 50 回復した！`;
         saveGame();
-        
-        setupNextButton(() => {
-            nextTurn();
-        });
+        setupNextButton(() => { nextTurn(); });
     } else if (type === 'barrier') {
         hasBarrier = true;
         document.getElementById("message").innerText = `必殺技：聖なる守り！\n光のバリアを展開！次の被ダメージを1回無効化する！`;
-        
-        setupNextButton(() => {
-            nextTurn();
-        });
+        setupNextButton(() => { nextTurn(); });
     }
 }
 
@@ -861,10 +878,7 @@ function selectAnswer(selected) {
     
     if (selected === currentQuiz.answer) {
         let dmg = getPlayerAtk().total;
-        if (playerStunned) {
-            dmg = Math.floor(dmg * 0.1);
-            playerStunned = false; 
-        }
+        if (playerStunned) { dmg = Math.floor(dmg * 0.1); playerStunned = false; }
         if (enemyGuardTurns > 0) dmg = Math.floor(dmg * 0.5);
         let d = Math.max(1, dmg);
 
@@ -873,48 +887,34 @@ function selectAnswer(selected) {
         popDamageEffect('monster', d);
         spGauge = Math.min(100, spGauge + 25);
         
-        updateSpUI();
-        updateCountdownUI();
+        updateSpUI(); updateCountdownUI();
         document.getElementById("monster").classList.add("shake");
         document.getElementById("message").innerText = `正解！ 敵に ${d} のダメージ！\nSPゲージが25%溜まった！`;
         
         setTimeout(() => {
             document.getElementById("monster").classList.remove("shake");
             if (enemyHp <= 0) document.getElementById("monster").innerText = "💥";
-            setupNextButton(() => {
-                processEndTurn();
-            });
+            setupNextButton(() => { processEndTurn(); });
         }, 600);
     } else {
         let penaltyDmg = 5;
         if (hasBarrier) {
             hasBarrier = false;
             document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\nしかし、バリアがミスダメージを無効化した！`;
-            
-            saveGame();
-            updateCountdownUI();
-            updateStatusBadges();
-            setupNextButton(() => {
-                processEndTurn();
-            });
+            saveGame(); updateCountdownUI(); updateStatusBadges();
+            setupNextButton(() => { processEndTurn(); });
         } else {
             saveData.hp = Math.max(0, saveData.hp - penaltyDmg);
             popDamageEffect('player', penaltyDmg);
             document.getElementById("player-hp").innerText = saveData.hp;
             document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\n解答ミスにより 5 の固定ダメージを受けた！`;
             
-            saveGame();
-            updateCountdownUI();
-            updateStatusBadges();
+            saveGame(); updateCountdownUI(); updateStatusBadges();
 
             if (saveData.hp <= 0) {
-                setupNextButton(() => {
-                    gameOver();
-                });
+                setupNextButton(() => { gameOver(); });
             } else {
-                setupNextButton(() => {
-                    processEndTurn();
-                });
+                setupNextButton(() => { processEndTurn(); });
             }
         }
     }
@@ -926,18 +926,15 @@ function processEndTurn() {
     if (enemyHp <= 0) {
         isInBattle = false;
         updateNavBarState();
-        stopBgm(); // 戦闘用BGMを止める
-        playSe('seVictory'); // 勝利SEを再生！
+        stopBgm();
+        playSe('seVictory');
         
         const config = questConfigs[currentDifficulty];
-        saveData.gold += config.gold; 
+        saveData.gold += config.gold; saveData.lv++;
         
-        saveData.lv++;
         const newMaxHp = getPlayerMaxHp();
         const borderHp = Math.floor(newMaxHp * 0.7);
-        if (saveData.hp < borderHp) {
-            saveData.hp = borderHp;
-        }
+        if (saveData.hp < borderHp) saveData.hp = borderHp;
         
         let dropMessage = "";
         const dropConfig = dropConfigs[currentDifficulty];
@@ -959,9 +956,7 @@ function processEndTurn() {
         saveGame();
         document.getElementById("message").innerText = `${config.name}を完全に討伐した！\n💰 ${config.gold} Gを獲得！\n✨ レベルが ${saveData.lv} に上がり能力がアップした！(HP上限+20)` + dropMessage;
         
-        setupNextButton(() => {
-            switchPage('quest-hub');
-        });
+        setupNextButton(() => { switchPage('quest-hub'); });
         return;
     }
 
@@ -977,9 +972,7 @@ function processEndTurn() {
         if (saveData.hp <= 0) {
             updateStatusBadges();
             document.getElementById("message").innerText = dotMsg + `\nプレイヤーは力尽きた…`;
-            setupNextButton(() => {
-                gameOver();
-            });
+            setupNextButton(() => { gameOver(); });
             return;
         }
     }
@@ -999,31 +992,19 @@ function processEndTurn() {
 
         if (currentDifficulty === 'easy') {
             enemySkillMsg = `💧 ちびスライムの「たいあたり」！\n`;
-            if (hasBarrier) {
-                hasBarrier = false; enemySkillMsg += `しかしバリアが攻撃を防いだ！`;
-            } else {
-                saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
-                popDamageEffect('player', finalBossDmg);
-                enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受けた！`;
-            }
+            if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかしバリアが攻撃を防いだ！`; } 
+            else { saveData.hp = Math.max(0, saveData.hp - finalBossDmg); popDamageEffect('player', finalBossDmg); enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受けた！`; }
         } 
         else if (currentDifficulty === 'normal') {
             if (actionRand < 0.5) {
                 enemySkillMsg = `🦇 魔導ドラキーの「マホトーン」！不気味な光が包む！\n`;
-                if (hasBarrier) {
-                    hasBarrier = false; enemySkillMsg += `しかしバリアが不気味な光を弾き返した！`;
-                } else {
-                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
-                    popDamageEffect('player', finalBossDmg);
-                    enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受けた！`;
-                }
+                if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかしバリアが不気味な光を弾き返した！`; } 
+                else { saveData.hp = Math.max(0, saveData.hp - finalBossDmg); popDamageEffect('player', finalBossDmg); enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受けた！`; }
             } else {
                 enemySkillMsg = `🦇 魔導ドラキーの「吸血」！体力を奪い取られた！\n`;
-                if (hasBarrier) {
-                    hasBarrier = false; enemySkillMsg += `しかしバリアが吸血を防いだ！`;
-                } else {
-                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
-                    popDamageEffect('player', finalBossDmg);
+                if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかしバリアが吸血を防いだ！`; } 
+                else {
+                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg); popDamageEffect('player', finalBossDmg);
                     enemyHp = Math.min(config.hp, enemyHp + Math.floor(finalBossDmg / 2));
                     document.getElementById("enemy-hp").innerText = enemyHp;
                     enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受け、敵のHPが回復した！`;
@@ -1033,131 +1014,64 @@ function processEndTurn() {
         else if (currentDifficulty === 'hard') {
             if (actionRand < 0.5) {
                 enemySkillMsg = `🧱 激怒ゴーレムの大地揺らし！岩石が降り注ぐ！\n`;
-                if (hasBarrier) {
-                    hasBarrier = false; enemySkillMsg += `しかしバリアが岩石を防御した！`;
-                } else {
-                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
-                    popDamageEffect('player', finalBossDmg);
-                    enemySkillMsg += `プレイヤーは ${finalBossDmg} の大ダメージを受けた！`;
-                }
+                if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかしバリアが岩石を防御した！`; } 
+                else { saveData.hp = Math.max(0, saveData.hp - finalBossDmg); popDamageEffect('player', finalBossDmg); enemySkillMsg += `プレイヤーは ${finalBossDmg} の大ダメージを受けた！`; }
             } else {
-                enemySkillMsg = `🧱 激怒ゴーレムはガチガチに身を固めた！\n`;
-                enemyGuardTurns = 5;
+                enemySkillMsg = `🧱 激怒ゴーレムはガチガチに身を固めた！\n`; enemyGuardTurns = 5;
                 enemySkillMsg += `5ターンの間、モンスターに与えられるダメージが半減する！`;
             }
         } 
         else if (currentDifficulty === 'inferno') {
             if (actionRand < 0.5) {
                 enemySkillMsg = `🐉 破壊神・竜王の「獄炎ブレス」が炸裂！\n`;
-                if (hasBarrier) {
-                    hasBarrier = false; enemySkillMsg += `しかしバリアが極大の熱波を防ぎきった！`;
-                } else {
-                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
-                    popDamageEffect('player', finalBossDmg);
-                    playerBurnTurns = 3;
-                    enemySkillMsg += `プレイヤーは ${finalBossDmg} の激しいダメージを受け、さらに【燃焼状態】(3ターン)になった！`;
-                }
+                if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかしバリアが極大の熱波を防ぎきった！`; } 
+                else { saveData.hp = Math.max(0, saveData.hp - finalBossDmg); popDamageEffect('player', finalBossDmg); playerBurnTurns = 3; enemySkillMsg += `プレイヤーは ${finalBossDmg} の激しいダメージを受け、さらに【燃焼状態】(3ターン)になった！`; }
             } else {
                 let tailDmg = Math.floor(finalBossDmg * 1.3);
                 enemySkillMsg = `🐉 破壊神・竜王の「しっぽをふりまわす」強烈な一撃！\n`;
-                if (hasBarrier) {
-                    hasBarrier = false; enemySkillMsg += `しかしバリアが攻撃を無効化した！`;
-                } else {
-                    saveData.hp = Math.max(0, saveData.hp - tailDmg);
-                    popDamageEffect('player', tailDmg);
-                    enemySkillMsg += `痛恨の一撃！ プレイヤーは ${tailDmg} の大ダメージを受けた！`;
-                }
+                if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかしバリアが攻撃を無効化した！`; } 
+                else { saveData.hp = Math.max(0, saveData.hp - tailDmg); popDamageEffect('player', tailDmg); enemySkillMsg += `痛恨の一撃！ プレイヤーは ${tailDmg} の大ダメージを受けた！`; }
             }
         } 
         else if (currentDifficulty === 'despair') {
             if (actionRand < 0.5) {
                 enemySkillMsg = `🌌 虚構の騎士「世界の再構築」！！\n`;
-                if (hasBarrier) {
-                    hasBarrier = false; enemySkillMsg += `しかし聖なるバリアが消滅エネルギーを耐えきった！`;
-                } else {
-                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
-                    popDamageEffect('player', finalBossDmg);
-                    enemySkillMsg += `次元が歪む破壊！ プレイヤーは ${finalBossDmg} の壊滅的ダメージを受けた！`;
-                }
+                if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかし聖なるバリアが消滅エネルギーを耐えきった！`; } 
+                else { saveData.hp = Math.max(0, saveData.hp - finalBossDmg); popDamageEffect('player', finalBossDmg); enemySkillMsg += `次元が歪む破壊！ プレイヤーは ${finalBossDmg} の壊滅的ダメージを受けた！`; }
             } else {
-                enemySkillMsg = `🌌 虚構の騎士「虚無のオーラ」が勇者を圧迫する！\n`;
-                playerStunned = true;
-                if (hasBarrier) {
-                    hasBarrier = false; enemySkillMsg += `しかしバリアが威圧を完全に打ち消した！`;
-                    playerStunned = false;
-                } else {
-                    saveData.hp = Math.max(0, saveData.hp - 100);
-                    popDamageEffect('player', 100);
-                    enemySkillMsg += `100の固定ダメージを受け、恐怖で【足すくみ状態】(次の与ダメ90%カット)に陥った！`;
-                }
+                enemySkillMsg = `🌌 虚構の騎士「虚無のオーラ」が勇者を圧迫する！\n`; playerStunned = true;
+                if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかしバリアが威圧を完全に打ち消した！`; playerStunned = false; } 
+                else { saveData.hp = Math.max(0, saveData.hp - 100); popDamageEffect('player', 100); enemySkillMsg += `100の固定ダメージを受け、恐怖で【足すくみ状態】(次の与ダメ90%カット)に陥った！`; }
             }
         }
 
-        saveGame();
-        document.getElementById("player-hp").innerText = saveData.hp;
-        updateStatusBadges();
-
-        if (saveData.hp <= 0) {
-            document.getElementById("message").innerText = dotMsg + enemySkillMsg + `\n\nプレイヤーは力尽きた…`;
-            setupNextButton(() => {
-                gameOver();
-            });
-            return;
-        }
-        
+        saveGame(); document.getElementById("player-hp").innerText = saveData.hp; updateStatusBadges();
+        if (saveData.hp <= 0) { document.getElementById("message").innerText = dotMsg + enemySkillMsg + `\n\nプレイヤーは力尽きた…`; setupNextButton(() => { gameOver(); }); return; }
         document.getElementById("message").innerText = dotMsg + enemySkillMsg + `\n\n次の問題に備えよ！`;
-        setupNextButton(() => {
-            nextTurn();
-        });
+        setupNextButton(() => { nextTurn(); });
         return;
     }
 
-    updateCountdownUI();
-    updateStatusBadges();
-    if (dotMsg !== "") {
-        document.getElementById("message").innerText = dotMsg + "次の問題に備えよ！";
-        setupNextButton(() => {
-            nextTurn();
-        });
-    } else {
-        nextTurn();
-    }
+    updateCountdownUI(); updateStatusBadges();
+    if (dotMsg !== "") { document.getElementById("message").innerText = dotMsg + "次の問題に備えよ！"; setupNextButton(() => { nextTurn(); }); } 
+    else { nextTurn(); }
 }
 
 function popDamageEffect(target, amount) {
     const parent = document.getElementById('battle-box');
-    const pop = document.createElement("div"); 
-    pop.className = "damage-pop"; 
-    pop.innerText = `-${amount}`;
-    
-    pop.style.position = "absolute";
-    pop.style.left = "50%";
-    pop.style.top = "40%";
-    pop.style.fontSize = "52px"; 
-    pop.style.fontWeight = "bold";
-    pop.style.fontFamily = "sans-serif";
-    pop.style.zIndex = "999"; 
+    const pop = document.createElement("div"); pop.className = "damage-pop"; pop.innerText = `-${amount}`;
+    pop.style.position = "absolute"; pop.style.left = "50%"; pop.style.top = "40%"; pop.style.fontSize = "52px"; 
+    pop.style.fontWeight = "bold"; pop.style.fontFamily = "sans-serif"; pop.style.zIndex = "999"; 
     pop.style.textShadow = "3px 3px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000";
 
-    if (target === 'monster') { 
-        pop.style.color = "#ff3333"; 
-        playSe('seDamageGive'); // 🔴 敵へダメージを与えるSEを再生！
-    } else { 
-        pop.style.color = "#ffff33"; 
-        playSe('seDamageTake'); // 🟡 プレイヤーがダメージを受けるSEを再生！
-    }
+    if (target === 'monster') { pop.style.color = "#ff3333"; playSe('seDamageGive'); } 
+    else { pop.style.color = "#ffff33"; playSe('seDamageTake'); }
     
-    parent.appendChild(pop); 
-    setTimeout(() => { pop.remove(); }, 1200); 
+    parent.appendChild(pop); setTimeout(() => { pop.remove(); }, 1200); 
 }
 
 function gameOver() {
-    isDead = true; 
-    isInBattle = false;
-    updateNavBarState();
-    stopBgm(); // 戦闘用BGMを止める
-    playSe('seGameOver'); // 全滅SEを再生！
-    
+    isDead = true; isInBattle = false; updateNavBarState(); stopBgm(); playSe('seGameOver');
     document.getElementById("monster").innerText = "💀";
     saveData.gold = Math.floor(saveData.gold / 2);
     document.getElementById("message").innerText = `勇者は倒れた…所持金が半分になりました。`;
