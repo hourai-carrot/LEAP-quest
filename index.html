@@ -76,19 +76,18 @@
         .skill-btn { background-color: #220033; color: #ff99ff; border: 2px solid #ff99ff; padding: 8px 2px; font-size: 11px; font-weight: bold; border-radius: 4px; text-align: center; }
         .skill-btn:active { background-color: #ff99ff; color: #000; }
 
+        /* 特大ダメージポップアップのCSS設定 */
         .damage-pop {
             position: absolute;
-            font-size: 32px;
-            font-weight: bold;
-            text-shadow: 2px 2px #000;
-            animation: fadeUp 0.8s ease-out forwards;
-            opacity: 0;
+            animation: fadeUp 1.2s ease-out forwards;
             pointer-events: none;
-            z-index: 50;
+            opacity: 0;
         }
         @keyframes fadeUp {
-            0 { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-40px); opacity: 0; }
+            0% { transform: translate(-50%, -30%) scale(0.5); opacity: 0; }
+            15% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            30% { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
+            100% { transform: translate(-50%, -90%) scale(1.0); opacity: 0; }
         }
 
         .shake { animation: shake 0.2s ease-in-out 2; }
@@ -833,7 +832,6 @@ function selectAnswer(selected) {
             updateCountdownUI();
             updateStatusBadges();
 
-            // 致命傷（HPが0）でも、まずは「次へ」ボタンを踏ませてメッセージを読ませる
             if (saveData.hp <= 0) {
                 setupNextButton(() => {
                     gameOver();
@@ -1022,7 +1020,6 @@ function processEndTurn() {
         document.getElementById("player-hp").innerText = saveData.hp;
         updateStatusBadges();
 
-        // 敵の強烈な攻撃でHPが0になった時も、一旦「次へ」ボタンで攻撃ログを読ませる
         if (saveData.hp <= 0) {
             document.getElementById("message").innerText = dotMsg + enemySkillMsg + `\n\nプレイヤーは力尽きた…`;
             setupNextButton(() => {
@@ -1050,12 +1047,34 @@ function processEndTurn() {
     }
 }
 
+// ド派手な特大ダメージポップアップ機能
 function popDamageEffect(target, amount) {
-    const parent = document.getElementById(target === 'monster' ? 'monster-area' : 'battle-box');
-    const pop = document.createElement("div"); pop.className = "damage-pop"; pop.innerText = `-${amount}`;
-    if (target === 'monster') { pop.style.color = "#ff3333"; pop.style.left = "50%"; pop.style.top = "30%"; }
-    else { pop.style.color = "#ffff33"; pop.style.left = "10%"; pop.style.top = "10%"; }
-    parent.appendChild(pop); setTimeout(() => { pop.remove(); }, 800);
+    const parent = document.getElementById('battle-box');
+    const pop = document.createElement("div"); 
+    pop.className = "damage-pop"; 
+    pop.innerText = `-${amount}`;
+    
+    // スタイルをJS側で完全に固定し、画面の真ん中の一番手前に強制表示
+    pop.style.position = "absolute";
+    pop.style.left = "50%";
+    pop.style.top = "40%";
+    pop.style.fontSize = "52px"; // 特大サイズ！
+    pop.style.fontWeight = "bold";
+    pop.style.fontFamily = "sans-serif";
+    pop.style.zIndex = "999"; // 他のすべての要素よりも手前に
+    // クッキリ見えるように4方向から太い黒のフチ取りを追加
+    pop.style.textShadow = "3px 3px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000";
+
+    if (target === 'monster') { 
+        pop.style.color = "#ff3333"; // 🔴 モンスターへのダメージは赤
+    } else { 
+        pop.style.color = "#ffff33"; // 🟡 プレイヤーのダメージは黄色
+    }
+    
+    parent.appendChild(pop); 
+    
+    // 1.2秒後に消去
+    setTimeout(() => { pop.remove(); }, 1200); 
 }
 
 function gameOver() {
