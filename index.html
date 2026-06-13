@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>英単語クエスト ソーシャル Max v7.5</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace, sans-serif;
+            margin: 0;
+            padding: 0;
+            padding-bottom: 70px;
+            touch-action: manipulation;
+        }
+        .header-status {
+            background-color: #111;
+            border-bottom: 2px solid #fff;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .game-window {
+            padding: 15px;
+            max-width: 450px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* クエスト選択画面 */
+        .quest-select-btn {
+            background-color: #111;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+        }
+        .quest-select-btn:active { background-color: #333; }
+
+        /* バトル画面 */
+        .battle-box { border: 4px solid #fff; border-radius: 5px; padding: 15px; position: relative; }
+        .monster-area { text-align: center; height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        .monster-graphic { font-size: 50px; }
+        
+        /* SPゲージ・ターンカウンター */
+        .sp-bar-container { background-color: #333; border: 1px solid #fff; height: 12px; border-radius: 6px; margin: 8px 0; overflow: hidden; position: relative; }
+        .sp-bar { background: linear-gradient(90deg, #ffcc00, #ff3366); height: 100%; width: 0%; transition: width 0.3s ease; }
+        .sp-text { position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: bold; line-height: 12px; color: #fff; text-shadow: 1px 1px #000; }
+
+        .turn-counter-badge {
+            background-color: #ff3333;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid #fff;
+        }
+
+        /* 状態異常・バフ表示バッジ */
+        .status-badges { display: flex; gap: 5px; margin-bottom: 8px; justify-content: center; font-size: 11px; font-weight: bold; flex-wrap: wrap; }
+        .badge-burn { background-color: #ff3300; color: #fff; padding: 2px 6px; border-radius: 3px; border: 1px solid #fff; }
+        .badge-guard { background-color: #3399ff; color: #fff; padding: 2px 6px; border-radius: 3px; border: 1px solid #fff; }
+        .badge-stun { background-color: #ffcc00; color: #000; padding: 2px 6px; border-radius: 3px; border: 1px solid #000; }
+
+        /* 必殺技ボタンエリア */
+        .skills-container { display: none; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 10px; }
+        .skill-btn { background-color: #220033; color: #ff99ff; border: 2px solid #ff99ff; padding: 8px 2px; font-size: 11px; font-weight: bold; border-radius: 4px; text-align: center; }
+        .skill-btn:active { background-color: #ff99ff; color: #000; }
+
+        .damage-pop {
+            position: absolute;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px #000;
+            animation: fadeUp 0.8s ease-out forwards;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+        @keyframes fadeUp {
+            0 { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-40px); opacity: 0; }
+        }
+
+        .shake { animation: shake 0.2s ease-in-out 2; }
+        @keyframes shake { 0% { transform: translateX(0); } 50% { transform: translateX(-10px); } 100% { transform: translateX(10px); } }
+        .message-window { border: 2px solid #fff; padding: 12px; height: 110px; margin-bottom: 15px; font-size: 14px; overflow-y: auto; line-height: 1.4; }
+        .choices-container { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .choice-btn { background-color: #000; color: #fff; border: 2px solid #fff; padding: 12px; font-size: 14px; text-align: left; border-radius: 5px; width: 100%; box-sizing: border-box; }
+        .choice-btn:active { background-color: #fff; color: #000; }
+
+        /* 装備・ガチャ */
+        .equip-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid #fff; padding: 10px; margin-bottom: 8px; background-color: #111; }
+        .equip-sub-btn { background-color: #fff; color: #000; border: none; padding: 5px 10px; font-weight: bold; border-radius: 3px; font-size: 12px; margin-left: 5px; }
+        .sell-btn { background-color: #333; color: #ff9999; border: 1px solid #ff6666; }
+        .gacha-result { border: 2px dashed #fff; padding: 15px; text-align: center; margin-top: 15px; font-size: 18px; display: none; background-color: #222; }
+
+        /* レア度別カラー */
+        .rarity-N { color: #ccc; }
+        .rarity-R { color: #3399ff; font-weight: bold; }
+        .rarity-SR { color: #cc66ff; font-weight: bold; }
+        .rarity-SSR { color: #ffcc00; font-weight: bold; }
+        .rarity-UR { color: #ff3366; font-weight: bold; text-shadow: 0 0 5px #ff3366; }
+
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background-color: #111; border-top: 3px solid #fff; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+        .nav-btn { background-color: #000; color: #aaa; border: 1px solid #444; padding: 8px 0; width: 30%; font-size: 14px; font-weight: bold; text-align: center; border-radius: 5px; }
+        .nav-btn.active { color: #fff; border: 2px solid #fff; background-color: #222; }
+    </style>
+</head>
+<body>
+
+    <div class="header-status">
+        <div>勇者 Lv.<span id="player-lv">1</span> (HP: <span id="player-hp">100</span>/100)</div>
+        <div>所持金: <span id="player-gold">100</span> G</div>
+    </div>
+
+    <div class="game-window">
+        
+        <div id="page-quest-hub" class="page active">
+            <h2>⚔️ クエスト選択</h2>
+            <p style="font-size:13px; color:#aaa; margin-bottom:20px;">正解を重ねてSPゲージを溜め、強力な必殺技を発動しよう！</p>
+           
+            <button class="quest-select-btn" onclick="startQuest('easy')">
+                <strong style="color:#00ff00;">【初級】スライムの森</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: 単語の意味（択一） / 報酬: 150G / 敵攻撃: 5ターンごと</span>
+            </button>
+
+            <button class="quest-select-btn" onclick="startQuest('normal')">
+                <strong style="color:#3399ff;">【中級】荒涼たる荒野</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: 意味 ＋ 穴埋め / 報酬: 400G / 敵攻撃: 5ターンごと</span>
+            </button>
+
+            <button class="quest-select-btn" onclick="startQuest('hard')">
+                <strong style="color:#ff9900;">【上級】狂気の火山</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: 穴埋め ＋ 例文英訳 / 報酬: 700G / 敵攻撃: 4ターンごと</span>
+            </button>
+
+            <button class="quest-select-btn" onclick="startQuest('inferno')">
+                <strong style="color:#ff3333;">【超上級】裏魔王の深淵</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: すべて例文英訳 / 報酬: 1000G / 敵攻撃: 4ターンごと</span>
+            </button>
+
+            <button class="quest-select-btn" onclick="startQuest('despair')">
+                <strong style="color:#cc66ff; text-shadow: 0 0 3px #cc66ff;">【絶望】神殺しの終焉</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: 最高難度例文英訳 / 報酬: 10000G / 敵攻撃: 3ターンごと</span>
+            </button>
+            
+            <button class="equip-sub-btn" style="background-color:#331111; color:#ff9999; border:1px solid #ff3333; width:100%; margin-top:30px; padding:10px;" onclick="resetAllData()">⚠️ セーブデータを完全に削除して最初から</button>
+        </div>
+
+        <div id="page-quest-battle" class="page">
+            <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+                <button class="equip-sub-btn" onclick="exitBattle()">🏳️ 逃げる</button>
+                <div class="turn-counter-badge">敵行動まで: <span id="enemy-turn-countdown">0</span></div>
+                <div style="font-size:13px;">敵HP: <strong id="enemy-hp" style="color:#ff3333;">30</strong></div>
+            </div>
+
+            <div class="status-badges" id="status-badges-area"></div>
+
+            <div class="sp-bar-container">
+                <div id="battle-sp-bar" class="sp-bar"></div>
+                <div class="sp-text">必殺技ゲージ SP: <span id="battle-sp-text">0</span>%</div>
+            </div>
+
+            <div id="skills-area" class="skills-container">
+                <button class="skill-btn" onclick="useUltimate('damage')">⚔️ギガスラッシュ<br>(3倍ダメ)</button>
+                <button class="skill-btn" onclick="useUltimate('heal')">🌿瞑想<br>(HP50回復)</button>
+                <button class="skill-btn" onclick="useUltimate('barrier')">🛡️聖なる守り<br>(1回無敵)</button>
+            </div>
+
+            <div class="battle-box" id="battle-box">
+                <div class="monster-area" id="monster-area">
+                    <div id="monster" class="monster-graphic">😈</div>
+                    <div id="monster-name">単語モンスター</div>
+                </div>
+                <div id="message" class="message-window">冒険が始まる…！</div>
+                <div class="choices-container" id="choices"></div>
+            </div>
+        </div>
+
+        <div id="page-equip" class="page">
+            <h2>🛡️ 装備・ステータス</h2>
+            <div style="border: 1px solid #fff; padding: 12px; background-color: #111; font-size: 14px; line-height: 1.6;">
+                <p style="margin: 3px 0;">⚔️ <strong>総攻撃力: <span id="total-atk" style="color:#ffcc00; font-size:16px;">10</span></strong> (基礎:<span id="base-atk">10</span> + 装備:<span id="gear-atk">0</span>)</p>
+                <p style="margin: 3px 0;">🛡️ <strong>総防御力: <span id="total-def" style="color:#00ccff; font-size:16px;">0</span></strong> (基礎:<span id="base-def">0</span> + 装備:<span id="gear-def">0</span>)</p>
+                <hr style="border-color: #333; margin: 8px 0;">
+                <p style="margin: 3px 0; font-size:13px; color:#ccc;">現在の武器: <strong id="current-weapon">ひのきのぼう</strong> <span id="current-weapon-plus" style="color:#ff3366;"></span></p>
+                <p style="margin: 3px 0; font-size:13px; color:#ccc;">現在の防具: <strong id="current-armor">ぬののふく</strong> <span id="current-armor-plus" style="color:#ff3366;"></span></p>
+            </div>
+
+            <h3 style="margin-top:20px;">🎒 どうぐ袋</h3>
+            <div class="equip-item">
+                <div><strong>🌿 やくそう</strong><br><span style="font-size:12px; color:#aaa;">所持数: <span id="item-yakuso-count">0</span> 個 (HPを50回復)</span></div>
+                <div><button class="equip-sub-btn" onclick="useYakuso()">使う</button></div>
+            </div>
+
+            <hr style="margin-top:25px;">
+            <h3>武器一覧</h3>
+            <div id="weapon-list"></div>
+            <h3 style="margin-top:20px;">防具一覧</h3>
+            <div id="armor-list"></div>
+        </div>
+
+        <div id="page-gacha" class="page">
+            <h2>💎 装備ガチャ</h2>
+            <p>1回引く： 100 G (被った装備は最大+5まで自動限界突破！)</p>
+            <button class="choice-btn" style="text-align:center;" onclick="drawGacha()">ガチャを引く (100G)</button>
+            
+            <div id="gacha-result" class="gacha-result"></div>
+            
+            <h3 style="margin-top:20px;">ガチャ確率リスト</h3>
+            <ul style="font-size:13px; color:#ccc; padding-left:20px; line-height: 1.6;">
+                <li style="color:#aaffaa;">🌿 やくそう (HP50回復) 【50%】</li>
+                <li class="rarity-UR">🌈 UR：天空のつるぎ / 天空のよろい 【各 0.5%】</li>
+                <li class="rarity-SSR">👑 SSR：ロトの剣 / ロトの鎧 / ひかりのつるぎ / みかがみの盾 【各 1.5%】</li>
+                <li class="rarity-SR">🔮 SR：はがねのつるぎ / はがねの鎧 / まどろみの剣 / まほうのよろい 【各 4.0%】</li>
+                <li class="rarity-R">🔷 R：鉄の剣 / 鉄の盾 / どうのつるぎ / かわのたて 【各 6.5%】</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="nav-bar">
+        <button id="btn-quest" class="nav-btn active" onclick="switchPage('quest-hub')">⚔️ クエスト</button>
+        <button id="btn-equip" class="nav-btn" onclick="switchPage('equip')">🛡️ 装備</button>
+        <button id="btn-gacha" class="nav-btn" onclick="switchPage('gacha')">💎 ガチャ</button>
+    </div>
+
+<script>
+const vocabulary = [
+    { w: "agree", j: "賛成する", ex: "I agree with your opinion.", tr: "私はあなたの意見に賛成する。", simW: ["argue", "apologize", "advise"], simJ: ["意見が一致する", "主張する", "文句を言う", "許す"] },
+    { w: "oppose", j: "～に反対する", ex: "oppose the plan", tr: "その計画に反対する", simW: ["offer", "apologize", "complain"], simJ: ["文句を言う", "責任があるとする", "言い訳", "否定する"] },
+    { w: "advise", j: "～に忠告する", ex: "advise him to stop", tr: "彼にやめるよう忠告する", simW: ["agree", "admire", "award"], simJ: ["提案する", "説明する", "推薦する", "主張する"] },
+    { w: "tip", j: "助言，ヒント", ex: "useful tips for travel", tr: "旅行のための役立つヒント", simW: ["tear", "talent", "technology"], simJ: ["技術", "才能", "能力", "秘密"] },
+    { w: "discuss", j: "～について話し合う", ex: "discuss the problem", tr: "その問題について話し合う", simW: ["describe", "discover", "develop"], simJ: ["説明する", "主張する", "文句を言う", "表現する"] },
+    { w: "blame", j: "～に責任があるとする", ex: "Don't blame me.", tr: "私の責任にするな。", simW: ["breathe", "ability", "claim"], simJ: ["反対する", "文句を言う", "許す", "謝る"] },
+    { w: "argue", j: "～と主張する", ex: "argue that he is right", tr: "彼は正しいと主張する", simW: ["agree", "artificial", "award"], simJ: ["話し合う", "説明する", "文句を言う", "提案する"] },
+    { w: "claim", j: "～を要求する，主張する", ex: "claim ownership", tr: "所有権を主張する", simW: ["create", "celebrate", "blame"], simJ: ["提案する", "説明する", "約束する", "証明する"] },
+    { w: "complain", j: "文句を言う", ex: "complain about the food", tr: "食べ物に文句を言う", simW: ["communicate", "celebrate", "explain"], simJ: ["謝る", "言い訳をする", "反対する", "苦痛を経験する"] },
+    { w: "offer", j: "～を申し出る", ex: "offer a job to her", tr: "彼女に仕事を申し出る", simW: ["oppose", "effort", "express"], simJ: ["提案する", "推薦する", "約束する", "与える"] },
+    { w: "suggest", j: "～を提案する", ex: "suggest a new plan", tr: "新しい計画を提案する", simW: ["suffer", "practice", "establish"], simJ: ["示唆する", "推薦する", "説明する", "主張する"] },
+    { w: "recommend", j: "～を推薦する", ex: "recommend this book", tr: "この本を推薦する", simW: ["research", "medicine", "manage"], simJ: ["提案する", "称賛する", "説明する", "確立する"] },
+    { w: "grateful", j: "感謝している", ex: "I am grateful to you.", tr: "私はあなたに感謝している。", simW: ["electric", "patient", "physical"], simJ: ["感心している", "忍耐強い", "お祝いを述べる", "満足している"] },
+    { w: "apologize", j: "謝る", ex: "apologize for the mistake", tr: "間違いを謝る", simW: ["agree", "argue", "admire"], simJ: ["言い訳をする", "許す", "文句を言う", "免除する"] },
+    { w: "excuse", j: "言い訳", ex: "make an excuse", tr: "言い訳をする", simW: ["exercise", "express", "explain"], simJ: ["許す", "嘘", "説明", "謝罪"] },
+    { w: "celebrate", j: "～を祝う", ex: "celebrate his birthday", tr: "彼の誕生日を祝う", simW: ["congratulate", "create", "describe"], simJ: ["（人）にお祝いを述べる", "挙行する", "称賛する", "歓迎する"] },
+    { w: "congratulate", j: "（人）を祝う", ex: "congratulate him on winning", tr: "彼の勝利を祝う", simW: ["celebrate", "communicate", "create"], simJ: ["特別な日を祝う", "称賛する", "感銘を与える", "お礼を言う"] },
+    { w: "admire", j: "～を称賛する", ex: "admire her talent", tr: "彼女の才能を称賛する", simW: ["advise", "argue", "impress"], simJ: ["感心する", "感銘を与える", "お祝いを述べる", "感謝している"] },
+    { w: "impress", j: "～に感銘を与える", ex: "impress the audience", tr: "観客に感銘を与える", simW: ["improve", "express", "invent"], simJ: ["感心させる", "称賛する", "表現する", "説明する"] },
+    { w: "award", j: "賞", ex: "win the Academy Award", tr: "アカデミー賞を受賞する", simW: ["argue", "agree", "ability"], simJ: ["罰", "目標", "成果", "手当"] },
+    { w: "explain", j: "～を説明する", ex: "explain the rules", tr: "ルールを説明する", simW: ["express", "excuse", "establish"], simJ: ["描写する", "主張する", "話し合う", "伝える"] },
+    { w: "describe", j: "～を説明する", ex: "describe the scene", tr: "その光景を説明する", simW: ["discuss", "discover", "develop"], simJ: ["特徴を述べる", "表現する", "研究する", "伝える"] },
+    { w: "communicate", j: "意思の疎通をはかる", ex: "communicate with gestures", tr: "身ぶりで意思の疎通をはかる", simW: ["complain", "celebrate", "condition"], simJ: ["伝える", "話し合う", "表現する", "繋がる"] },
+    { w: "express", j: "～を表現する", ex: "express my feelings", tr: "私の気持ちを表現する", simW: ["explain", "excuse", "exercise"], simJ: ["伝える", "説明する", "示唆する", "主張する"] },
+    { w: "promise", j: "約束", ex: "keep a promise", tr: "約束を守る", simW: ["produce", "practice", "patient"], simJ: ["秘密", "提案", "契約", "予定"] },
+    { w: "information", j: "情報", ex: "get useful information", tr: "役立つ情報を得る", simW: ["technology", "material", "medicine"], simJ: ["知識", "技術", "資料", "秘密"] },
+    { w: "technology", j: "科学技術", ex: "modern technology", tr: "現代の科学技術", simW: ["information", "material", "practice"], simJ: ["工業", "実験", "材料", "電子"] },
+    { w: "research", j: "学術研究", ex: "medical research", tr: "医学研究", simW: ["recommend", "explain", "discover"], simJ: ["実験", "調査", "開発", "勉強"] },
+    { w: "material", j: "材料，生地", ex: "raw material", tr: "原材料", simW: ["medicine", "medical", "physical"], simJ: ["資料", "道具", "製品", "物体"] },
+    { w: "artificial", j: "人工的な", ex: "artificial intelligence", tr: "人工知能", simW: ["electric", "physical", "medical"], simJ: ["現代の", "電気の", "芸術的な", "偽の"] },
+    { w: "electric", j: "電気の", ex: "an electric car", tr: "電気自動車", simW: ["artificial", "physical", "medical"], simJ: ["電子の", "人工的な", "自動の", "強力な"] },
+    { w: "invent", j: "～を発明する", ex: "invent a new machine", tr: "新しい機械を発明する", simW: ["improve", "discover", "develop"], simJ: ["開発する", "でっち上げる", "発見する", "生産する"] },
+    { w: "discover", j: "～を発見する", ex: "discover a new planet", tr: "新しい惑星を発見する", simW: ["describe", "discuss", "develop"], simJ: ["気がつく", "発明する", "研究する", "見つける"] },
+    { w: "develop", j: "～を開発する，発達させる", ex: "develop new products", tr: "新商品を開発する", simW: ["describe", "discover", "discuss"], simJ: ["発達する", "発展させる", "生産する", "確立する"] },
+    { w: "skill", j: "技術，力", ex: "improve cooking skills", tr: "料理の技術を磨く", simW: ["ability", "talent", "effort"], simJ: ["能力", "才能", "努力", "資格"] },
+    { w: "ability", j: "能力", ex: "ability to speak English", tr: "英語を話す能力", simW: ["skill", "talent", "effort"], simJ: ["技術", "才能", "体力", "知能"] },
+    { w: "talent", j: "才能", ex: "musical talent", tr: "音楽の才能", simW: ["patient", "skill", "ability"], simJ: ["能力", "技術", "天才", "努力"] },
+    { w: "effort", j: "努力", ex: "make an effort", tr: "努力する", simW: ["offer", "practice", "effect"], simJ: ["練習", "実践", "成果", "目的"] },
+    { w: "practice", j: "練習", ex: "daily practice", tr: "毎日の練習", simW: ["promise", "produce", "provide"], simJ: ["実践", "慣習", "努力", "運動"] },
+    { w: "achieve", j: "～を達成する", ex: "achieve the goal", tr: "目標を達成する", simW: ["manage", "improve", "create"], simJ: ["完成させる", "何とかして～する", "改善する", "成功する"] },
+    { w: "manage", j: "何とかして～する", ex: "manage to survive", tr: "何とか生き延びる", simW: ["material", "achieve", "improve"], simJ: ["経営する", "管理する", "達成する", "計画する"] },
+    { w: "improve", j: "～を改善する", ex: "improve the system", tr: "システムを改善する", simW: ["impress", "invent", "manage"], simJ: ["磨く", "よくなる", "発達させる", "修理する"] },
+    { w: "produce", j: "～を生産する", ex: "produce cars", tr: "車を生産する", simW: ["promise", "practice", "create"], simJ: ["産出する", "農作物", "開発する", "創造する"] },
+    { w: "create", j: "～を創造する", ex: "create a new job", tr: "新しい仕事を作り出す", simW: ["claim", "celebrate", "produce"], simJ: ["引き起こす", "生産する", "確立する", "発明する"] },
+    { w: "establish", j: "～を確立する", ex: "establish a company", tr: "会社を設立する", simW: ["suggest", "develop", "exercise"], simJ: ["定着させる", "設立する", "開発する", "創造する"] },
+    { w: "form", j: "～を形成する", ex: "form a line", tr: "列を形成する", simW: ["firm", "force", "from"], simJ: ["形態", "書式", "組織する", "計画する"] },
+    { w: "save", j: "～を省く，貯金する", ex: "save money", tr: "お金を貯金する", simW: ["suffer", "skill", "stress"], simJ: ["救う", "～を除いて", "残す", "集める"] },
+    { w: "medicine", j: "薬", ex: "take cold medicine", tr: "風邪薬を飲む", simW: ["medical", "material", "practice"], simJ: ["医学", "医療", "治療", "内科"] },
+    { w: "patient", j: "患者", ex: "a hospital patient", tr: "病院の患者", simW: ["talent", "practice", "physical"], simJ: ["忍耐強い", "医者", "看護師", "病気"] },
+    { w: "condition", j: "状態，状況", ex: "in good condition", tr: "良い状態で", simW: ["communicate", "medicine", "exercise"], simJ: ["容態", "条件", "環境", "健康"] },
+    { w: "medical", j: "医療の", ex: "medical care", tr: "医療ケア", simW: ["medicine", "physical", "artificial"], simJ: ["医学の", "身体的な", "健康の", "科学の"] },
+    { w: "stress", j: "ストレス", ex: "under heavy stress", tr: "強いストレスの下で", simW: ["strength", "suffer", "practice"], simJ: ["強調", "強調する", "疲労", "重圧"] },
+    { w: "suffer", j: "病気などで苦しむ", ex: "suffer from a headache", tr: "頭痛で苦しむ", simW: ["suggest", "offer", "stress"], simJ: ["経験する", "損害を受ける", "耐える", "痛む"] },
+    { w: "exercise", j: "運動", ex: "get enough exercise", tr: "十分な運動をする", simW: ["excuse", "express", "explain"], simJ: ["練習", "運動する", "行使する", "訓練"] },
+    { w: "breathe", j: "呼吸する", ex: "breathe deeply", tr: "深呼吸する", simW: ["blame", "practice", "suffer"], simJ: ["息をする", "生きる", "リラックスする", "止まる"] },
+    { w: "thirsty", j: "のどが渇いた", ex: "I am thirsty.", tr: "私はのどが渇いた。", simW: ["thirty", "talent", "suffer"], simJ: ["切望して", "飢えた", "疲れた", "熱い"] },
+    { w: "physical", j: "身体的な", ex: "physical health", tr: "身体的な健康", simW: ["medical", "artificial", "material"], simJ: ["物理的な", "医療の", "科学的な", "外見の"] },
+    { w: "fever", j: "体温の熱", ex: "have a high fever", tr: "高熱がある", simW: ["form", "effort", "breathe"], simJ: ["熱狂", "病気", "興奮", "頭痛"] },
+    { w: "strength", j: "体力，力", ex: "physical strength", tr: "体力", simW: ["stress", "skill", "talent"], simJ: ["力", "権力", "健康", "能力"] },
+    { w: "tear", j: "涙", ex: "eyes full of tears", tr: "涙でいっぱいの目", simW: ["tip", "talent", "technology"], simJ: ["引き裂く", "弱さ", "悲しみ", "叫び"] }
+];
+
+const questConfigs = {
+    easy: { name: "ちびスライム", emoji: "💧", hp: 35, atk: 12, gold: 150, maxTurns: 5 },
+    normal: { name: "魔導ドラキー", emoji: "🦇", hp: 80, atk: 25, gold: 400, maxTurns: 5 },
+    hard: { name: "激怒ゴーレム", emoji: "🧱", hp: 180, atk: 55, gold: 700, maxTurns: 4 },
+    inferno: { name: "破壊神・竜王", emoji: "🐉", hp: 500, atk: 160, gold: 1000, maxTurns: 4 },
+    despair: { name: "神殺しの終焉", emoji: "🌌", hp: 4000, atk: 400, gold: 10000, maxTurns: 3 }
+};
+
+const weaponMaster = {
+    "ひのきのぼう": { atk: 10, rarity: "N", price: 10 },
+    "鉄の剣": { atk: 22, rarity: "R", price: 30 },
+    "どうのつるぎ": { atk: 16, rarity: "R", price: 30 },
+    "はがねのつるぎ": { atk: 45, rarity: "SR", price: 80 },
+    "まどろみの剣": { atk: 32, rarity: "SR", price: 80 },
+    "ロトの剣": { atk: 80, rarity: "SSR", price: 200 },
+    "ひかりのつるぎ": { atk: 60, rarity: "SSR", price: 200 },
+    "天空のつるぎ": { atk: 110, rarity: "UR", price: 500 },
+    "スライムのぼう": { atk: 14, rarity: "R", price: 40 },
+    "するどいつるぎ": { atk: 23, rarity: "R", price: 80 },
+    "いわのつるぎ": { atk: 50, rarity: "SR", price: 150 },
+    "りゅうのつるぎ": { atk: 85, rarity: "SSR", price: 400 },
+    "はめつの杖": { atk: 999, rarity: "UR", price: 5000 }
+};
+
+const armorMaster = {
+    "ぬののふく": { def: 0, rarity: "N", price: 10 },
+    "鉄の盾": { def: 6, rarity: "R", price: 30 },
+    "かわのたて": { def: 3, rarity: "R", price: 30 },
+    "はがねの鎧": { def: 15, rarity: "SR", price: 80 },
+    "まほうのよろい": { def: 10, rarity: "SR", price: 80 },
+    "ロトの鎧": { def: 35, rarity: "SSR", price: 200 },
+    "みかがみの盾": { def: 25, rarity: "SSR", price: 200 },
+    "天空のよろい": { def: 45, rarity: "UR", price: 500 }
+};
+
+const dropConfigs = {
+    easy: { item: "スライムのぼう", chance: 0.10 },
+    normal: { item: "するどいつるぎ", chance: 0.07 },
+    hard: { item: "いわのつるぎ", chance: 0.05 },
+    inferno: { item: "りゅうのつるぎ", chance: 0.01 },
+    despair: { item: "はめつの杖", chance: 0.001 }
+};
+
+// 【重要】ブラウザを閉じても永続セーブされるlocalStorageに変更
+const SAVE_KEY = "word_rpg_permanent_v1";
+
+let saveData = {
+    lv: 1, hp: 100, gold: 100, yakuso: 2,
+    equippedWeapon: "ひのきのぼう", equippedArmor: "ぬののふく",
+    ownedWeapons: { "ひのきのぼう": 0 },
+    ownedArmors: { "ぬののふく": 0 }
+};
+
+if (localStorage.getItem(SAVE_KEY)) {
+    try {
+        saveData = JSON.parse(localStorage.getItem(SAVE_KEY));
+    } catch(e) {
+        console.error("セーブデータの読み込み失敗", e);
+    }
+}
+
+function getPlayerAtk() {
+    const baseAtk = 10 + (saveData.lv - 1) * 2;
+    const wName = saveData.equippedWeapon || "ひのきのぼう";
+    let gearAtk = weaponMaster[wName] ? weaponMaster[wName].atk : 10;
+    const plus = saveData.ownedWeapons[wName] || 0;
+    gearAtk = Math.floor(gearAtk * (1 + plus * 0.2));
+    return { total: baseAtk + gearAtk, base: baseAtk, gear: gearAtk, plus: plus };
+}
+
+function getPlayerDef() {
+    const baseDef = 0 + (saveData.lv - 1) * 1;
+    const aName = saveData.equippedArmor || "ぬののふく";
+    let gearDef = armorMaster[aName] ? armorMaster[aName].def : 0;
+    const plus = saveData.ownedArmors[aName] || 0;
+    gearDef = Math.floor(gearDef * (1 + plus * 0.2));
+    return { total: baseDef + gearDef, base: baseDef, gear: gearDef, plus: plus };
+}
+
+function saveGame() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    updateUI();
+}
+
+function resetAllData() {
+    if (confirm("本当に全てのセーブデータを消去して最初からやり直しますか？")) {
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+    }
+}
+
+function updateUI() {
+    document.getElementById("player-lv").innerText = saveData.lv;
+    document.getElementById("player-hp").innerText = saveData.hp;
+    document.getElementById("player-gold").innerText = saveData.gold;
+    document.getElementById("item-yakuso-count").innerText = saveData.yakuso || 0;
+
+    const atkInfo = getPlayerAtk();
+    const defInfo = getPlayerDef();
+    document.getElementById("total-atk").innerText = atkInfo.total;
+    document.getElementById("base-atk").innerText = atkInfo.base;
+    document.getElementById("gear-atk").innerText = atkInfo.gear;
+    
+    document.getElementById("total-def").innerText = defInfo.total;
+    document.getElementById("base-def").innerText = defInfo.base;
+    document.getElementById("gear-def").innerText = defInfo.gear;
+    document.getElementById("current-weapon").innerText = saveData.equippedWeapon;
+    document.getElementById("current-weapon-plus").innerText = atkInfo.plus > 0 ? `+${atkInfo.plus}` : '';
+    document.getElementById("current-armor").innerText = saveData.equippedArmor;
+    document.getElementById("current-armor-plus").innerText = defInfo.plus > 0 ? `+${defInfo.plus}` : '';
+    
+    renderInventory();
+}
+
+function useYakuso() {
+    if (!saveData.yakuso || saveData.yakuso <= 0) { alert("薬草がありません！"); return; }
+    if (saveData.hp >= 100) { alert("HPは満タンです！"); return; }
+    saveData.yakuso--;
+    saveData.hp = Math.min(100, saveData.hp + 50);
+    saveGame();
+    alert("🌿 やくそうを使ってHPを50回復した！");
+}
+
+function switchPage(pageName) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`page-${pageName}`).classList.add('active');
+    document.getElementById(`btn-${pageName === 'quest-battle' ? 'quest' : pageName}`).classList.add('active');
+    if(pageName === 'gacha') document.getElementById("gacha-result").style.display = "none";
+}
+
+function renderInventory() {
+    const wContainer = document.getElementById("weapon-list"); wContainer.innerHTML = "";
+    Object.keys(saveData.ownedWeapons).forEach(wName => {
+        if (!weaponMaster[wName]) return;
+        const item = document.createElement("div"); item.className = "equip-item";
+        const plus = saveData.ownedWeapons[wName];
+        const rClass = `rarity-${weaponMaster[wName].rarity}`;
+        const currentAtk = Math.floor(weaponMaster[wName].atk * (1 + plus * 0.2));
+        const sellPrice = Math.floor(weaponMaster[wName].price * (1 + plus * 0.5));
+
+        let actionHtml = saveData.equippedWeapon === wName ? `<span style="color:#ffcc00; font-size:12px;">E 装備中</span>` : `
+            <button class="equip-sub-btn" onclick="equipItem('weapon', '${wName}')">装備</button>
+            <button class="equip-sub-btn sell-btn" onclick="sellItem('weapon', '${wName}', ${sellPrice})">売 (${sellPrice}G)</button>
+        `;
+        item.innerHTML = `<div><strong class="${rClass}">[${weaponMaster[wName].rarity}] ${wName}${plus > 0 ? ' +'+plus : ''}</strong><br><span style="font-size:12px; color:#aaa;">攻撃力: ${currentAtk}</span></div><div>${actionHtml}</div>`;
+        wContainer.appendChild(item);
+    });
+
+    const aContainer = document.getElementById("armor-list"); aContainer.innerHTML = "";
+    Object.keys(saveData.ownedArmors).forEach(aName => {
+        if (!armorMaster[aName]) return;
+        const item = document.createElement("div"); item.className = "equip-item";
+        const plus = saveData.ownedArmors[aName];
+        const rClass = `rarity-${armorMaster[aName].rarity}`;
+        const currentDef = Math.floor(armorMaster[aName].def * (1 + plus * 0.2));
+        const sellPrice = Math.floor(armorMaster[aName].price * (1 + plus * 0.5));
+
+        let actionHtml = saveData.equippedArmor === aName ? `<span style="color:#00ccff; font-size:12px;">E 装備中</span>` : `
+            <button class="equip-sub-btn" onclick="equipItem('armor', '${aName}')">装備</button>
+            <button class="equip-sub-btn sell-btn" onclick="sellItem('armor', '${aName}', ${sellPrice})">売 (${sellPrice}G)</button>
+        `;
+        item.innerHTML = `<div><strong class="${rClass}">[${armorMaster[aName].rarity}] ${aName}${plus > 0 ? ' +'+plus : ''}</strong><br><span style="font-size:12px; color:#aaa;">防御力: ${currentDef}</span></div><div>${actionHtml}</div>`;
+        aContainer.appendChild(item);
+    });
+}
+
+function equipItem(type, name) {
+    if (type === 'weapon') saveData.equippedWeapon = name;
+    if (type === 'armor') saveData.equippedArmor = name;
+    saveGame();
+}
+
+function sellItem(type, name, price) {
+    if (saveData.equippedWeapon === name || saveData.equippedArmor === name) {
+        alert("装備中のアイテムは危険なため売却できません！他の装備に変更してから売却してください。");
+        return;
+    }
+    
+    if (!confirm(`${name} を ${price}G で売却しますか？`)) return;
+    
+    saveData.gold += price;
+
+    if (type === 'weapon') {
+        if (saveData.ownedWeapons[name] > 0) {
+            saveData.ownedWeapons[name]--;
+            alert(`${name} の強化値を1段階引き下げて売却しました。`);
+        } else {
+            delete saveData.ownedWeapons[name];
+            alert(`${name} をすべて売却しました。`);
+        }
+    } else if (type === 'armor') {
+        if (saveData.ownedArmors[name] > 0) {
+            saveData.ownedArmors[name]--;
+            alert(`${name} の強化値を1段階引き下げて売却しました。`);
+        } else {
+            delete saveData.ownedArmors[name];
+            alert(`${name} をすべて売却しました。`);
+        }
+    }
+    
+    saveGame();
+}
+
+function drawGacha() {
+    if (saveData.gold < 100) { alert("ゴールドが足りません！"); return; }
+    saveData.gold -= 100;
+    const rand = Math.random() * 100;
+    let reward = ""; let isYakuso = false; let rewardRarity = "N";
+    let breakNotice = "";
+    
+    if (rand < 50) {
+        isYakuso = true;
+        saveData.yakuso = (saveData.yakuso || 0) + 1; reward = "やくそう";
+    } else {
+        const gearRand = Math.random() * 50;
+        const isWeapon = Math.random() > 0.5;
+        if (isWeapon) {
+            if (gearRand < 0.5) { reward = "天空のつるぎ"; rewardRarity = "UR"; }
+            else if (gearRand < 2.0) { reward = "ロトの剣"; rewardRarity = "SSR"; }
+            else if (gearRand < 3.5) { reward = "ひかりのつるぎ"; rewardRarity = "SSR"; }
+            else if (gearRand < 7.5) { reward = "はがねのつるぎ"; rewardRarity = "SR"; }
+            else if (gearRand < 11.5) { reward = "まどろみの剣"; rewardRarity = "SR"; }
+            else if (gearRand < 18.0) { reward = "鉄の剣"; rewardRarity = "R"; }
+            else if (gearRand < 24.5) { reward = "どうのつるぎ"; rewardRarity = "R"; }
+            else { reward = "ひのきのぼう"; rewardRarity = "N"; }
+
+            if (saveData.ownedWeapons[reward] !== undefined) {
+                if (saveData.ownedWeapons[reward] < 5) {
+                    saveData.ownedWeapons[reward]++;
+                    breakNotice = `<br><span style="color:#ff3366; font-size:14px; font-weight:bold;">限界突破！強度 +${saveData.ownedWeapons[reward]} に強化！</span>`;
+                } else {
+                    breakNotice = `<br><span style="color:#aaa; font-size:12px;">（最大限界突破のため自動売却：+50G）</span>`;
+                    saveData.gold += 50;
+                }
+            } else { saveData.ownedWeapons[reward] = 0; }
+        } else {
+            if (gearRand < 0.5) { reward = "天空のよろい"; rewardRarity = "UR"; }
+            else if (gearRand < 2.0) { reward = "ロトの鎧"; rewardRarity = "SSR"; }
+            else if (gearRand < 3.5) { reward = "みかがみの盾"; rewardRarity = "SSR"; }
+            else if (gearRand < 7.5) { reward = "はがねの鎧"; rewardRarity = "SR"; }
+            else if (gearRand < 11.5) { reward = "まほうのよろい"; rewardRarity = "SR"; }
+            else if (gearRand < 18.0) { reward = "鉄の盾"; rewardRarity = "R"; }
+            else if (gearRand < 24.5) { reward = "かわのたて"; rewardRarity = "R"; }
+            else { reward = "ぬののふく"; rewardRarity = "N"; }
+
+            if (saveData.ownedArmors[reward] !== undefined) {
+                if (saveData.ownedArmors[reward] < 5) {
+                    saveData.ownedArmors[reward]++;
+                    breakNotice = `<br><span style="color:#ff3366; font-size:14px; font-weight:bold;">限界突破！強度 +${saveData.ownedArmors[reward]} に強化！</span>`;
+                } else {
+                    breakNotice = `<br><span style="color:#aaa; font-size:12px;">（最大限界突破のため自動売却：+50G）</span>`;
+                    saveData.gold += 50;
+                }
+            } else { saveData.ownedArmors[reward] = 0; }
+        }
+    }
+    saveGame();
+    const resultBox = document.getElementById("gacha-result"); resultBox.style.display = "block";
+    if(isYakuso) {
+        resultBox.innerHTML = `ガチャを引いた！<br><br><span style="color:#aaffaa; font-weight:bold; font-size:22px;">🌿 やくそう 🌿</span><br>を手に入れた！`;
+    } else {
+        const rClass = `rarity-${rewardRarity}`;
+        resultBox.innerHTML = `ガチャを引いた！<br><br><span class="${rClass}" style="font-size:22px;">🔮 ${reward} 🔮</span>${breakNotice}<br>を手に入れた！`;
+    }
+}
+
+let currentDifficulty = 'easy'; let enemyHp = 30; let currentQuiz = null;
+let isDead = false;
+let spGauge = 0;
+let hasBarrier = false;
+let currentTurnCount = 0;
+let enemyGuardTurns = 0;   
+let playerBurnTurns = 0;    
+let playerStunned = false;  
+
+function startQuest(difficulty) {
+    if (saveData.hp <= 0) { alert("HPが0です！教会で復活するか薬草を使ってください。"); return; }
+    currentDifficulty = difficulty; enemyHp = questConfigs[difficulty].hp; isDead = false;
+    spGauge = 0; hasBarrier = false;
+    currentTurnCount = 0; 
+    enemyGuardTurns = 0;
+    playerBurnTurns = 0;
+    playerStunned = false;
+
+    switchPage('quest-battle');
+    updateSpUI();
+    updateCountdownUI();
+    updateStatusBadges();
+    document.getElementById("enemy-hp").innerText = enemyHp;
+    document.getElementById("monster").innerText = questConfigs[difficulty].emoji;
+    document.getElementById("monster-name").innerText = questConfigs[difficulty].name;
+    document.getElementById("message").innerText = `${questConfigs[difficulty].name} が現れた！\n指定ターン経過で強烈な攻撃を仕掛けてくるぞ！`;
+    setTimeout(nextTurn, 1200);
+}
+
+function exitBattle() { switchPage('quest-hub'); }
+
+function updateSpUI() {
+    document.getElementById("battle-sp-text").innerText = spGauge;
+    document.getElementById("battle-sp-bar").style.width = `${spGauge}%`;
+    const skillArea = document.getElementById("skills-area");
+    skillArea.style.display = (spGauge >= 100) ? "grid" : "none";
+}
+
+function updateCountdownUI() {
+    const maxT = questConfigs[currentDifficulty].maxTurns;
+    const remaining = maxT - currentTurnCount;
+    document.getElementById("enemy-turn-countdown").innerText = remaining + " ターン";
+}
+
+function updateStatusBadges() {
+    const container = document.getElementById("status-badges-area");
+    container.innerHTML = "";
+    if (enemyGuardTurns > 0) container.innerHTML += `<div class="badge-guard">🛡️ 敵：鉄壁 (${enemyGuardTurns}T)</div>`;
+    if (playerBurnTurns > 0) container.innerHTML += `<div class="badge-burn">🔥 燃焼 (${playerBurnTurns}T)</div>`;
+    if (playerStunned) container.innerHTML += `<div class="badge-stun">😨 足すくみ (1T)</div>`;
+}
+
+function useUltimate(type) {
+    if (spGauge < 100 || isDead) return;
+    spGauge = 0;
+    updateSpUI();
+    if (type === 'damage') {
+        let baseDmg = getPlayerAtk().total;
+        let ultDmg = baseDmg * 3; 
+        if (playerStunned) ultDmg = Math.floor(ultDmg * 0.1);
+        if (enemyGuardTurns > 0) ultDmg = Math.floor(ultDmg * 0.5);
+        let d = Math.max(1, ultDmg);
+
+        enemyHp = Math.max(0, enemyHp - d);
+        document.getElementById("enemy-hp").innerText = enemyHp;
+        popDamageEffect('monster', d);
+        document.getElementById("monster").classList.add("shake");
+        document.getElementById("message").innerText = `必殺技：ギガスラッシュ！！！\n敵に ${d} の超絶ダメージ！！`;
+        
+        if (playerStunned) {
+            playerStunned = false;
+            updateStatusBadges();
+        }
+
+        setTimeout(() => {
+            document.getElementById("monster").classList.remove("shake");
+            if (enemyHp <= 0) {
+                document.getElementById("monster").innerText = "💥";
+                setTimeout(processEndTurn, 600);
+            }
+        }, 600);
+    } else if (type === 'heal') {
+        saveData.hp = Math.min(100, saveData.hp + 50);
+        document.getElementById("player-hp").innerText = saveData.hp;
+        document.getElementById("message").innerText = `必殺技：瞑想（めいそう）！\n自分のHPが 50 回復した！`;
+    } else if (type === 'barrier') {
+        hasBarrier = true;
+        document.getElementById("message").innerText = `必殺技：聖なる守り！\n光のバリアを展開！次の被ダメージを1回無効化する！`;
+    }
+}
+
+function nextTurn() {
+    if(isDead || document.getElementById('page-quest-battle').style.display === 'none') return;
+    if (enemyHp <= 0) { processEndTurn(); return; }
+    
+    const target = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+    let qTypes = [];
+    if (currentDifficulty === 'easy') qTypes = ["w2j", "j2w"];
+    else if (currentDifficulty === 'normal') qTypes = ["w2j", "j2w", "blank"];
+    else if (currentDifficulty === 'hard') qTypes = ["blank", "trans"];
+    else qTypes = ["trans"]; 
+
+    const currentType = qTypes[Math.floor(Math.random() * qTypes.length)];
+    let questionText = ""; let correctAnswer = ""; let choices = [];
+    if (currentType === "w2j") {
+        questionText = `【英 ⇒ 日】\n「 ${target.w} 」の意味は？`;
+        correctAnswer = target.j; choices = [correctAnswer, ...target.simJ.slice(0, 3)];
+    } else if (currentType === "j2w") {
+        questionText = `【日 ⇒ 英】\n「 ${target.j} 」にあたるのは？`;
+        correctAnswer = target.w; choices = [correctAnswer, ...target.simW.slice(0, 3)];
+    } else if (currentType === "blank") {
+        questionText = `【穴埋め】\n${target.ex.replace(new RegExp(target.w, "i"), "(  )")}\n(${target.tr})`;
+        correctAnswer = target.w; choices = [correctAnswer, ...target.simW.slice(0, 3)];
+    } else if (currentType === "trans") {
+        questionText = `【英訳】\n「 ${target.tr} 」は？`;
+        correctAnswer = target.ex;
+        choices = [correctAnswer, target.ex.replace(new RegExp(target.w, "i"), target.simW[0]), target.ex.replace(new RegExp(target.w, "i"), target.simW[1]), target.ex.replace(new RegExp(target.w, "i"), target.simW[2])];
+    }
+    currentQuiz = { answer: correctAnswer }; choices.sort(() => Math.random() - 0.5);
+    
+    if (playerStunned) {
+        document.getElementById("message").innerText = `【体がすくんでいる！与えるダメージ90%減少中！】\n${questionText}`;
+    } else {
+        document.getElementById("message").innerText = questionText;
+    }
+    
+    const container = document.getElementById("choices"); container.innerHTML = "";
+    choices.forEach(c => {
+        const btn = document.createElement("button"); btn.className = "choice-btn"; btn.innerText = `▶ ${c}`;
+        btn.onclick = () => selectAnswer(c); container.appendChild(btn);
+    });
+}
+
+function selectAnswer(selected) {
+    if(isDead) return;
+    currentTurnCount++;
+    
+    if (selected === currentQuiz.answer) {
+        let dmg = getPlayerAtk().total;
+        if (playerStunned) {
+            dmg = Math.floor(dmg * 0.1);
+            playerStunned = false; 
+        }
+        if (enemyGuardTurns > 0) dmg = Math.floor(dmg * 0.5);
+        let d = Math.max(1, dmg);
+
+        enemyHp = Math.max(0, enemyHp - d);
+        document.getElementById("enemy-hp").innerText = enemyHp;
+        popDamageEffect('monster', d);
+        spGauge = Math.min(100, spGauge + 25);
+        
+        updateSpUI();
+        updateCountdownUI();
+        document.getElementById("monster").classList.add("shake");
+        document.getElementById("message").innerText = `正解！ 敵に ${d} のダメージ！\nSPゲージが25%溜まった！`;
+        
+        setTimeout(() => {
+            document.getElementById("monster").classList.remove("shake");
+            if (enemyHp <= 0) document.getElementById("monster").innerText = "💥";
+            setTimeout(processEndTurn, 1000);
+        }, 600);
+    } else {
+        let penaltyDmg = 5;
+        if (hasBarrier) {
+            hasBarrier = false;
+            document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\nしかし、バリアがミスダメージを無効化した！`;
+        } else {
+            saveData.hp = Math.max(0, saveData.hp - penaltyDmg);
+            popDamageEffect('player', penaltyDmg);
+            document.getElementById("player-hp").innerText = saveData.hp;
+            document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\n解答ミスにより 5 の固定ダメージを受けた！`;
+        }
+        saveGame();
+        updateCountdownUI();
+        updateStatusBadges();
+        
+        setTimeout(() => { 
+            if (saveData.hp <= 0) gameOver(); 
+            else setTimeout(processEndTurn, 1000);
+        }, 800);
+    }
+}
+
+function processEndTurn() {
+    if (isDead) return;
+    
+    if (enemyHp <= 0) {
+        const config = questConfigs[currentDifficulty];
+        saveData.gold += config.gold; 
+        saveData.lv++;
+        saveData.hp = Math.min(100, saveData.hp + 20); 
+        
+        let dropMessage = "";
+        const dropConfig = dropConfigs[currentDifficulty];
+        if (dropConfig && Math.random() < dropConfig.chance) {
+            const dropWeapon = dropConfig.item;
+            if (saveData.ownedWeapons[dropWeapon] !== undefined) {
+                if (saveData.ownedWeapons[dropWeapon] < 5) {
+                    saveData.ownedWeapons[dropWeapon]++;
+                    dropMessage = `\n🎁限定武器「${dropWeapon}」がドロップ！限界突破で +${saveData.ownedWeapons[dropWeapon]} に強化！`;
+                } else {
+                    dropMessage = `\n🎁限定武器「${dropWeapon}」がドロップした（最大強化のため自動売却：+500G）`;
+                    saveData.gold += 500;
+                }
+            } else {
+                saveData.ownedWeapons[dropWeapon] = 0;
+                dropMessage = `\n🎁限定武器「${dropWeapon}」がドロップした！`;
+            }
+        }
+        saveGame();
+        document.getElementById("message").innerText = `${config.name}を完全に討伐した！\n💰 ${config.gold} Gを獲得！\n✨ レベルが ${saveData.lv} に上がり能力がアップした！` + dropMessage;
+        setTimeout(() => { switchPage('quest-hub'); }, 3000);
+        return;
+    }
+
+    let dotMsg = "";
+    if (playerBurnTurns > 0) {
+        saveData.hp = Math.max(0, saveData.hp - 15);
+        popDamageEffect('player', 15);
+        document.getElementById("player-hp").innerText = saveData.hp;
+        playerBurnTurns--;
+        dotMsg += `【燃焼】炎のダメージ！15のダメージを受けた！\n`;
+        saveGame();
+        
+        if (saveData.hp <= 0) {
+            updateStatusBadges();
+            setTimeout(gameOver, 1000);
+            return;
+        }
+    }
+
+    if (enemyGuardTurns > 0) enemyGuardTurns--;
+
+    const config = questConfigs[currentDifficulty];
+    if (currentTurnCount >= config.maxTurns) {
+        currentTurnCount = 0; 
+        updateCountdownUI();
+
+        let enemySkillMsg = "";
+        let bossAtk = config.atk;
+        const myDef = getPlayerDef().total;
+        let finalBossDmg = Math.max(1, bossAtk - myDef);
+        const actionRand = Math.random();
+
+        if (currentDifficulty === 'easy') {
+            enemySkillMsg = `💧 ちびスライムの「たいあたり」！\n`;
+            if (hasBarrier) {
+                hasBarrier = false; enemySkillMsg += `しかしバリアが攻撃を防いだ！`;
+            } else {
+                saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
+                popDamageEffect('player', finalBossDmg);
+                enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受けた！`;
+            }
+        } 
+        else if (currentDifficulty === 'normal') {
+            if (actionRand < 0.5) {
+                enemySkillMsg = `🦇 魔導ドラキーの「マホトーン」！不気味な光が包む！\n`;
+                if (hasBarrier) {
+                    hasBarrier = false; enemySkillMsg += `しかしバリアが不気味な光を弾き返した！`;
+                } else {
+                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
+                    popDamageEffect('player', finalBossDmg);
+                    enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受けた！`;
+                }
+            } else {
+                enemySkillMsg = `🦇 魔導ドラキーの「吸血」！体力を奪い取られた！\n`;
+                if (hasBarrier) {
+                    hasBarrier = false; enemySkillMsg += `しかしバリアが吸血を防いだ！`;
+                } else {
+                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
+                    popDamageEffect('player', finalBossDmg);
+                    enemyHp = Math.min(config.hp, enemyHp + Math.floor(finalBossDmg / 2));
+                    document.getElementById("enemy-hp").innerText = enemyHp;
+                    enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受け、敵のHPが回復した！`;
+                }
+            }
+        } 
+        else if (currentDifficulty === 'hard') {
+            if (actionRand < 0.5) {
+                enemySkillMsg = `🧱 激怒ゴーレムの大地揺らし！岩石が降り注ぐ！\n`;
+                if (hasBarrier) {
+                    hasBarrier = false; enemySkillMsg += `しかしバリアが岩石を防御した！`;
+                } else {
+                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
+                    popDamageEffect('player', finalBossDmg);
+                    enemySkillMsg += `プレイヤーは ${finalBossDmg} の大ダメージを受けた！`;
+                }
+            } else {
+                enemySkillMsg = `🧱 激怒ゴーレムはガチガチに身を固めた！\n`;
+                enemyGuardTurns = 5;
+                enemySkillMsg += `5ターンの間、モンスターに与えられるダメージが半減する！`;
+            }
+        } 
+        else if (currentDifficulty === 'inferno') {
+            if (actionRand < 0.5) {
+                enemySkillMsg = `🐉 破壊神・竜王の「獄炎ブレス」が炸裂！\n`;
+                if (hasBarrier) {
+                    hasBarrier = false; enemySkillMsg += `しかしバリアが極大の熱波を防ぎきった！`;
+                } else {
+                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
+                    popDamageEffect('player', finalBossDmg);
+                    playerBurnTurns = 3;
+                    enemySkillMsg += `プレイヤーは ${finalBossDmg} の激しいダメージを受け、さらに【燃焼状態】(3ターン)になった！`;
+                }
+            } else {
+                let tailDmg = Math.floor(finalBossDmg * 1.3);
+                enemySkillMsg = `🐉 破壊神・竜王の「しっぽをふりまわす」強烈な一撃！\n`;
+                if (hasBarrier) {
+                    hasBarrier = false; enemySkillMsg += `しかしバリアが攻撃を無効化した！`;
+                } else {
+                    saveData.hp = Math.max(0, saveData.hp - tailDmg);
+                    popDamageEffect('player', tailDmg);
+                    enemySkillMsg += `痛恨の一撃！ プレイヤーは ${tailDmg} の大ダメージを受けた！`;
+                }
+            }
+        } 
+        else if (currentDifficulty === 'despair') {
+            if (actionRand < 0.5) {
+                enemySkillMsg = `🌌 神殺しの終焉「世界の再構築」！！\n`;
+                if (hasBarrier) {
+                    hasBarrier = false; enemySkillMsg += `しかし聖なるバリアが消滅エネルギーを耐えきった！`;
+                } else {
+                    saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
+                    popDamageEffect('player', finalBossDmg);
+                    enemySkillMsg += `次元が歪む破壊！ プレイヤーは ${finalBossDmg} の壊滅的ダメージを受けた！`;
+                }
+            } else {
+                enemySkillMsg = `🌌 神殺しの終焉「虚無のオーラ」が勇者を圧迫する！\n`;
+                playerStunned = true;
+                if (hasBarrier) {
+                    hasBarrier = false; enemySkillMsg += `しかしバリアが威圧を完全に打ち消した！`;
+                    playerStunned = false;
+                } else {
+                    saveData.hp = Math.max(0, saveData.hp - 100);
+                    popDamageEffect('player', 100);
+                    enemySkillMsg += `100の固定ダメージを受け、恐怖で【足すくみ状態】(次の与ダメ90%カット)に陥った！`;
+                }
+            }
+        }
+
+        saveGame();
+        document.getElementById("player-hp").innerText = saveData.hp;
+        updateStatusBadges();
+
+        if (saveData.hp <= 0) {
+            document.getElementById("message").innerText = dotMsg + enemySkillMsg;
+            setTimeout(gameOver, 1500);
+            return;
+        }
+        document.getElementById("message").innerText = dotMsg + enemySkillMsg + `\n\n次の問題に備えよ！`;
+        setTimeout(nextTurn, 3000);
+        return;
+    }
+
+    updateCountdownUI();
+    updateStatusBadges();
+    if (dotMsg !== "") {
+        document.getElementById("message").innerText = dotMsg + "次の問題に備えよ！";
+        setTimeout(nextTurn, 1500);
+    } else {
+        nextTurn();
+    }
+}
+
+function popDamageEffect(target, amount) {
+    const parent = document.getElementById(target === 'monster' ? 'monster-area' : 'battle-box');
+    const pop = document.createElement("div"); pop.className = "damage-pop"; pop.innerText = `-${amount}`;
+    if (target === 'monster') { pop.style.color = "#ff3333"; pop.style.left = "50%"; pop.style.top = "30%"; }
+    else { pop.style.color = "#ffff33"; pop.style.left = "10%"; pop.style.top = "10%"; }
+    parent.appendChild(pop); setTimeout(() => { pop.remove(); }, 800);
+}
+
+function gameOver() {
+    isDead = true; document.getElementById("monster").innerText = "💀";
+    saveData.gold = Math.floor(saveData.gold / 2);
+    document.getElementById("message").innerText = `勇者は倒れた…所持金が半分になりました。`;
+    document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3333;" onclick="revivePlayer()">教会で復活する</button>`;
+}
+
+function revivePlayer() { isDead = false; saveData.hp = 100; saveGame(); switchPage('quest-hub'); }
+
+// 起動時処理
+updateUI();
+</script>
+</body>
+</html>
