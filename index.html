@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>英単語クエスト ソーシャル Max v7.5</title>
+    <title>LEAP QUEST</title>
     <style>
         body {
             background-color: #000;
@@ -360,7 +360,6 @@ if (localStorage.getItem(SAVE_KEY)) {
     }
 }
 
-// ① 1レベルにつきHP上限20増加
 function getPlayerMaxHp() {
     return 100 + (saveData.lv - 1) * 20;
 }
@@ -421,7 +420,7 @@ function updateUI() {
 }
 
 function useYakuso() {
-    if (isInBattle) return; // 戦闘中はタブが切り替わらないが安全策
+    if (isInBattle) return;
     if (!saveData.yakuso || saveData.yakuso <= 0) { alert("薬草がありません！"); return; }
     const maxHp = getPlayerMaxHp();
     if (saveData.hp >= maxHp) { alert("HPは満タンです！"); return; }
@@ -432,7 +431,6 @@ function useYakuso() {
 }
 
 function switchPage(pageName) {
-    // ⑤ 戦闘中に装備画面やガチャ画面に行けないように制限
     if (isInBattle && pageName !== 'quest-battle') {
         alert("戦闘中は他の画面に移動できません！「逃げる」か「討伐」してください。");
         return;
@@ -600,8 +598,8 @@ let currentTurnCount = 0;
 let enemyGuardTurns = 0;   
 let playerBurnTurns = 0;    
 let playerStunned = false;  
-let isInBattle = false; // ⑤ 戦闘中フラグ
-let battleNextAction = null; // ④ 次の行動を一時保存する変数
+let isInBattle = false;
+let battleNextAction = null;
 
 function startQuest(difficulty) {
     if (saveData.hp <= 0) { alert("HPが0です！教会で復活するか薬草を使ってください。"); return; }
@@ -622,21 +620,18 @@ function startQuest(difficulty) {
     document.getElementById("enemy-hp").innerText = enemyHp;
     document.getElementById("monster").innerText = questConfigs[difficulty].emoji;
     document.getElementById("monster-name").innerText = questConfigs[difficulty].name;
-    document.getElementById("btn-escape").disabled = false; // 逃げるボタン有効化
+    document.getElementById("btn-escape").disabled = false;
     
     document.getElementById("message").innerText = `${questConfigs[difficulty].name} が現れた！\n指定ターン経過で強烈な攻撃を仕掛けてくるぞ！`;
     
-    // 最初だけは次へボタンを挟まず自動展開
     nextTurn();
 }
 
-// ⑤ 逃げる行動の改修（10%の確率で失敗、1ターン消費）
 function exitBattle() {
     if (isDead) return;
-    document.getElementById("btn-escape").disabled = true; // 連打防止
+    document.getElementById("btn-escape").disabled = true;
     
     if (Math.random() < 0.10) {
-        // 逃走失敗
         currentTurnCount++;
         document.getElementById("message").innerText = "🏳️ 逃げ出そうとしたが、敵に回り込まれてしまった！\n(1ターンが経過した)";
         updateCountdownUI();
@@ -645,7 +640,6 @@ function exitBattle() {
             processEndTurn();
         });
     } else {
-        // 逃走成功
         isInBattle = false;
         updateNavBarState();
         switchPage('quest-hub');
@@ -656,7 +650,6 @@ function updateSpUI() {
     document.getElementById("battle-sp-text").innerText = spGauge;
     document.getElementById("battle-sp-bar").style.width = `${spGauge}%`;
     const skillArea = document.getElementById("skills-area");
-    // 次へボタンが出ている（battleNextActionがある）時はスキルを使えないように隠す
     skillArea.style.display = (spGauge >= 100 && !battleNextAction) ? "grid" : "none";
 }
 
@@ -674,10 +667,9 @@ function updateStatusBadges() {
     if (playerStunned) container.innerHTML += `<div class="badge-stun">😨 足すくみ (1T)</div>`;
 }
 
-// ④ ボタンエリアに「次へ」ボタンを設置する共通関数
 function setupNextButton(callbackAction) {
     battleNextAction = callbackAction;
-    updateSpUI(); // スキルボタンを一時的に隠す
+    updateSpUI();
     const container = document.getElementById("choices");
     container.innerHTML = "";
     const nextBtn = document.createElement("button");
@@ -723,7 +715,6 @@ function useUltimate(type) {
             if (enemyHp <= 0) {
                 document.getElementById("monster").innerText = "💥";
             }
-            // ④ 必殺技ダメージ後の「次へ」ボタン設置
             setupNextButton(() => {
                 processEndTurn();
             });
@@ -735,7 +726,6 @@ function useUltimate(type) {
         document.getElementById("message").innerText = `必殺技：瞑想（めいそう）！\n自分のHPが 50 回復した！`;
         saveGame();
         
-        // ④ 必殺技回復後の「次へ」ボタン設置
         setupNextButton(() => {
             nextTurn();
         });
@@ -743,7 +733,6 @@ function useUltimate(type) {
         hasBarrier = true;
         document.getElementById("message").innerText = `必殺技：聖なる守り！\n光のバリアを展開！次の被ダメージを1回無効化する！`;
         
-        // ④ 必殺技バリア後の「次へ」ボタン設置
         setupNextButton(() => {
             nextTurn();
         });
@@ -818,7 +807,6 @@ function selectAnswer(selected) {
         setTimeout(() => {
             document.getElementById("monster").classList.remove("shake");
             if (enemyHp <= 0) document.getElementById("monster").innerText = "💥";
-            // ④ 回答正解時の「次へ」ボタン設置
             setupNextButton(() => {
                 processEndTurn();
             });
@@ -828,26 +816,34 @@ function selectAnswer(selected) {
         if (hasBarrier) {
             hasBarrier = false;
             document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\nしかし、バリアがミスダメージを無効化した！`;
+            
+            saveGame();
+            updateCountdownUI();
+            updateStatusBadges();
+            setupNextButton(() => {
+                processEndTurn();
+            });
         } else {
             saveData.hp = Math.max(0, saveData.hp - penaltyDmg);
             popDamageEffect('player', penaltyDmg);
             document.getElementById("player-hp").innerText = saveData.hp;
             document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\n解答ミスにより 5 の固定ダメージを受けた！`;
-        }
-        saveGame();
-        updateCountdownUI();
-        updateStatusBadges();
-        
-        setTimeout(() => { 
+            
+            saveGame();
+            updateCountdownUI();
+            updateStatusBadges();
+
+            // 致命傷（HPが0）でも、まずは「次へ」ボタンを踏ませてメッセージを読ませる
             if (saveData.hp <= 0) {
-                gameOver(); 
+                setupNextButton(() => {
+                    gameOver();
+                });
             } else {
-                // ④ 回答ミス時の「次へ」ボタン設置
                 setupNextButton(() => {
                     processEndTurn();
                 });
             }
-        }, 800);
+        }
     }
 }
 
@@ -861,7 +857,6 @@ function processEndTurn() {
         const config = questConfigs[currentDifficulty];
         saveData.gold += config.gold; 
         
-        // ① 1レベル上がるごとにHP上限20増加、その時点でHPが7割を切っていたら7割まで回復
         saveData.lv++;
         const newMaxHp = getPlayerMaxHp();
         const borderHp = Math.floor(newMaxHp * 0.7);
@@ -889,7 +884,6 @@ function processEndTurn() {
         saveGame();
         document.getElementById("message").innerText = `${config.name}を完全に討伐した！\n💰 ${config.gold} Gを獲得！\n✨ レベルが ${saveData.lv} に上がり能力がアップした！(HP上限+20)` + dropMessage;
         
-        // ④ クエストクリア時の「次へ」ボタン（ハブへ戻る）
         setupNextButton(() => {
             switchPage('quest-hub');
         });
@@ -907,7 +901,10 @@ function processEndTurn() {
         
         if (saveData.hp <= 0) {
             updateStatusBadges();
-            gameOver();
+            document.getElementById("message").innerText = dotMsg + `\nプレイヤーは力尽きた…`;
+            setupNextButton(() => {
+                gameOver();
+            });
             return;
         }
     }
@@ -998,7 +995,6 @@ function processEndTurn() {
             }
         } 
         else if (currentDifficulty === 'despair') {
-            // ③ 名前を「虚構の騎士」に変更
             if (actionRand < 0.5) {
                 enemySkillMsg = `🌌 虚構の騎士「世界の再構築」！！\n`;
                 if (hasBarrier) {
@@ -1026,14 +1022,16 @@ function processEndTurn() {
         document.getElementById("player-hp").innerText = saveData.hp;
         updateStatusBadges();
 
+        // 敵の強烈な攻撃でHPが0になった時も、一旦「次へ」ボタンで攻撃ログを読ませる
         if (saveData.hp <= 0) {
-            document.getElementById("message").innerText = dotMsg + enemySkillMsg;
-            setTimeout(gameOver, 500);
+            document.getElementById("message").innerText = dotMsg + enemySkillMsg + `\n\nプレイヤーは力尽きた…`;
+            setupNextButton(() => {
+                gameOver();
+            });
             return;
         }
         
         document.getElementById("message").innerText = dotMsg + enemySkillMsg + `\n\n次の問題に備えよ！`;
-        // ④ 敵攻撃終了時の「次へ」ボタン設置
         setupNextButton(() => {
             nextTurn();
         });
@@ -1044,7 +1042,6 @@ function processEndTurn() {
     updateStatusBadges();
     if (dotMsg !== "") {
         document.getElementById("message").innerText = dotMsg + "次の問題に備えよ！";
-        // ④ ドットダメージ（燃焼）処理時の「次へ」ボタン設置
         setupNextButton(() => {
             nextTurn();
         });
@@ -1053,7 +1050,6 @@ function processEndTurn() {
     }
 }
 
-// ② ダメージポップアップの色改修（モンスターへ：赤、プレイヤーへ：黄）
 function popDamageEffect(target, amount) {
     const parent = document.getElementById(target === 'monster' ? 'monster-area' : 'battle-box');
     const pop = document.createElement("div"); pop.className = "damage-pop"; pop.innerText = `-${amount}`;
