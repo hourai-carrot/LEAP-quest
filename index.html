@@ -3,249 +3,627 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英単語 4択クイズゲーム</title>
+    <title>LEAP QUEST - Vocabulary RPG -</title>
     <style>
+        :root {
+            --bg-color: #0f172a;
+            --container-bg: #1e293b;
+            --primary-color: #38bdf8;
+            --text-color: #f8fafc;
+            --accent-color: #f43f5e;
+            --success-color: #10b981;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f0f4f8;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
         }
+
         .game-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
+            background-color: var(--container-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+        }
+
+        /* スクリーン管理 */
+        .screen {
+            display: none;
+            padding: 24px;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* タイトル画面 */
+        #start-screen {
+            text-align: center;
+            padding: 48px 24px;
+        }
+
+        .game-title {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
+        .game-subtitle {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 40px;
+        }
+
+        /* バトルステータス */
+        .battle-hud {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            background: rgba(0,0,0,0.2);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .character-status h3 {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .hp-bar-bg {
+            height: 12px;
+            background-color: #475569;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .hp-bar {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 100%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .hp-bar.danger {
+            background-color: var(--accent-color);
+        }
+
+        .hp-text {
+            font-size: 0.85rem;
+            text-align: right;
+            margin-top: 2px;
+            color: #cbd5e1;
+        }
+
+        /* バトルログ・演出 */
+        .battle-stage {
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, #0f172a, #1e293b);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .enemy-sprite {
+            font-size: 3.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 問題エリア */
+        .question-box {
+            background-color: rgba(15, 23, 42, 0.6);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .question-hint {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        /* 選択肢ボタン */
+        .choices-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: #334155;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 14px 20px;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #475569;
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #0f172a;
+            font-weight: bold;
             text-align: center;
         }
-        h1 { color: #333; margin-bottom: 20px; }
-        .word-display { font-size: 32px; font-weight: bold; color: #2b6cb0; margin-bottom: 10px; }
-        .sentence-display { font-size: 16px; color: #4a5568; margin-bottom: 25px; font-style: italic; min-height: 40px; }
-        .choices-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 25px; }
-        button {
-            padding: 12px 20px;
-            font-size: 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            background-color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            outline: none;
+
+        .btn-primary:hover {
+            background-color: #7dd3fc;
         }
-        button:hover { background-color: #ebf8ff; border-color: #bee3f8; }
-        .score-display { font-size: 18px; color: #718096; margin-top: 20px; }
-        .btn-control { background-color: #48bb78; color: white; border: none; margin-top: 15px; }
-        .btn-control:hover { background-color: #38a169; }
-        .audio-controls { margin-top: 15px; font-size: 14px; color: #718096; }
+
+        /* フィードバック & 解説 */
+        .feedback-box {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 10px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback-box.correct {
+            display: block;
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success-color);
+            color: #34d399;
+        }
+
+        .feedback-box.incorrect {
+            display: block;
+            background-color: rgba(244, 63, 94, 0.15);
+            border: 1px solid var(--accent-color);
+            color: #fb7185;
+        }
+
+        .commentary-text {
+            margin-top: 8px;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        /* 結果画面 */
+        .result-stats {
+            margin: 24px 0;
+            background-color: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="game-container">
-    <h1 id="title">英単語クイズ</h1>
-    <div id="game-zone">
-        <div class="word-display" id="word">Word</div>
-        <div class="sentence-display" id="sentence">Sentence</div>
-        <div class="choices-grid" id="choices"></div>
-        <div class="score-display" id="score">スコア: 0 / 0</div>
+    <div id="start-screen" class="screen active">
+        <h1 class="game-title">Leap Quest</h1>
+        <p class="game-subtitle">- Vocabulary RPG -</p>
+        <button class="btn btn-primary" onclick="startGame()">冒険に出る</button>
     </div>
-    <button id="restart-btn" class="btn-control" style="display:none;" onclick="restartGame()">もう一度挑戦する</button>
-    <div class="audio-controls">
-        🎵 BGM音量: <input type="range" id="volume" min="0" max="1" step="0.1" value="0.3" onchange="adjustVolume(this.value)">
+
+    <div id="battle-screen" class="screen">
+        <div class="battle-hud">
+            <div class="character-status">
+                <h3>Hero (Player)</h3>
+                <div class="hp-bar-bg">
+                    <div id="player-hp-bar" class="hp-bar"></div>
+                </div>
+                <div id="player-hp-text" class="hp-text">10 / 10</div>
+            </div>
+            <div class="character-status">
+                <h3 id="enemy-name">Monster</h3>
+                <div class="hp-bar-bg">
+                    <div id="enemy-hp-bar" class="hp-bar"></div>
+                </div>
+                <div id="enemy-hp-text" class="hp-text">5 / 5</div>
+            </div>
+        </div>
+
+        <div class="battle-stage">
+            <div id="enemy-avatar" class="enemy-sprite">😈</div>
+        </div>
+
+        <div class="question-box">
+            <div id="question-text" class="question-text"></div>
+            <div id="question-hint" class="question-hint"></div>
+        </div>
+
+        <div id="choices-container" class="choices-grid">
+            </div>
+
+        <div id="feedback-box" class="feedback-box">
+            <strong id="feedback-title">正解！</strong>
+            <div id="commentary-content" class="commentary-text"></div>
+            <button id="next-btn" class="btn btn-primary" style="margin-top: 16px; width: 100%;" onclick="advanceTurn()">次へ進む</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h2 class="game-title" style="font-size: 2rem; text-align: center;" id="result-title">Quest Clear!</h2>
+        <div class="result-stats">
+            <div class="result-row">
+                <span>倒したモンスター:</span>
+                <strong id="result-enemies">0 体</strong>
+            </div>
+            <div class="result-row">
+                <span>正解数:</span>
+                <strong id="result-score">0 / 0</strong>
+            </div>
+        </div>
+        <button class="btn btn-primary" style="width: 100%;" onclick="resetGame()">タイトルへ戻る</button>
     </div>
 </div>
 
-<audio id="bgm" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
-</audio>
-
 <script>
-// 写真5枚分（No.064〜125）の全データを完全格納
-const vocabulary = [
-  // --- 1枚目 (No.064 - 070) ---
-  { id: "064", word: "habit", meaning: "（個人の）習慣、癖", sentence: "have a habit of making excuses", translation: "言い訳をする癖がある", choices: ["（個人の）習慣、癖", "伝統", "法律", "社会"] },
-  { id: "065", word: "custom", meaning: "（社会的な）習慣、風習、税関", sentence: "show what is in my suitcase at customs", translation: "税関でスーツケースの中を見せる", choices: ["（社会的な）習慣、風習", "祖先", "人口", "伝統"] },
-  { id: "066", word: "tradition", meaning: "伝統、しきたり", sentence: "Japanese traditions", translation: "日本の伝統", choices: ["伝統、しきたり", "法律", "社会", "習慣"] },
-  { id: "067", word: "society", meaning: "社会、協会、団体", sentence: "women's status in society", translation: "社会での女性の地位", choices: ["社会、協会", "人口", "祖先", "風習"] },
-  { id: "068", word: "law", meaning: "法律、国法、法則", sentence: "Parking here is against the law.", translation: "ここでの駐車は法律違反だ。", choices: ["法律、国法", "伝統", "習慣", "社会"] },
-  { id: "069", word: "ancestor", meaning: "祖先、先祖", sentence: "My ancestors were French.", translation: "私の祖先はフランス人だった。", choices: ["祖先、先祖", "人口", "社会", "伝統"] },
-  { id: "070", word: "population", meaning: "人口、個体数", sentence: "The population of Tokyo is larger than that of Osaka.", translation: "東京の人口は大阪の人口より多い。", choices: ["人口、個体数", "祖先", "法律", "風習"] },
+    // --- 写真データから抽出した全62単語のデータベース ---
+    const quizData = [
+      // --- 1枚目・2枚目 ---
+      { word: "habit", meaning: "（個人の）習慣、癖", sentence: "have a habit of making excuses", translation: "言い訳をする癖がある" },
+      { word: "custom", meaning: "（社会的な）習慣、税関", sentence: "show what is in my suitcase at customs", translation: "税関でスーツケースの中を見せる" },
+      { word: "tradition", meaning: "伝統、しきたり", sentence: "Japanese traditions", translation: "日本の伝統" },
+      { word: "society", meaning: "社会、協会、団体", sentence: "women's status in society", translation: "社会での女性の地位" },
+      { word: "law", meaning: "法律、国法、法則", sentence: "Parking here is against the law.", translation: "ここでの駐車は法律違反だ。" },
+      { word: "ancestor", meaning: "祖先、先祖", sentence: "My ancestors were French.", translation: "私の祖先はフランス人だった。" },
+      { word: "population", meaning: "人口、個体数", sentence: "The population of Tokyo is larger than that of Osaka.", translation: "東京の人口は大阪の人口より多い。" },
+      { word: "native", meaning: "母国の、その土地の生まれの", sentence: "his native language", translation: "彼の母国語" },
+      { word: "abroad", meaning: "海外へ、海外で", sentence: "find a job abroad", translation: "海外で仕事を見つける" },
+      { word: "local", meaning: "その土地の、地元の", sentence: "talk with the locals", translation: "地元の人々と話す" },
+      { word: "survey", meaning: "調査、アンケート", sentence: "according to a recent survey", translation: "最近の調査によると" },
+      { word: "value", meaning: "価値、価格、価値観", sentence: "the value of the painting", translation: "その絵の価値" },
+      { word: "treasure", meaning: "財宝、宝、大事なもの", sentence: "a national treasure", translation: "国宝" },
+      { word: "fashion", meaning: "流行、ファッション、やり方", sentence: "follow the latest fashion", translation: "最新の流行を追う" },
+      { word: "public", meaning: "大衆の、公の、公共の", sentence: "public places", translation: "公共の場所" },
 
-  // --- 2枚目 (No.071 - 078) ---
-  { id: "071", word: "native", meaning: "母国の、その土地の生まれの", sentence: "his native language", translation: "彼の母国語", choices: ["母国の、その土地の", "海外の", "地元の", "大衆の"] },
-  { id: "072", word: "abroad", meaning: "海外へ、海外で", sentence: "find a job abroad", translation: "海外で仕事を見つける", choices: ["海外へ、海外で", "地元の", "流行の", "公共の"] },
-  { id: "073", word: "local", meaning: "その土地の、地元の、地方の", sentence: "talk with the locals", translation: "地元の人々と話す", choices: ["その土地の、地元の", "海外の", "母国の", "公共の"] },
-  { id: "074", word: "survey", meaning: "調査、アンケート", sentence: "according to a recent survey", translation: "最近の調査によると", choices: ["調査、アンケート", "価値", "財宝", "流行"] },
-  { id: "075", word: "value", meaning: "価値、価格、価値観", sentence: "the value of the painting", translation: "その絵の価値", choices: ["価値、価格", "財宝", "調査", "大衆"] },
-  { id: "076", word: "treasure", meaning: "財宝、宝、大事なもの", sentence: "a national treasure", translation: "国宝", choices: ["財宝、宝", "価値", "調査", "流行"] },
-  { id: "077", word: "fashion", meaning: "流行、ファッション、やり方", sentence: "follow the latest fashion", translation: "最新の流行を追う", choices: ["流行、ファッション", "公共の", "地元の", "海外の"] },
-  { id: "078", word: "public", meaning: "大衆の、公の、公共の", sentence: "public places", translation: "公共の場所", choices: ["大衆の、公の", "地元の", "母国の", "流行の"] },
+      // --- 3枚目（政治） ---
+      { word: "evidence", meaning: "証拠、根拠", sentence: "There is no evidence to support his story.", translation: "彼の話を裏づける証拠はない。" },
+      { word: "vote", meaning: "投票、投票権", sentence: "the right to vote", translation: "投票する権利" },
+      { word: "government", meaning: "政府、政権", sentence: "the Japanese government", translation: "日本政府" },
+      { word: "nation", meaning: "国家、国、国民", sentence: "the most powerful nation in the world", translation: "世界で一番力のある国" },
+      { word: "capital", meaning: "首都、資本、大文字", sentence: "What is the capital of Canada?", translation: "カナダの首都はどこですか。" },
+      { word: "state", meaning: "状態、国家、州", sentence: "the United States of America", translation: "アメリカ合衆国" },
+      { word: "political", meaning: "政治的な、政治の", sentence: "the political situation in Russia", translation: "ロシアの政治情勢" },
 
-  // --- 3枚目 (No.079 - 086) ---
-  { id: "079", word: "evidence", meaning: "証拠", sentence: "There is no evidence to support his story.", translation: "彼の話を裏付ける証拠はない。", choices: ["証拠", "投票", "政府", "国家"] },
-  { id: "080", word: "vote", meaning: "投票、投票する", sentence: "the right to vote", translation: "投票する権利", choices: ["投票、投票する", "政府", "首都", "状態"] },
-  { id: "081", word: "government", meaning: "政府、政治", sentence: "the Japanese government", translation: "日本政府", choices: ["政府、政治", "国家", "都市", "価格"] },
-  { id: "082", word: "nation", meaning: "国家、国民", sentence: "the most powerful nation in the world", translation: "世界で一番力のある国", choices: ["国家、国民", "政府", "政治的な", "証拠"] },
-  { id: "083", word: "capital", meaning: "首都、資本、大文字", sentence: "What is the capital of Canada?", translation: "カナダの首都はどこですか？", choices: ["首都、資本", "国家", "状態", "価格"] },
-  { id: "084", word: "state", meaning: "状態、国家、州", sentence: "the United States of America", translation: "アメリカ合衆国", choices: ["状態、国家、州", "首都", "政治的な", "投票"] },
-  { id: "085", word: "political", meaning: "政治的な、政治の", sentence: "the political situation in Russia", translation: "ロシアの政治情勢", choices: ["政治的な、政治の", "公の", "政府", "国家"] },
-  { id: "086", word: "price", meaning: "価格、物価、代償", sentence: "Prices have gone up by 5%.", translation: "物価が5%上がった。", choices: ["価格、物価", "予算", "料金", "経済"] },
+      // --- 4枚目（経済） ---
+      { word: "price", meaning: "価格、物価、代償", sentence: "Prices have gone up by 5%.", translation: "物価が5%上がった。" },
+      { word: "sum", meaning: "金額、合計、要約", sentence: "pay a large sum for antiques", translation: "骨とう品に大金を使う" },
+      { word: "budget", meaning: "予算、家計", sentence: "our budget for this trip", translation: "今回の旅の予算" },
+      { word: "fee", meaning: "料金、謝礼、授業料", sentence: "pay a cancellation fee", translation: "キャンセル料を払う" },
+      { word: "fare", meaning: "運賃（乗り物の）", sentence: "Taxi fares are low in Singapore.", translation: "シンガポールのタクシー料金は安い。" },
+      { word: "bill", meaning: "勘定書、請求書、紙幣", sentence: "the phone bill", translation: "電話代の請求書" },
+      { word: "trade", meaning: "貿易、商売、取引", sentence: "Japan's trade with the U.S.", translation: "日本の対米貿易" },
+      { word: "wealth", meaning: "富、財産、豊富", sentence: "achieve wealth and power", translation: "富と権力を手にする" },
+      { word: "economy", meaning: "経済、節約", sentence: "boost the Japanese economy", translation: "日本経済を活性化する" },
 
-  // --- 4枚目 (No.087 - 094) ---
-  { id: "087", word: "sum", meaning: "金額、合計、要約する", sentence: "pay a large sum for antiques", translation: "骨とう品に大金を使う", choices: ["金額、合計", "予算", "料金", "貿易"] },
-  { id: "088", word: "budget", meaning: "予算、家計", sentence: "our budget for this trip", translation: "今回の旅の予算", choices: ["予算、家計", "合計", "運賃", "財産"] },
-  { id: "089", word: "fee", meaning: "料金、謝礼", sentence: "pay a cancellation fee", translation: "キャンセル料を払う", choices: ["料金、謝礼", "運賃", "紙幣", "経済"] },
-  { id: "090", word: "fare", meaning: "運賃（乗り物の）", sentence: "Taxi fares are low in Singapore.", translation: "シンガポールのタクシー料金（運賃）は安い。", choices: ["運賃（乗り物の）", "料金", "予算", "金額"] },
-  { id: "091", word: "bill", meaning: "勘定、請求書、紙幣", sentence: "the phone bill", translation: "電話代の請求書", choices: ["勘定、請求書、紙幣", "運賃", "合計", "貿易"] },
-  { id: "092", word: "trade", meaning: "貿易、商売、交換する", sentence: "Japan's trade with the U.S.", translation: "日本の対米貿易", choices: ["貿易、商売", "財産", "経済", "金額"] },
-  { id: "093", word: "wealth", meaning: "富、財産、豊富な〜", sentence: "achieve wealth and power", translation: "富と権力を手にする", choices: ["富、財産", "予算", "紙幣", "料金"] },
-  { id: "094", word: "economy", meaning: "経済、節約", sentence: "boost the Japanese economy", translation: "日本経済を活性化する", choices: ["経済、節約", "貿易", "富", "勘定"] },
+      // --- 5枚目（仕事・損害） ---
+      { word: "cost", meaning: "費用、代償、犠牲", sentence: "The suit cost me 500 dollars.", translation: "そのスーツは私に500ドルした（かかった）。" },
+      { word: "company", meaning: "会社、同席すること、仲間", sentence: "work for a big company", translation: "大きな会社で働く" },
+      { word: "task", meaning: "仕事、任務、課題", sentence: "accomplish a difficult task", translation: "困難な仕事を成し遂げる" },
+      { word: "earn", meaning: "（お金を）稼ぐ、得る", sentence: "earn money to pay my school fees", translation: "学費を払うお金を稼ぐ" },
+      { word: "hurt", meaning: "痛む、傷つける", sentence: "My back hurts a lot.", translation: "腰がとても痛い。" },
+      { word: "injure", meaning: "〜を痛める、けがをさせる", sentence: "injure my back", translation: "腰を痛める" },
+      { word: "damage", meaning: "〜に損害を与える", sentence: "seriously damage the environment", translation: "環境に深刻な被害を与える" },
 
-  // --- 5枚目 (No.095 - 110) ---
-  { id: "095", word: "cost", meaning: "費用を要する、費用、代償", sentence: "That mistake cost me my fortune.", translation: "そのミスで財産を失った。", choices: ["費用を要する", "稼ぐ", "損害", "会社"] },
-  { id: "096", word: "company", meaning: "会社、同伴、仲間", sentence: "work for a big company", translation: "大きな会社で働く", choices: ["会社、同伴", "仕事", "祖先", "大衆"] },
-  { id: "097", word: "task", meaning: "仕事、任務", sentence: "accomplish a difficult task", translation: "困難な仕事を成し遂げる", choices: ["仕事、任務", "会社", "富", "費用"] },
-  { id: "098", word: "earn", meaning: "（金を）稼ぐ、得る", sentence: "earn money to pay my school fees", translation: "学費を払うお金を稼ぐ", choices: ["（金を）稼ぐ", "傷つける", "破壊する", "要する"] },
-  { id: "099", word: "hurt", meaning: "痛む、〜を痛める", sentence: "My back hurts a lot.", translation: "腰がとても痛い。", choices: ["痛む、〜を痛める", "破壊する", "損害を与える", "稼ぐ"] },
-  { id: "100", word: "injure", meaning: "〜にけがをさせる", sentence: "be seriously injured in an accident", translation: "事故で重傷を負う", choices: ["〜にけがをさせる", "痛める", "台無しにする", "滅ぼす"] },
-  { id: "101", word: "damage", meaning: "〜に損害を与える、損害", sentence: "do damage to the village", translation: "その村に被害を与える", choices: ["〜に損害を与える", "痛める", "稼ぐ", "仕事"] },
-  { id: "102", word: "destroy", meaning: "〜を破壊する、滅ぼす", sentence: "destroy all weapons", translation: "すべての武器を破壊する", choices: ["〜を破壊する", "損害を与える", "痛める", "台無しにする"] },
-  { id: "103", word: "ruin", meaning: "〜を台無しにする、破滅させる", sentence: "You ruined my plan.", translation: "君のせいで計画が台無しになった。", choices: ["〜を台無しにする", "破壊する", "けがをさせる", "費用がかかる"] },
-  { id: "104", word: "danger", meaning: "危険", sentence: "Tigers are in danger of extinction.", translation: "トラが絶滅の危機にある。", choices: ["危険", "損害", "富", "任務"] },
-  { id: "105", word: "neighbor", meaning: "近所の人、隣人", sentence: "chat with a neighbor", translation: "近所の人と話す", choices: ["近所の人、隣人", "観客", "群衆", "店員"] },
-  { id: "106", word: "audience", meaning: "聴衆、観客", sentence: "draw a large audience", translation: "大観衆を集める", choices: ["聴衆、観客", "群衆", "職員", "近所の人"] },
-  { id: "107", word: "crowd", meaning: "群衆、人混み", sentence: "A crowd rushed into the hall.", translation: "群衆が会場になだれ込んだ。", choices: ["群衆、人混み", "観客", "隣人", "著者"] },
-  { id: "108", word: "author", meaning: "著者、作者", sentence: "the author of War and Peace", translation: "『戦争と平和』の著者", choices: ["著者、作者", "職員", "店員", "仲間"] },
-  { id: "109", word: "staff", meaning: "職員、社員（全体）", sentence: "Most of the staff is from Australia.", translation: "職員の大半はオーストラリア出身です。", choices: ["職員、社員", "著者", "店員", "群衆"] },
-  { id: "110", word: "clerk", meaning: "店員、事務員", sentence: "the clerks at that department store", translation: "あのデパートの店員", choices: ["店員、事務員", "職員", "著者", "観客"] },
+      // --- 6枚目（破壊・人） ---
+      { word: "destroy", meaning: "〜を破壊する、滅ぼす", sentence: "destroy all weapons", translation: "すべての武器を破壊する" },
+      { word: "ruin", meaning: "〜を台無しにする、破滅させる", sentence: "You ruined my plan.", translation: "君のせいで計画が台無しだよ。" },
+      { word: "danger", meaning: "危険、脅威", sentence: "Tigers are in danger of extinction.", translation: "トラが絶滅の危機にある。" },
+      { word: "neighbor", meaning: "近所の人、隣人", sentence: "chat with a neighbor", translation: "近所の人と話す" },
+      { word: "audience", meaning: "聴衆、観客", sentence: "draw a large audience", translation: "大観衆を集める" },
+      { word: "crowd", meaning: "群衆、人混み", sentence: "A crowd rushed into the hall.", translation: "群衆が会場になだれ込んだ。" },
+      { word: "author", meaning: "著者、作者", sentence: "the author of War and Peace", translation: "『戦争と平和』の著者" },
+      { word: "staff", meaning: "職員、社員、スタッフ", sentence: "Most of the staff are from Australia.", translation: "職員の大半はオーストラリア出身です。" },
+      { word: "clerk", meaning: "店員、事務員", sentence: "the clerks at that department store", translation: "あのデパートの店員" },
 
-  // --- 6枚目 (No.111 - 125) ---
-  { id: "111", word: "customer", meaning: "客、顧客", sentence: "The restaurant was crowded with customers from abroad.", translation: "そのレストランは外国人客で混雑していた。", choices: ["客、顧客", "乗客", "女性", "お年寄り"] },
-  { id: "112", word: "passenger", meaning: "乗客", sentence: "There were a lot of passengers on the train.", translation: "列車には多くの乗客が乗っていた。", choices: ["乗客", "顧客", "店員", "隣人"] },
-  { id: "113", word: "elderly", meaning: "年配の、お年寄りの", sentence: "give up my seat to elderly people", translation: "お年寄りに席を譲る", choices: ["年配の、お年寄りの", "女性の", "近所の", "政治の"] },
-  { id: "114", word: "female", meaning: "女性の、雌の", sentence: "female workers", translation: "女性の労働者", choices: ["女性の、雌の", "年配の", "大衆の", "公の"] },
-  { id: "115", word: "head", meaning: "向かう、進む、頭", sentence: "head for the beach", translation: "海辺に向かう", choices: ["向かう、進む", "後に続く", "歩き回る", "移動する"] },
-  { id: "116", word: "follow", meaning: "〜の後に続いて行く、従う", sentence: "Someone was following me.", translation: "誰かが私をつけていた。", choices: ["続いて行く、従う", "向かう", "歩き回る", "旅行する"] },
-  { id: "117", word: "wander", meaning: "歩き回る、さまよう", sentence: "wander about the town", translation: "街をぶらぶら歩き回る", choices: ["歩き回る、さまよう", "向かう", "従う", "通過する"] },
-  { id: "118", word: "travel", meaning: "旅行する、移動する", sentence: "travel around the world", translation: "世界中を旅する", choices: ["旅行する、移動する", "さまよう", "合格する", "向かう"] },
-  { id: "119", word: "pass", meaning: "通り過ぎる、合格する、手渡す", sentence: "pass the post office", translation: "郵便局の前を通り過ぎる", choices: ["通り過ぎる、合格する", "向かう", "従う", "歩き回る"] },
-  { id: "120", word: "likely", meaning: "〜しそうだ、可能性が高い", sentence: "Things are likely to improve.", translation: "事態はよくなりそうだ。", choices: ["〜しそうだ", "当然の", "確かな", "おそらく"] },
-  { id: "121", word: "natural", meaning: "当然の、自然の、生まれつきの", sentence: "It is only natural that you cannot catch words you do not know.", translation: "知らない単語を聞き取れないのはごく当然のことだ。", choices: ["当然の、自然の", "しそうな", "確かな", "おそらく"] },
-  { id: "122", word: "certain", meaning: "確かな、ある〜", sentence: "He is certain to become a star player.", translation: "彼はきっとスター選手になるよ。", choices: ["確かな、ある〜", "しそうな", "当然の", "避ける"] },
-  { id: "123", word: "probably", meaning: "おそらく、たぶん", sentence: "The repairs will probably take a month.", translation: "修理はおそらく1か月はかかるだろう。", choices: ["おそらく、たぶん", "確かに", "当然に", "しそうに"] },
-  { id: "124", word: "face", meaning: "〜に直面する、向き合う、顔", sentence: "We are faced with a crisis.", translation: "私たちは危機に直面している。", choices: ["〜に直面する", "避ける", "向かう", "痛む"] },
-  { id: "125", word: "avoid", meaning: "〜を避ける、回避する", sentence: "Avoid making eye contact with monkeys.", translation: "サルとは目を合わせないようにしなさい。", choices: ["〜を避ける、回避する", "直面する", "向かう", "破壊する"] }
-];
+      // --- 7枚目（移動） ---
+      { word: "customer", meaning: "客、顧客", sentence: "The restaurant was crowded with customers from abroad.", translation: "そのレストランは外国人客で混雑していた。" },
+      { word: "passenger", meaning: "乗客", sentence: "There were a lot of passengers on the train.", translation: "列車には多くの乗客が乗っていた。" },
+      { word: "elderly", meaning: "年配の、高齢の", sentence: "give up my seat to elderly people", translation: "お年寄りに席を譲る" },
+      { word: "female", meaning: "女性の、雌の", sentence: "female workers", translation: "女性の労働者" },
+      { word: "head", meaning: "向かう、〜を率いる", sentence: "head for the beach", translation: "海辺に向かう" },
+      { word: "follow", meaning: "〜の後について行く、従う", sentence: "Someone was following me.", translation: "誰かが私をつけていた。" },
+      { word: "wander", meaning: "歩き回る、さまよう", sentence: "wander about the town", translation: "街をぶらぶら歩き回る" },
+      { word: "travel", meaning: "旅行する、移動する", sentence: "travel around the world", translation: "世界中を旅する" },
 
-let currentQuestionIndex = 0;
-let score = 0;
-let shuffledVocabulary = [];
-const bgm = document.getElementById('bgm');
+      // --- 8枚目（確実性・直面） ---
+      { word: "pass", meaning: "通り過ぎる、合格する、手渡す", sentence: "pass the post office", translation: "郵便局の前を通り過ぎる" },
+      { word: "likely", meaning: "〜しそうだ、可能性が高い", sentence: "Things are likely to improve.", translation: "事態はよくなりそうだ。" },
+      { word: "natural", meaning: "当然の、自然の、生まれながらの", sentence: "It is only natural that you cannot catch words you do not know.", translation: "知らない単語を聞き取れないのはごく当然のことだ。" },
+      { word: "certain", meaning: "確かな、一定の", sentence: "He is certain to become a star player.", translation: "彼はきっとスター選手になるよ。" },
+      { word: "probably", meaning: "おそらく、たぶん", sentence: "The repairs will probably take a month.", translation: "修理はおそらく1か月はかかるだろう。" },
+      { word: "face", meaning: "〜に直面する、向きである", sentence: "We are faced with a crisis.", translation: "私たちは危機に直面している。" },
+      { word: "avoid", meaning: "〜を避ける", sentence: "Avoid making eye contact with monkeys.", translation: "サルとは目を合わせないようにしなさい（避ける）。" }
+    ];
 
-// 配列をシャッフルする関数
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[array[j]]] = [array[j], array[i]];
+    const enemies = [
+        { name: "スライムゴブリン", emoji: "🤢", maxHp: 3 },
+        { name: "シャドウバット", emoji: "🦇", maxHp: 4 },
+        { name: "マインゴーレム", emoji: "🤖", maxHp: 5 },
+        { name: "ダークナイト", emoji: "😈", maxHp: 6 },
+        { name: "レックスドラゴン", emoji: "🦖", maxHp: 8 }
+    ];
+
+    // ゲーム状態管理変数
+    let currentWordsPool = [];
+    let currentQuizIndex = 0;
+    let currentQuizItem = null;
+    
+    let playerHp = 15;
+    const playerMaxHp = 15;
+    let enemyHp = 0;
+    let enemyMaxHp = 0;
+    let defeatedEnemiesCount = 0;
+    let totalQuestionsAnswered = 0;
+    let correctAnswersCount = 0;
+
+    // 画面切り替え関数
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
     }
-    return array;
-}
 
-// ゲーム開始（BGMバグ修正：ユーザーが画面を操作した瞬間に新しく再生開始させる）
-function startGame() {
-    shuffledVocabulary = shuffleArray([...vocabulary]);
-    currentQuestionIndex = 0;
-    score = 0;
-    
-    document.getElementById('game-zone').style.display = 'block';
-    document.getElementById('restart-btn').style.display = 'none';
-    document.getElementById('title').innerText = "英単語クイズ";
-
-    // 【重要バグ修正】
-    // 曲を最初から確実に再生し直すため、一度 currentTime をリセットして play() を呼ぶ
-    bgm.currentTime = 0; 
-    bgm.play().catch(error => {
-        console.log("BGM自動再生のブロック対策:", error);
-    });
-
-    showQuestion();
-}
-
-// 問題を表示
-function showQuestion() {
-    const currentQuestion = shuffledVocabulary[currentQuestionIndex];
-    
-    // 単語の表示
-    document.getElementById('word').innerText = currentQuestion.word;
-    
-    // 例文と訳の表示
-    document.getElementById('sentence').innerHTML = `${currentQuestion.sentence}<br><span style="font-size:13px; color:#a0aec0; font-style:normal;">(${currentQuestion.translation})</span>`;
-    
-    // 選択肢の表示（毎回ランダムに並び替える）
-    const choicesContainer = document.getElementById('choices');
-    choicesContainer.innerHTML = '';
-    
-    const shuffledChoices = shuffleArray([...currentQuestion.choices]);
-    
-    shuffledChoices.forEach(choice => {
-        const button = document.createElement('button');
-        button.innerText = choice;
-        button.onclick = () => checkAnswer(choice, currentQuestion.meaning);
-        choicesContainer.appendChild(button);
-    });
-    
-    document.getElementById('score').innerText = `スコア: ${score} / ${currentQuestionIndex + 1}`;
-}
-
-// 答え合わせ
-function checkAnswer(selected, correct) {
-    if (selected === correct) {
-        alert("正解！ 🎉");
-        score++;
-    } else {
-        alert(`不正解... 😢\n正解は: 【${correct}】`);
+    // 配列のシャッフル
+    function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
     }
-    
-    currentQuestionIndex++;
-    
-    if (currentQuestionIndex < shuffledVocabulary.length) {
-        showQuestion();
-    } else {
-        endGame();
+
+    // ゲームスタート
+    function startGame() {
+        // 出題プールをランダムにシャッフルしてセット
+        currentWordsPool = shuffleArray(quizData);
+        currentQuizIndex = 0;
+        
+        // ステータス初期化
+        playerHp = playerMaxHp;
+        defeatedEnemiesCount = 0;
+        totalQuestionsAnswered = 0;
+        correctAnswersCount = 0;
+
+        updatePlayerHpBar();
+        spawnEnemy();
+        showScreen('battle-screen');
+        loadNextQuestion();
     }
-}
 
-// ゲーム終了
-function endGame() {
-    document.getElementById('game-zone').style.display = 'none';
-    document.getElementById('restart-btn').style.display = 'inline-block';
-    document.getElementById('title').innerText = `ゲームクリア！\n最終スコア: ${score} / ${vocabulary.length}`;
-    
-    // ゲームが終わったらBGMを一時停止
-    bgm.pause();
-}
+    // モンスターの出現
+    function spawnEnemy() {
+        // エネミーリストからランダムで選択、後半ほどHPが高くなるように少し調整も可能
+        const baseEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+        document.getElementById('enemy-name').textContent = baseEnemy.name;
+        document.getElementById('enemy-avatar').textContent = baseEnemy.emoji;
+        
+        enemyMaxHp = baseEnemy.maxHp;
+        enemyHp = enemyMaxHp;
+        updateEnemyHpBar();
+    }
 
-// もう一度挑戦するボタンの処理
-function restartGame() {
-    startGame();
-}
+    // HPバーの更新
+    function updatePlayerHpBar() {
+        const percent = Math.max(0, (playerHp / playerMaxHp) * 100);
+        const bar = document.getElementById('player-hp-bar');
+        bar.style.width = percent + '%';
+        document.getElementById('player-hp-text').textContent = `${playerHp} / ${playerMaxHp}`;
+        
+        if (percent <= 30) bar.classList.add('danger');
+        else bar.classList.remove('danger');
+    }
 
-// 音量調整
-function adjustVolume(val) {
-    bgm.volume = val;
-}
+    function updateEnemyHpBar() {
+        const percent = Math.max(0, (enemyHp / enemyMaxHp) * 100);
+        const bar = document.getElementById('enemy-hp-bar');
+        bar.style.width = percent + '%';
+        document.getElementById('enemy-hp-text').textContent = `${enemyHp} / ${enemyMaxHp}`;
+    }
 
-// 初回起動時のイベント（画面のどこかをクリックしたらゲーム＆BGMスタート）
-window.addEventListener('click', function startOnFirstClick() {
-    startGame();
-    window.removeEventListener('click', startOnFirstClick);
-}, { once: true });
+    // クイズの読み込み
+    function loadNextQuestion() {
+        // フィードバック非表示
+        document.getElementById('feedback-box').style.display = 'none';
 
+        // 問題プールが尽きたら再シャッフルしてループ
+        if (currentQuizIndex >= currentWordsPool.length) {
+            currentWordsPool = shuffleArray(quizData);
+            currentQuizIndex = 0;
+        }
+
+        currentQuizItem = currentWordsPool[currentQuizIndex];
+        currentQuizIndex++;
+
+        // 例文のターゲット単語部分を `___` に置換して問題文を作成
+        // 大文字小文字（例: Prices など）や複数形、過去形にもなるべく対応できるように正規表現で部分置換
+        const targetWord = currentQuizItem.word;
+        const escapedWord = targetWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // 単語の語幹に近い部分でマッチさせる簡易的な正規表現
+        const regex = new RegExp(escapedWord.substring(0, Math.min(4, escapedWord.length)) + '[a-z]*', 'gi');
+        
+        let questionSentence = currentQuizItem.sentence.replace(regex, "___");
+        // 万が一置換されなかった場合のエスケープ処理
+        if (!questionSentence.includes("___")) {
+            questionSentence = questionSentence.replace(targetWord, "___");
+        }
+
+        document.getElementById('question-text').textContent = questionSentence;
+        document.getElementById('question-hint').textContent = `意味：${currentQuizItem.translation}`;
+
+        // 選択肢の生成（正解の日本語 + ダミーの日本語3つ）
+        let choices = [currentQuizItem.meaning];
+        
+        // ダミーをプールからランダムに3つ選ぶ
+        let dummyPool = quizData.filter(item => item.word !== currentQuizItem.word);
+        dummyPool = shuffleArray(dummyPool);
+        
+        for (let i = 0; i < 3 && i < dummyPool.length; i++) {
+            choices.push(dummyPool[i].meaning);
+        }
+        
+        // 選択肢をシャッフル
+        choices = shuffleArray(choices);
+
+        // ボタンの配置
+        const container = document.getElementById('choices-container');
+        container.innerHTML = '';
+        container.style.display = 'grid';
+
+        choices.forEach(choice => {
+            const button = document.createElement('button');
+            button.className = 'btn';
+            button.textContent = choice;
+            button.onclick = () => selectAnswer(choice, button);
+            container.appendChild(button);
+        });
+    }
+
+    // 選択肢をクリックしたとき
+    function selectAnswer(selectedChoice, selectedButton) {
+        // ボタンをすべて無効化
+        const buttons = document.querySelectorAll('#choices-container .btn');
+        buttons.forEach(b => b.disabled = true);
+
+        const isCorrect = (selectedChoice === currentQuizItem.meaning);
+        totalQuestionsAnswered++;
+
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const commentaryContent = document.getElementById('commentary-content');
+
+        if (isCorrect) {
+            correctAnswersCount++;
+            enemyHp -= 1; // モンスターに1ダメージ
+            updateEnemyHpBar();
+
+            feedbackBox.className = "feedback-box correct";
+            feedbackTitle.textContent = "⚔️ ATTACK SUCCESS !! (正解)";
+            selectedButton.style.borderColor = "var(--success-color)";
+            selectedButton.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
+        } else {
+            playerHp -= 2; // プレイヤーに2ダメージ
+            updatePlayerHpBar();
+
+            feedbackBox.className = "feedback-box incorrect";
+            feedbackTitle.textContent = "💥 PLAYER DAMAGED !! (不正解)";
+            selectedButton.style.borderColor = "var(--accent-color)";
+            selectedButton.style.backgroundColor = "rgba(244, 63, 94, 0.2)";
+        }
+
+        // 解説テキストの構築
+        commentaryContent.textContent = `【単語】 ${currentQuizItem.word} : ${currentQuizItem.meaning}\n【元の例文】 ${currentQuizItem.sentence}\n【例文の訳】 ${currentQuizItem.translation}`;
+        
+        // 選択肢を非表示にしてフィードバックを表示
+        document.getElementById('choices-container').style.display = 'none';
+        feedbackBox.style.display = 'block';
+    }
+
+    // ターンを進める（次へボタンを押した時）
+    function advanceTurn() {
+        if (enemyHp <= 0) {
+            // 敵を倒した場合
+            defeatedEnemiesCount++;
+            alert("モンスターを倒した！次のモンスターが現れた！");
+            spawnEnemy();
+            loadNextQuestion();
+        } else if (playerHp <= 0) {
+            // プレイヤーが倒された場合
+            endGame(false);
+        } else {
+            // バトル継続
+            loadNextQuestion();
+        }
+    }
+
+    // ゲーム終了
+    function endGame(isClear) {
+        const title = document.getElementById('result-title');
+        if (playerHp <= 0) {
+            title.textContent = "Game Over...";
+            title.style.color = "var(--accent-color)";
+        } else {
+            title.textContent = "Quest Clear!";
+            title.style.color = "var(--primary-color)";
+        }
+
+        document.getElementById('result-enemies').textContent = defeatedEnemiesCount + " 体";
+        document.getElementById('result-score').textContent = `${correctAnswersCount} / ${totalQuestionsAnswered} 問`;
+        
+        showScreen('result-screen');
+    }
+
+    // タイトルへ戻る
+    function resetGame() {
+        showScreen('start-screen');
+    }
 </script>
+
 </body>
 </html>
