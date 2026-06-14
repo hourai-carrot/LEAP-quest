@@ -351,7 +351,7 @@
 
     <div class="nav-bar">
         <button id="btn-quest" class="nav-btn active" onclick="switchPage('quest-hub')">⚔️ クエ</button>
-        <button id="btn-pvp" class="nav-btn" onclick="switchPage('pvp-hub')">⚔️ 対戦</button>
+        <button id="btn-pvp" class="nav-btn" onclick="switchPage('pvp-hub')">⚔️ 对戦</button>
         <button id="btn-equip" class="nav-btn" onclick="switchPage('equip')">🛡️ 装備</button>
         <button id="btn-gacha" class="nav-btn" onclick="switchPage('gacha')">💎 ガチャ</button>
         <button id="btn-setting" class="nav-btn" onclick="switchPage('setting')">⚙️ 設定</button>
@@ -359,18 +359,18 @@
 
 <script>
 // ==================== オーディオシステムの設定 ====================
-// 🌟 ファイル名をすべてあなたがアップロードした日本語名に完全統一しました！
+// 🌟 以前の「英語名」にすべて戻しました！対戦音楽だけ新曲として「battle_pvp.mp3」にしてあります！
 const audioFiles = {
-    normalBgm: '通常の画面で流す.mp3',
-    battleEasyNormalHard: '初級、中級、上級での戦闘BGM.mp3',
-    battleInferno: '超上級での戦闘BGM.mp3',
-    battleDespair: '虚構の騎士の戦闘で流す.mp3',
-    battlePvp: '対戦で流す.mp3', 
-    seDamageGive: 'ダメージを与えるSE.mp3',
-    seDamageTake: 'ダメージを受けるSE.mp3',
-    seGacha: 'ガチャを引いたときのSE.mp3',
-    seVictory: '勝利SE.mp3',
-    seGameOver: '全滅の時のSE.mp3'
+    normalBgm: 'normal_bgm.mp3',
+    battleEasyNormalHard: 'battle_easy.mp3',
+    battleInferno: 'battle_hard.mp3',
+    battleDespair: 'battle_boss.mp3',
+    battlePvp: 'battle_pvp.mp3', // 🌟 新曲：対戦用の英語ファイル名
+    seDamageGive: 'se_attack.mp3',
+    seDamageTake: 'se_damage.mp3',
+    seGacha: 'se_gacha.mp3',
+    seVictory: 'se_victory.mp3',
+    seGameOver: 'se_gameover.mp3'
 };
 
 let currentBgm = null;
@@ -427,7 +427,6 @@ function adjustVolume() {
     if (currentBgm) {
         currentBgm.volume = globalBgmVolume;
     }
-    // 音量設定を一時セーブデータ側に保存
     saveData.bgmVol = globalBgmVolume;
     saveData.seVol = globalSeVolume;
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
@@ -508,7 +507,6 @@ const questConfigs = {
 const weaponListKeys = ["ひのきのぼう", "鉄の剣", "どうのつるぎ", "はがねのつるぎ", "まどろみの剣", "ロトの剣", "ひかりのつるぎ", "天空のつるぎ", "スライムのぼう", "するどいつるぎ", "いわのつるぎ", "りゅうのつるぎ", "はめつの杖"];
 const armorListKeys = ["ぬののふく", "鉄の盾", "かわのたて", "はがねの鎧", "まほうのよろい", "ロトの鎧", "みかがみの盾", "天空のよろい"];
 
-// 🌟 名前用カスタムインデックス（ひらがな・カタカナ・英数字を数字列にマッピング）
 const nameChars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽぁぃぅぇぉっゃゅょーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポァィゥェォッャュョ0123456789abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";
 
 const weaponMaster = {
@@ -589,7 +587,6 @@ function getPlayerDef() {
     return { total: baseDef + gearDef, base: baseDef, gear: gearDef, plus: plus };
 }
 
-// 🌟 名前埋め込み対応版・対戦コード（パスコード）生成
 function generateMyPvpCode() {
     const lv = Math.min(999, saveData.lv);
     const wIdx = Math.max(0, weaponListKeys.indexOf(saveData.equippedWeapon));
@@ -600,21 +597,19 @@ function generateMyPvpCode() {
     const sLv = String(lv).padStart(3, '0'); 
     const sW = String(wIdx).padStart(2, '0') + String(wPlus); 
     const sA = String(aIdx).padStart(2, '0') + String(aPlus); 
-    let coreStr = sLv + sW + sA; // ステータス部分(9桁)
+    let coreStr = sLv + sW + sA;
 
-    // 名前の4文字分を3桁ずつの数字(文字コード)に変換して合体
     let pName = saveData.name || "勇者";
     for(let i=0; i<4; i++) {
         if(i < pName.length) {
             let idx = nameChars.indexOf(pName[i]);
-            if(idx === -1) idx = 0; // 該当なしは「あ」にする
+            if(idx === -1) idx = 0;
             coreStr += String(idx).padStart(3, '0');
         } else {
-            coreStr += "999"; // 空白埋め
+            coreStr += "999";
         }
-    } // ステータス9桁 + 名前12桁 = 計21桁
+    }
 
-    // 簡易チェックサム(下1桁)
     let sum = 0;
     for(let i=0; i<coreStr.length; i++) sum += parseInt(coreStr[i]);
     const checkDigit = sum % 10;
@@ -631,11 +626,9 @@ function copyMyPvpCode() {
     });
 }
 
-// 🌟 名前埋め込みコードのデコード
 function parseEnemyPvpCode(codeStr) {
-    if (!codeStr || codeStr.length !== 22) return null; // 21桁 + チェック1桁 = 22桁
+    if (!codeStr || codeStr.length !== 22) return null;
     
-    // チェックサム検証
     let sum = 0;
     for(let i=0; i<21; i++) sum += parseInt(codeStr[i]);
     const checkDigit = parseInt(codeStr[21]);
@@ -647,7 +640,6 @@ function parseEnemyPvpCode(codeStr) {
     const aIdx = parseInt(codeStr.substring(6, 8));
     const aPlus = parseInt(codeStr.substring(8, 9));
 
-    // 名前復元
     let enemyName = "";
     for(let i=0; i<4; i++) {
         let start = 9 + (i * 3);
@@ -661,7 +653,6 @@ function parseEnemyPvpCode(codeStr) {
     const wName = weaponListKeys[wIdx] || "ひのきのぼう";
     const aName = armorListKeys[aIdx] || "ぬののふく";
 
-    // ステータス算出
     const baseAtk = 10 + (lv - 1) * 2;
     let gearAtk = weaponMaster[wName] ? weaponMaster[wName].atk : 10;
     gearAtk = Math.floor(gearAtk * (1 + wPlus * 0.2));
@@ -676,7 +667,7 @@ function parseEnemyPvpCode(codeStr) {
 
     return {
         name: `${enemyName}(Lv.${lv})`,
-        maxHp: maxHp + 500, // 🌟 固定500ブースト
+        maxHp: maxHp + 500,
         atk: totalAtk,
         def: totalDef,
         weapon: wName,
@@ -734,7 +725,6 @@ function updateUI() {
     
     document.getElementById("my-pvp-code-display").innerText = generateMyPvpCode();
     
-    // 音量スライダー同期
     document.getElementById("volume-bgm").value = globalBgmVolume;
     document.getElementById("volume-se").value = globalSeVolume;
     document.getElementById("volume-bgm-text").innerText = Math.round(globalBgmVolume * 100) + "%";
@@ -974,13 +964,11 @@ function startPvpBattle() {
     playerStunned = false;
     battleNextAction = null;
 
-    // HP固定500ブースト
     pvpBattleMaxHpBackup = getPlayerMaxHp();
     saveData.hp = pvpBattleMaxHpBackup + 500; 
     enemyHp = pvpEnemyData.maxHp;
     enemyMaxHp = enemyHp;
 
-    // 🌟 対戦専用のBGMを再生
     playBgm('battlePvp');
 
     initBattleUI();
@@ -1092,7 +1080,6 @@ function useUltimate(type) {
         let ultDmg = baseDmg * 3; 
         if (playerStunned) ultDmg = Math.floor(ultDmg * 0.1);
         
-        // 通常モンスター戦のみガード適用、PvPは上限なし
         if (!isPvpMode && enemyGuardTurns > 0) ultDmg = Math.floor(ultDmg * 0.5);
         if (isPvpMode) ultDmg = ultDmg - pvpEnemyData.def;
         
@@ -1110,7 +1097,6 @@ function useUltimate(type) {
             document.getElementById("monster").classList.remove("shake");
             if (enemyHp <= 0) document.getElementById("monster").innerText = "💥";
             
-            // 🌟 PvP時は必殺技を放っても、そのターンの敵からの反撃が必ず発生する
             setupNextButton(() => { 
                 if(isPvpMode && enemyHp > 0) {
                     processPvpEnemyTurn();
@@ -1175,7 +1161,6 @@ function nextTurn() {
         questionText = `【穴埋め】\n${target.ex.replace(new RegExp(target.w, "i"), "(  )")}\n(${target.tr})`;
         correctAnswer = target.w; choices = [correctAnswer, ...target.simW.slice(0, 3)];
     } else if (currentType === "trans") {
-        questionText = `【英訳】\n「 ${target.tr} LIGHTNING」は？`;
         questionText = `【英訳】\n「 ${target.tr} 」は？`;
         correctAnswer = target.ex;
         choices = [correctAnswer, target.ex.replace(new RegExp(target.w, "i"), target.simW[0]), target.ex.replace(new RegExp(target.w, "i"), target.simW[1]), target.ex.replace(new RegExp(target.w, "i"), target.simW[2])];
@@ -1200,13 +1185,11 @@ function selectAnswer(selected) {
     currentTurnCount++;
     
     if (selected === currentQuiz.answer) {
-        // 【正解時】
         let dmg = getPlayerAtk().total;
         if (!isPvpMode) {
             if (playerStunned) { dmg = Math.floor(dmg * 0.1); playerStunned = false; }
             if (enemyGuardTurns > 0) dmg = Math.floor(dmg * 0.5);
         } else {
-            // PvP：ダメージ上限・減衰一切なしのガチンコ計算
             dmg = dmg - pvpEnemyData.def;
             if (playerStunned) { dmg = Math.floor(dmg * 0.1); playerStunned = false; }
         }
@@ -1227,7 +1210,6 @@ function selectAnswer(selected) {
             
             setupNextButton(() => { 
                 if(isPvpMode && enemyHp > 0) {
-                    // 🌟 PvP時は正解しても、相手ターン（通常攻撃）が毎回発生する本格ターン制
                     processPvpEnemyTurn();
                 } else {
                     processEndTurn(); 
@@ -1235,7 +1217,6 @@ function selectAnswer(selected) {
             });
         }, 600);
     } else {
-        // 【不正解（ミス）時】
         if (hasBarrier) {
             hasBarrier = false;
             document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\nしかし、光のバリアが相手の反撃を無効化した！`;
@@ -1246,7 +1227,6 @@ function selectAnswer(selected) {
             let counterMsg = `ミス！正解は「 ${currentQuiz.answer} 」\n5 の固定ダメージを受けた！`;
 
             if(isPvpMode) {
-                // PvP時はミスすると相手の攻撃をそのまま100%被弾（上限なしのカウンター）
                 penaltyDmg = Math.max(1, pvpEnemyData.atk - getPlayerDef().total);
                 counterMsg = `ミス！正解は「 ${currentQuiz.answer} 」\n隙を突かれ、相手のカウンター攻撃が直撃！\n${penaltyDmg} の大ダメージを受けた！`;
             }
@@ -1267,11 +1247,9 @@ function selectAnswer(selected) {
     }
 }
 
-// 🌟 PvP専用：毎ターン実行される敵勇者の攻撃処理
 function processPvpEnemyTurn() {
     if(enemyHp <= 0 || isDead) return;
 
-    // AI割り込み：HPが半分以下なら30%の確率で「瞑想」
     if (enemyHp < (enemyMaxHp / 2) && Math.random() < 0.30) {
         enemyHp = Math.min(enemyMaxHp, enemyHp + 50);
         document.getElementById("enemy-hp").innerText = enemyHp;
@@ -1280,7 +1258,6 @@ function processPvpEnemyTurn() {
         return;
     }
 
-    // 通常の通常攻撃ターン（上限なし）
     let enemyAtk = Math.max(1, pvpEnemyData.atk - getPlayerDef().total);
     
     if (hasBarrier) {
@@ -1354,7 +1331,6 @@ function processEndTurn() {
         return;
     }
 
-    // --- 通常クエストの敵行動処理 ---
     let dotMsg = "";
     if (playerBurnTurns > 0) {
         saveData.hp = Math.max(0, saveData.hp - 15);
@@ -1493,7 +1469,6 @@ function revivePlayer() {
     }
 }
 
-// 起動時処理
 updateUI();
 </script>
 </body>
