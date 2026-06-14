@@ -953,8 +953,8 @@ function startQuest(difficulty) {
     enemyHitCount = 0;
 
     if (['easy', 'normal', 'hard'].includes(difficulty)) playBgm('battleEasyNormalHard');
-    else if (difficulty === 'inferno') playBgm('battle_hard');
-    else if (difficulty === 'despair') playBgm('battle_boss');
+    else if (difficulty === 'inferno') playBgm('battleInferno');
+    else if (difficulty === 'despair') playBgm('battleDespair');
 
     initBattleUI();
     document.getElementById("monster").innerText = questConfigs[difficulty].emoji;
