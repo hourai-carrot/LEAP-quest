@@ -1530,7 +1530,8 @@ function revivePlayer() {
     isDead = false; 
     if(document.getElementById('page-quest-battle').style.display === 'block' && !isPvpMode) {
         // 通常バトル敗北時のみ教会復活
-        saveData.hp = getPlayerMaxHp(); 
+        playerHp = playerMaxHp; // ⭕ 実際のHPを満タン（MAX）にする！
+        updateUi();             // ⭕ 画面上のHPバーや数字の表示を最新にする！ 
         saveGame(); 
         switchPage('quest-hub'); 
     } else {
