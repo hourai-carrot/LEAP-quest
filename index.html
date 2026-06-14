@@ -157,7 +157,7 @@
         .equip-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid #fff; padding: 10px; margin-bottom: 8px; background-color: #111; }
         .equip-sub-btn { background-color: #fff; color: #000; border: none; padding: 5px 10px; font-weight: bold; border-radius: 3px; font-size: 12px; margin-left: 5px; }
         .sell-btn { background-color: #333; color: #ff9999; border: 1px solid #ff6666; }
-        .gacha-result { border: 2px dashed #fff; padding: 15px; text-align: left; margin-top: 15px; font-size: 14px; display: none; background-color: #111; max-height: 250px; overflow-y: auto; line-height: 1.5; }
+        .gacha-result { border: 2px dashed #fff; padding: 15px; text-align: center; margin-top: 15px; font-size: 18px; display: none; background-color: #222; }
 
         /* PvPコンポーネント */
         .pvp-card { border: 2px solid #00ffcc; border-radius: 6px; padding: 15px; background-color: #0a1110; margin-bottom: 20px; }
@@ -167,6 +167,8 @@
         .setting-row { margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 15px; }
         .setting-label { font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block; color: #00ffcc; }
         .setting-input-text { width: 100%; padding: 10px; font-size: 16px; background-color: #111; color: #fff; border: 1px solid #fff; border-radius: 4px; box-sizing: border-box; }
+        .volume-container { display: flex; align-items: center; gap: 10px; }
+        .volume-slider { flex-grow: 1; accent-color: #00ffcc; }
 
         /* レア度別カラー */
         .rarity-N { color: #ccc; }
@@ -190,7 +192,7 @@
     </div>
 
     <div class="header-status">
-        <div><span id="header-player-name">勇者</span> Lv.<span id="player-lv">1</span> (<span id="hp-label-ui">HP:</span> <strong id="player-hp-display-area" style="transition: color 0.3s;"><span id="player-hp">100</span>/<span id="player-max-hp">100</span></strong>)</div>
+        <div><span id="header-player-name">勇者</span> Lv.<span id="player-lv">1</span> (HP: <span id="player-hp">100</span>/<span id="player-max-hp">100</span>)</div>
         <div>所持金: <span id="player-gold">100</span> G</div>
     </div>
 
@@ -228,11 +230,11 @@
 
         <div id="page-pvp-hub" class="page">
             <h2>⚔️ 非同期対戦（PvP）</h2>
-            <p style="font-size:13px; color:#aaa; margin-bottom:20px;">お互いの最大HPに<strong style="color:#00ffcc;">固定で500プラス＆全回復</strong>された特別ルール！対戦が終了すると、最大HPも残り体力も対戦前の状態に完全に巻き戻ります。お気軽に挑戦しよう！</p>
+            <p style="font-size:13px; color:#aaa; margin-bottom:20px;">お互いの最大HPに<strong style="color:#00ffcc;">固定で500プラス</strong>された特別ルール！クイズの正解・不正解に関わらず、1問解くたびにお互い必ず攻撃し合う本格ターン制バトル！ダメージ制限なし！</p>
             
             <div class="pvp-card">
                 <h3 style="margin-top:0; color:#00ffcc;">① 自分の対戦コード</h3>
-                <p style="font-size:12px; color:#ccc;">あなたの今の強さ、名前、そしてあなたのクイズ正答率を埋め込んだコードです。たくさん正解するほど、友達の画面であなたが強くなります！</p>
+                <p style="font-size:12px; color:#ccc;">あなたの今の強さ、名前、そして**あなたのクイズ正答率**を埋め込んだコードです。たくさん正解するほど、友達の画面であなたが強くなります！</p>
                 <div style="display:flex; gap:10px; align-items:center;">
                     <div id="my-pvp-code-display" style="background:#000; padding:10px; border:1px solid #00ffcc; color:#00ffcc; font-weight:bold; font-size:15px; flex-grow:1; text-align:center; letter-spacing:1px; overflow-x:auto; white-space:nowrap;">------</div>
                     <button class="equip-sub-btn" style="background-color:#00ffcc; color:#000; padding:12px; font-size:12px;" onclick="copyMyPvpCode()">コピー</button>
@@ -298,10 +300,7 @@
             <h3 style="margin-top:20px;">🎒 どうぐ袋</h3>
             <div class="equip-item">
                 <div><strong>🌿 やくそう</strong><br><span style="font-size:12px; color:#aaa;">所持数: <span id="item-yakuso-count">0</span> 個 (HPを50回復)</span></div>
-                <div style="display: flex; flex-direction: column; gap: 5px;">
-                    <button class="equip-sub-btn" onclick="useYakuso()">1個使う</button>
-                    <button class="equip-sub-btn" style="background-color: #aaffaa; color:#000;" onclick="useYakusoMax()">上限まで使う</button>
-                </div>
+                <div><button class="equip-sub-btn" onclick="useYakuso()">使う</button></div>
             </div>
 
             <hr style="margin-top:25px;">
@@ -313,11 +312,8 @@
 
         <div id="page-gacha" class="page">
             <h2>💎 装備ガチャ</h2>
-            <p>被った装備は最大+5まで自動限界突破！最大時は自動換金されます。</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="choice-btn" style="text-align:center; padding: 15px 5px;" onclick="drawGacha(1)">単発ガチャ<br>(100G)</button>
-                <button class="choice-btn" style="text-align:center; border-color: #ffcc00; color: #ffcc00; padding: 15px 5px;" onclick="drawGacha(10)">🔥 10連ガチャ<br>(1000G)</button>
-            </div>
+            <p>1回引く： 100 G (被った装備は最大+5まで自動限界突破！)</p>
+            <button class="choice-btn" style="text-align:center;" onclick="drawGacha()">ガチャを引く (100G)</button>
             
             <div id="gacha-result" class="gacha-result"></div>
             
@@ -340,6 +336,22 @@
                 <input type="text" id="setting-name-input" class="setting-input-text" maxlength="4" placeholder="勇者" oninput="changePlayerName()">
             </div>
 
+            <div class="setting-row">
+                <label class="setting-label">🎵 BGM音量</label>
+                <div class="volume-container">
+                    <input type="range" id="volume-bgm" class="volume-slider" min="0" max="1" step="0.05" value="0.5" oninput="adjustVolume()">
+                    <span id="volume-bgm-text" style="font-size:14px; width:40px; text-align:right;">50%</span>
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <label class="setting-label">⚔️ SE(効果音)音量</label>
+                <div class="volume-container">
+                    <input type="range" id="volume-se" class="volume-slider" min="0" max="1" step="0.05" value="0.7" oninput="adjustVolume()">
+                    <span id="volume-se-text" style="font-size:14px; width:40px; text-align:right;">70%</span>
+                </div>
+            </div>
+
             <div class="setting-row" style="margin-top:40px; border-bottom:none;">
                 <button class="equip-sub-btn" style="background-color:#331111; color:#ff9999; border:1px solid #ff3333; width:100%; padding:12px;" onclick="resetAllData()">⚠️ セーブデータを完全に削除して最初から</button>
             </div>
@@ -349,7 +361,7 @@
 
     <div class="nav-bar">
         <button id="btn-quest" class="nav-btn active" onclick="switchPage('quest-hub')">⚔️ クエ</button>
-        <button id="btn-pvp" class="nav-btn" onclick="switchPage('pvp-hub')">⚔️ 对戦</button>
+        <button id="btn-pvp" class="nav-btn" onclick="switchPage('pvp-hub')">⚔️ 対戦</button>
         <button id="btn-equip" class="nav-btn" onclick="switchPage('equip')">🛡️ 装備</button>
         <button id="btn-gacha" class="nav-btn" onclick="switchPage('gacha')">💎 ガチャ</button>
         <button id="btn-setting" class="nav-btn" onclick="switchPage('setting')">⚙️ 設定</button>
@@ -357,6 +369,7 @@
 
 <script>
 // ==================== オーディオシステムの設定 ====================
+// 🌟 リアルタイム音量調節を組み込み完了！
 const audioFiles = {
     normalBgm: 'normal_bgm.mp3',
     battleEasyNormalHard: 'battle_easy.mp3',
@@ -412,6 +425,21 @@ function playSe(key) {
     const se = new Audio(audioFiles[key]);
     se.volume = globalSeVolume;
     se.play().catch(e => console.log("SE再生ブロック:", e));
+}
+
+function adjustVolume() {
+    globalBgmVolume = parseFloat(document.getElementById("volume-bgm").value);
+    globalSeVolume = parseFloat(document.getElementById("volume-se").value);
+    
+    document.getElementById("volume-bgm-text").innerText = Math.round(globalBgmVolume * 100) + "%";
+    document.getElementById("volume-se-text").innerText = Math.round(globalSeVolume * 100) + "%";
+    
+    if (currentBgm) {
+        currentBgm.volume = globalBgmVolume;
+    }
+    saveData.bgmVol = globalBgmVolume;
+    saveData.seVol = globalSeVolume;
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
 // ================================================================
 
@@ -488,6 +516,7 @@ const questConfigs = {
 
 const weaponListKeys = ["ひのきのぼう", "鉄の剣", "どうのつるぎ", "はがねのつるぎ", "まどろみの剣", "ロトの剣", "ひかりのつるぎ", "天空のつるぎ", "スライムのぼう", "するどいつるぎ", "いわのつるぎ", "りゅうのつるぎ", "はめつの杖"];
 const armorListKeys = ["ぬののふく", "鉄の盾", "かわのたて", "はがねの鎧", "まほうのよろい", "ロトの鎧", "みかがみの盾", "天空のよろい"];
+
 const nameChars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽぁぃぅぇぉっゃゅょーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポァィゥェォッャュョ0123456789abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";
 
 const weaponMaster = {
@@ -527,6 +556,7 @@ const dropConfigs = {
 
 const SAVE_KEY = "word_rpg_permanent_v1";
 
+// 🌟 セーブデータ構造に totalQuestions (総問題) と correctAnswers (正解数) を追加
 let saveData = {
     name: "勇者", lv: 1, hp: 100, gold: 100, yakuso: 2,
     equippedWeapon: "ひのきのぼう", equippedArmor: "ぬののふく",
@@ -554,8 +584,9 @@ function getPlayerMaxHp() {
     return 100 + (saveData.lv - 1) * 20;
 }
 
+// 🎯 自分の現在の命中率を計算する関数
 function getPlayerHitRate() {
-    if (saveData.totalQuestions === 0) return 100;
+    if (saveData.totalQuestions === 0) return 100; // 最初は100%
     return Math.round((saveData.correctAnswers / saveData.totalQuestions) * 100);
 }
 
@@ -577,6 +608,7 @@ function getPlayerDef() {
     return { total: baseDef + gearDef, base: baseDef, gear: gearDef, plus: plus };
 }
 
+// 🌟 対戦コード生成システムを25桁に拡張（命中率0〜100%の3桁を末尾に埋め込む）
 function generateMyPvpCode() {
     const lv = Math.min(999, saveData.lv);
     const wIdx = Math.max(0, weaponListKeys.indexOf(saveData.equippedWeapon));
@@ -600,9 +632,11 @@ function generateMyPvpCode() {
         }
     }
 
+    // 🎯 命中率(0〜100)を3桁固定で差し込む
     const myHitRate = getPlayerHitRate();
     coreStr += String(myHitRate).padStart(3, '0');
 
+    // チェックディジットの算出
     let sum = 0;
     for(let i=0; i<coreStr.length; i++) sum += parseInt(coreStr[i]);
     const checkDigit = sum % 10;
@@ -613,12 +647,13 @@ function generateMyPvpCode() {
 function copyMyPvpCode() {
     const code = generateMyPvpCode();
     navigator.clipboard.writeText(code).then(() => {
-        alert(`対戦コード「${code}」をコピーしました！`);
+        alert(`対戦コード「${code}」をコピーしました！友達に教えましょう！`);
     }).catch(() => {
-        alert(`コード: ${code}`);
+        alert(`コード: ${code} (手動で控えてください)`);
     });
 }
 
+// 🌟 解析側も25桁（命中率3桁＋チェック1桁）に対応
 function parseEnemyPvpCode(codeStr) {
     if (!codeStr || codeStr.length !== 25) return null;
     
@@ -643,7 +678,9 @@ function parseEnemyPvpCode(codeStr) {
     }
     if(enemyName === "") enemyName = "名無しの勇者";
 
+    // 🎯 コードから相手の命中率をぶっこ抜く
     const enemyHitRate = parseInt(codeStr.substring(21, 24));
+
     const wName = weaponListKeys[wIdx] || "ひのきのぼう";
     const aName = armorListKeys[aIdx] || "ぬののふく";
 
@@ -666,13 +703,17 @@ function parseEnemyPvpCode(codeStr) {
         def: totalDef,
         weapon: wName,
         armor: aName,
-        hitRate: enemyHitRate
+        hitRate: enemyHitRate // 🎯 相手の命中率をデータ化
     };
 }
 
 function changePlayerName() {
     const input = document.getElementById("setting-name-input").value.trim();
-    saveData.name = input.length > 0 ? input : "勇者";
+    if(input.length > 0) {
+        saveData.name = input;
+    } else {
+        saveData.name = "勇者";
+    }
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
     document.getElementById("header-player-name").innerText = saveData.name;
     document.getElementById("my-pvp-code-display").innerText = generateMyPvpCode();
@@ -690,10 +731,8 @@ function resetAllData() {
     }
 }
 
-// UI更新処理
 function updateUI() {
-    const maxHp = isPvpMode ? (getPlayerMaxHp() + 500) : getPlayerMaxHp();
-    
+    const maxHp = getPlayerMaxHp();
     document.getElementById("header-player-name").innerText = saveData.name || "勇者";
     document.getElementById("setting-name-input").value = saveData.name || "勇者";
     document.getElementById("player-lv").innerText = saveData.lv;
@@ -702,19 +741,7 @@ function updateUI() {
     document.getElementById("player-gold").innerText = saveData.gold;
     document.getElementById("item-yakuso-count").innerText = saveData.yakuso || 0;
 
-    // 🌟 ④ PvP対戦中のみ最大HP表示をブースト適用し色を水色に変える
-    const hpUiArea = document.getElementById("player-hp-display-area");
-    const hpLabelUi = document.getElementById("hp-label-ui");
-    if(isPvpMode) {
-        hpUiArea.style.color = "#00ffcc";
-        hpLabelUi.style.color = "#00ffcc";
-        hpLabelUi.innerText = "PvP HP:";
-    } else {
-        hpUiArea.style.color = "#fff";
-        hpLabelUi.style.color = "#fff";
-        hpLabelUi.innerText = "HP:";
-    }
-
+    // 📊 統計データのUI更新
     document.getElementById("stats-total-questions").innerText = saveData.totalQuestions;
     document.getElementById("stats-correct-answers").innerText = saveData.correctAnswers;
     document.getElementById("stats-hit-rate").innerText = getPlayerHitRate();
@@ -734,10 +761,15 @@ function updateUI() {
     document.getElementById("current-armor-plus").innerText = defInfo.plus > 0 ? `+${defInfo.plus}` : '';
     
     document.getElementById("my-pvp-code-display").innerText = generateMyPvpCode();
+    
+    document.getElementById("volume-bgm").value = globalBgmVolume;
+    document.getElementById("volume-se").value = globalSeVolume;
+    document.getElementById("volume-bgm-text").innerText = Math.round(globalBgmVolume * 100) + "%";
+    document.getElementById("volume-se-text").innerText = Math.round(globalSeVolume * 100) + "%";
+    
     renderInventory();
 }
 
-// 🌿 1個使う
 function useYakuso() {
     if (isInBattle) return;
     if (!saveData.yakuso || saveData.yakuso <= 0) { alert("薬草がありません！"); return; }
@@ -749,30 +781,9 @@ function useYakuso() {
     alert("🌿 やくそうを使ってHPを50回復した！");
 }
 
-// 🌿 🌟 ② 上限までいっきに薬草を使う
-function useYakusoMax() {
-    if (isInBattle) return;
-    if (!saveData.yakuso || saveData.yakuso <= 0) { alert("薬草がありません！"); return; }
-    const maxHp = getPlayerMaxHp();
-    if (saveData.hp >= maxHp) { alert("HPは満タンです！"); return; }
-
-    const neededHp = maxHp - saveData.hp;
-    let neededCount = Math.ceil(neededHp / 50); // 必要個数
-
-    // 持っている数より必要数が多い場合は、あるだけ全部使う
-    if (neededCount > saveData.yakuso) {
-        neededCount = saveData.yakuso;
-    }
-
-    saveData.yakuso -= neededCount;
-    saveData.hp = Math.min(maxHp, saveData.hp + (neededCount * 50));
-    saveGame();
-    alert(`🌿 やくそうを ${neededCount} 個いっきに使い、HPを満タンまで回復した！`);
-}
-
 function switchPage(pageName) {
     if (isInBattle && pageName !== 'quest-battle') {
-        alert("戦闘中は移動できません！");
+        alert("戦闘中は移動できません！「逃げる」か「討伐」してください。");
         return;
     }
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -787,18 +798,29 @@ function switchPage(pageName) {
     const targetBtn = document.getElementById(activeBtnId);
     if(targetBtn) targetBtn.classList.add('active');
     
-    if (['quest-hub', 'pvp-hub', 'equip', 'gacha', 'setting'].includes(pageName)) {
-        if (isInBattle && isPvpMode) playBgm('battlePvp');
-        else playBgm('normalBgm');
+    if (pageName === 'quest-hub' || pageName === 'pvp-hub' || pageName === 'equip' || pageName === 'gacha' || pageName === 'setting') {
+        if (isInBattle && isPvpMode) {
+            playBgm('battlePvp');
+        } else {
+            playBgm('normalBgm');
+        }
     }
     if(pageName === 'gacha') document.getElementById("gacha-result").style.display = "none";
 }
 
 function updateNavBarState() {
-    const disabledState = isInBattle;
-    document.getElementById("btn-equip").disabled = disabledState;
-    document.getElementById("btn-gacha").disabled = disabledState;
-    document.getElementById("btn-setting").disabled = disabledState;
+    const btnEquip = document.getElementById("btn-equip");
+    const btnGacha = document.getElementById("btn-gacha");
+    const btnSetting = document.getElementById("btn-setting");
+    if (isInBattle) {
+        btnEquip.disabled = true;
+        btnGacha.disabled = true;
+        btnSetting.disabled = true;
+    } else {
+        btnEquip.disabled = false;
+        btnGacha.disabled = false;
+        btnSetting.disabled = false;
+    }
 }
 
 function renderInventory() {
@@ -852,84 +874,78 @@ function sellItem(type, name, price) {
     saveData.gold += price;
 
     if (type === 'weapon') {
-        if (saveData.ownedWeapons[name] > 0) saveData.ownedWeapons[name]--;
-        else delete saveData.ownedWeapons[name];
+        if (saveData.ownedWeapons[name] > 0) { saveData.ownedWeapons[name]--; alert(`${name} の強化値を1段階下げて売却しました。`); }
+        else { delete saveData.ownedWeapons[name]; alert(`${name} を売却しました。`); }
     } else if (type === 'armor') {
-        if (saveData.ownedArmors[name] > 0) saveData.ownedArmors[name]--;
-        else delete saveData.ownedArmors[name];
+        if (saveData.ownedArmors[name] > 0) { saveData.ownedArmors[name]--; alert(`${name} の強化値を1段階下げて売却しました。`); }
+        else { delete saveData.ownedArmors[name]; alert(`${name} を売却しました。`); }
     }
     saveGame();
 }
 
-// 🌟 ① ガチャの単発・10連兼用システム
-function drawGacha(times = 1) {
-    const cost = times === 10 ? 1000 : 100;
-    if (saveData.gold < cost) { alert("ゴールドが足りません！"); return; }
-    saveData.gold -= cost;
+function drawGacha() {
+    if (saveData.gold < 100) { alert("ゴールドが足りません！"); return; }
+    saveData.gold -= 100;
     playSe('seGacha');
     
-    let logs = [];
+    const rand = Math.random() * 100;
+    let reward = ""; let isYakuso = false; let rewardRarity = "N";
+    let breakNotice = "";
     
-    for (let t = 0; t < times; t++) {
-        const rand = Math.random() * 100;
-        let reward = ""; let isYakuso = false; let rewardRarity = "N";
-        let breakNotice = "";
-        
-        if (rand < 50) {
-            isYakuso = true;
-            saveData.yakuso = (saveData.yakuso || 0) + 1;
-            logs.push(`<span style="color:#aaffaa;">🌿 やくそう</span> を手に入れた！`);
+    if (rand < 50) {
+        isYakuso = true;
+        saveData.yakuso = (saveData.yakuso || 0) + 1; reward = "やくそう";
+    } else {
+        const gearRand = Math.random() * 50;
+        const isWeapon = Math.random() > 0.5;
+        if (isWeapon) {
+            if (gearRand < 0.5) { reward = "天空のつるぎ"; rewardRarity = "UR"; }
+            else if (gearRand < 2.0) { reward = "ロトの剣"; rewardRarity = "SSR"; }
+            else if (gearRand < 3.5) { reward = "ひかりのつるぎ"; rewardRarity = "SSR"; }
+            else if (gearRand < 7.5) { reward = "はがねのつるぎ"; rewardRarity = "SR"; }
+            else if (gearRand < 11.5) { reward = "まどろみの剣"; rewardRarity = "SR"; }
+            else if (gearRand < 18.0) { reward = "鉄の剣"; rewardRarity = "R"; }
+            else if (gearRand < 24.5) { reward = "どうのつるぎ"; rewardRarity = "R"; }
+            else { reward = "ひのきのぼう"; rewardRarity = "N"; }
+
+            if (saveData.ownedWeapons[reward] !== undefined) {
+                if (saveData.ownedWeapons[reward] < 5) {
+                    saveData.ownedWeapons[reward]++;
+                    breakNotice = `<br><span style="color:#ff3366; font-size:14px; font-weight:bold;">限界突破！強度 +${saveData.ownedWeapons[reward]} に強化！</span>`;
+                } else {
+                    breakNotice = `<br><span style="color:#aaa; font-size:12px;">（最大限界突破のため自動売却：+50G）</span>`;
+                    saveData.gold += 50;
+                }
+            } else { saveData.ownedWeapons[reward] = 0; }
         } else {
-            const gearRand = Math.random() * 50;
-            const isWeapon = Math.random() > 0.5;
-            if (isWeapon) {
-                if (gearRand < 0.5) { reward = "天空のつるぎ"; rewardRarity = "UR"; }
-                else if (gearRand < 2.0) { reward = "ロトの剣"; rewardRarity = "SSR"; }
-                else if (gearRand < 3.5) { reward = "ひかりのつるぎ"; rewardRarity = "SSR"; }
-                else if (gearRand < 7.5) { reward = "はがねのつるぎ"; rewardRarity = "SR"; }
-                else if (gearRand < 11.5) { reward = "まどろみの剣"; rewardRarity = "SR"; }
-                else if (gearRand < 18.0) { reward = "鉄の剣"; rewardRarity = "R"; }
-                else if (gearRand < 24.5) { reward = "どうのつるぎ"; rewardRarity = "R"; }
-                else { reward = "ひのきのぼう"; rewardRarity = "N"; }
+            if (gearRand < 0.5) { reward = "天空のよろい"; rewardRarity = "UR"; }
+            else if (gearRand < 2.0) { reward = "ロトの鎧"; rewardRarity = "SSR"; }
+            else if (gearRand < 3.5) { reward = "みかがみの盾"; rewardRarity = "SSR"; }
+            else if (gearRand < 7.5) { reward = "はがねの鎧"; rewardRarity = "SR"; }
+            else if (gearRand < 11.5) { reward = "まほうのよろい"; rewardRarity = "SR"; }
+            else if (gearRand < 18.0) { reward = "鉄の盾"; rewardRarity = "R"; }
+            else if (gearRand < 24.5) { reward = "かわのたて"; rewardRarity = "R"; }
+            else { reward = "ぬののふく"; rewardRarity = "N"; }
 
-                if (saveData.ownedWeapons[reward] !== undefined) {
-                    if (saveData.ownedWeapons[reward] < 5) {
-                        saveData.ownedWeapons[reward]++;
-                        breakNotice = ` <span style="color:#ff3366; font-weight:bold;">[突破+${saveData.ownedWeapons[reward]}]</span>`;
-                    } else {
-                        breakNotice = ` <span style="color:#aaa;">(上限超過売却: +50G)</span>`;
-                        saveData.gold += 50;
-                    }
-                } else { saveData.ownedWeapons[reward] = 0; }
-            } else {
-                if (gearRand < 0.5) { reward = "天空のよろい"; rewardRarity = "UR"; }
-                else if (gearRand < 2.0) { reward = "ロトの鎧"; rewardRarity = "SSR"; }
-                else if (gearRand < 3.5) { reward = "みかがみの盾"; rewardRarity = "SSR"; }
-                else if (gearRand < 7.5) { reward = "はがねの鎧"; rewardRarity = "SR"; }
-                else if (gearRand < 11.5) { reward = "まほうのよろい"; rewardRarity = "SR"; }
-                else if (gearRand < 18.0) { reward = "鉄の盾"; rewardRarity = "R"; }
-                else if (gearRand < 24.5) { reward = "かわのたて"; rewardRarity = "R"; }
-                else { reward = "ぬののふく"; rewardRarity = "N"; }
-
-                if (saveData.ownedArmors[reward] !== undefined) {
-                    if (saveData.ownedArmors[reward] < 5) {
-                        saveData.ownedArmors[reward]++;
-                        breakNotice = ` <span style="color:#ff3366; font-weight:bold;">[突破+${saveData.ownedArmors[reward]}]</span>`;
-                    } else {
-                        breakNotice = ` <span style="color:#aaa;">(上限超過売却: +50G)</span>`;
-                        saveData.gold += 50;
-                    }
-                } else { saveData.ownedArmors[reward] = 0; }
-            }
-            const rClass = `rarity-${rewardRarity}`;
-            logs.push(`<span class="${rClass}">[${rewardRarity}] ${reward}</span>${breakNotice} を獲得！`);
+            if (saveData.ownedArmors[reward] !== undefined) {
+                if (saveData.ownedArmors[reward] < 5) {
+                    saveData.ownedArmors[reward]++;
+                    breakNotice = `<br><span style="color:#ff3366; font-size:14px; font-weight:bold;">限界突破！強度 +${saveData.ownedArmors[reward]} に強化！</span>`;
+                } else {
+                    breakNotice = `<br><span style="color:#aaa; font-size:12px;">（最大限界突破のため自動売却：+50G）</span>`;
+                    saveData.gold += 50;
+                }
+            } else { saveData.ownedArmors[reward] = 0; }
         }
     }
-    
     saveGame();
-    const resultBox = document.getElementById("gacha-result");
-    resultBox.style.display = "block";
-    resultBox.innerHTML = `<strong style="color:#ffcc00; font-size:16px;">⚔️ ガチャ結果（${times}回）</strong><hr style="border-color:#333;">` + logs.join("<br>");
+    const resultBox = document.getElementById("gacha-result"); resultBox.style.display = "block";
+    if(isYakuso) {
+        resultBox.innerHTML = `ガチャを引いた！<br><br><span style="color:#aaffaa; font-weight:bold; font-size:22px;">🌿 やくそう 🌿</span><br>を手に入れた！`;
+    } else {
+        const rClass = `rarity-${rewardRarity}`;
+        resultBox.innerHTML = `ガチャを引いた！<br><br><span class="${rClass}" style="font-size:22px;">🔮 ${reward} 🔮</span>${breakNotice}<br>を手に入れた！`;
+    }
 }
 
 let currentDifficulty = 'easy'; let enemyHp = 30; let enemyMaxHp = 30; let currentQuiz = null;
@@ -940,10 +956,8 @@ let isInBattle = false; let battleNextAction = null;
 
 let isPvpMode = false;
 let pvpEnemyData = null;
-let enemyHitCount = 0;
-
-// 🌟 ⑤ 対戦前の状態を一時保存しておくバックアップ変数
-let pvpBeforeBattleHpBackup = 100; 
+let pvpBattleMaxHpBackup = 100;
+let enemyHitCount = 0; // 🌟 敵の連続ヒット数を数えるカウンター
 
 function startQuest(difficulty) {
     if (saveData.hp <= 0) { alert("HPが0です！"); return; }
@@ -952,9 +966,13 @@ function startQuest(difficulty) {
     playerStunned = false; isInBattle = true; battleNextAction = null; isPvpMode = false;
     enemyHitCount = 0;
 
-    if (['easy', 'normal', 'hard'].includes(difficulty)) playBgm('battleEasyNormalHard');
-    else if (difficulty === 'inferno') playBgm('battleInferno');
-    else if (difficulty === 'despair') playBgm('battleDespair');
+    if (difficulty === 'easy' || difficulty === 'normal' || difficulty === 'hard') {
+        playBgm('battleEasyNormalHard');
+    } else if (difficulty === 'inferno') {
+        playBgm('battleInferno');
+    } else if (difficulty === 'despair') {
+        playBgm('battleDespair');
+    }
 
     initBattleUI();
     document.getElementById("monster").innerText = questConfigs[difficulty].emoji;
@@ -963,8 +981,8 @@ function startQuest(difficulty) {
     nextTurn();
 }
 
-// 🌟 ④ ⑤ 対戦開始時のブースト＆完全全回復システム
 function startPvpBattle() {
+    if (saveData.hp <= 0) { alert("HPが0です！薬草などで回復してください。"); return; }
     const codeInput = document.getElementById("input-enemy-code").value.trim();
     const enemyData = parseEnemyPvpCode(codeInput);
     
@@ -984,24 +1002,19 @@ function startPvpBattle() {
     playerBurnTurns = 0;
     playerStunned = false;
     battleNextAction = null;
-    enemyHitCount = 0;
+    enemyHitCount = 0; // カウンター初期化
 
-    // 🌟 ⑤ 対戦前の「リアルな現在の残り体力」をガッチリ記憶
-    pvpBeforeBattleHpBackup = saveData.hp; 
-
-    // 🌟 ④ ⑤ 最大HPを一時的に500上乗せした上で、その上限値まで「一時全回復」させる！
-    const temporaryMaxHp = getPlayerMaxHp() + 500;
-    saveData.hp = temporaryMaxHp; 
-
+    pvpBattleMaxHpBackup = getPlayerMaxHp();
+    saveData.hp = pvpBattleMaxHpBackup + 500; 
     enemyHp = pvpEnemyData.maxHp;
     enemyMaxHp = enemyHp;
 
     playBgm('battlePvp');
-    initBattleUI();
 
+    initBattleUI();
     document.getElementById("monster").innerText = "👤";
     document.getElementById("monster-name").innerText = pvpEnemyData.name;
-    document.getElementById("message").innerText = `${pvpEnemyData.name} が現れた！\n(命中率: ${pvpEnemyData.hitRate}%)\nHP500上乗せの特別ルール。いざ尋常に勝負！`;
+    document.getElementById("message").innerText = `${pvpEnemyData.name} が現れた！\n(命中率: ${pvpEnemyData.hitRate}%)\n互いに攻撃を当て合う真剣勝負！`;
     
     nextTurn();
 }
@@ -1031,8 +1044,7 @@ function exitBattle() {
     document.getElementById("btn-escape").disabled = true;
     
     if (isPvpMode) {
-        // 🌟 ⑤ 逃げた場合も体力を対戦前の状態に完全リセット！
-        cleanupPvpBattleEnd(); 
+        cleanupPvpHp();
         isInBattle = false;
         updateNavBarState();
         switchPage('pvp-hub');
@@ -1054,11 +1066,9 @@ function exitBattle() {
     }
 }
 
-// 🌟 ⑤ 対戦終了時の「HP巻き戻し」クリーンアップ処理
-function cleanupPvpBattleEnd() {
+function cleanupPvpHp() {
     if(isPvpMode) {
-        isPvpMode = false; // PvPモードを先に解除（これによって最大HPの計算式が通常に戻る）
-        saveData.hp = pvpBeforeBattleHpBackup; // 体力を対戦前に完全巻き戻し
+        saveData.hp = Math.min(pvpBattleMaxHpBackup, saveData.hp); 
         saveGame();
     }
 }
@@ -1131,28 +1141,37 @@ function useUltimate(type) {
             if (enemyHp <= 0) document.getElementById("monster").innerText = "💥";
             
             setupNextButton(() => { 
-                if(isPvpMode && enemyHp > 0) processPvpEnemyTurn();
-                else processEndTurn();
+                if(isPvpMode && enemyHp > 0) {
+                    processPvpEnemyTurn();
+                } else {
+                    processEndTurn(); 
+                }
             });
         }, 600);
     } else if (type === 'heal') {
-        const maxLimit = isPvpMode ? (getPlayerMaxHp() + 500) : getPlayerMaxHp();
+        const maxLimit = isPvpMode ? (pvpBattleMaxHpBackup + 500) : getPlayerMaxHp();
         saveData.hp = Math.min(maxLimit, saveData.hp + 50);
         document.getElementById("player-hp").innerText = saveData.hp;
         document.getElementById("message").innerText = `必殺技：瞑想！\n自分のHPが 50 回復した！`;
         saveGame();
         
         setupNextButton(() => {
-            if(isPvpMode) processPvpEnemyTurn();
-            else nextTurn();
+            if(isPvpMode) {
+                processPvpEnemyTurn();
+            } else {
+                nextTurn();
+            }
         });
     } else if (type === 'barrier') {
         hasBarrier = true;
         document.getElementById("message").innerText = `必殺技：聖なる守り！\n光のバリアを展開！次の被ダメージを1回無効化する！`;
         
         setupNextButton(() => {
-            if(isPvpMode) processPvpEnemyTurn();
-            else nextTurn();
+            if(isPvpMode) {
+                processPvpEnemyTurn();
+            } else {
+                nextTurn();
+            }
         });
     }
 }
@@ -1207,10 +1226,14 @@ function nextTurn() {
 function selectAnswer(selected) {
     if(isDead || battleNextAction) return;
     currentTurnCount++;
+    
+    // 🌟 回答した合計数をカウント
     saveData.totalQuestions++;
     
     if (selected === currentQuiz.answer) {
+        // 🌟 正解数をカウント
         saveData.correctAnswers++;
+        
         let dmg = getPlayerAtk().total;
         if (!isPvpMode) {
             if (playerStunned) { dmg = Math.floor(dmg * 0.1); playerStunned = false; }
@@ -1230,19 +1253,22 @@ function selectAnswer(selected) {
         document.getElementById("monster").classList.add("shake");
         document.getElementById("message").innerText = `正解！ あなたの攻撃が命中！\n相手に ${d} のダメージ！\nSPゲージが25%溜まった！`;
         
-        saveGame();
+        saveGame(); // スタッツ保存のためにここでセーブ
 
         setTimeout(() => {
             document.getElementById("monster").classList.remove("shake");
             if (enemyHp <= 0) document.getElementById("monster").innerText = "💥";
             
             setupNextButton(() => { 
-                if(isPvpMode && enemyHp > 0) processPvpEnemyTurn();
-                else processEndTurn(); 
+                if(isPvpMode && enemyHp > 0) {
+                    processPvpEnemyTurn();
+                } else {
+                    processEndTurn(); 
+                }
             });
         }, 600);
     } else {
-        saveGame();
+        saveGame(); // 間違えた時もスタッツ保存のためにセーブ
 
         if (hasBarrier) {
             hasBarrier = false;
@@ -1257,11 +1283,12 @@ function selectAnswer(selected) {
             let counterMsg = `ミス！正解は「 ${currentQuiz.answer} 」\n5 の固定ダメージを受けた！`;
 
             if(isPvpMode) {
+                // PvP時はカウンター攻撃も相手の命中率に影響される
                 let dice = Math.random() * 100;
                 if (dice < pvpEnemyData.hitRate) {
                     penaltyDmg = Math.max(1, pvpEnemyData.atk - getPlayerDef().total);
                     counterMsg = `ミス！正解は「 ${currentQuiz.answer} 」\n隙を突かれ、相手のカウンター攻撃が直撃！\n${penaltyDmg} の大ダメージを受けた！`;
-                    enemyHitCount++;
+                    enemyHitCount++; // カウンター命中もカウント
                 } else {
                     penaltyDmg = 0;
                     counterMsg = `ミス！正解は「 ${currentQuiz.answer} 」\nしかし、相手の追撃カウンターはハズれた！命拾いした！`;
@@ -1274,6 +1301,7 @@ function selectAnswer(selected) {
                 document.getElementById("player-hp").innerText = saveData.hp;
             }
             document.getElementById("message").innerText = counterMsg;
+            
             updateCountdownUI(); updateStatusBadges();
 
             if (saveData.hp <= 0) {
@@ -1288,11 +1316,13 @@ function selectAnswer(selected) {
     }
 }
 
+// 🌟 対戦相手（敵プレイヤー）のターン処理を確率回避＆ギガスラッシュ型に完全大改造！
 function processPvpEnemyTurn() {
     if(enemyHp <= 0 || isDead) return;
 
+    // 🌟 敵の命中カウントが5回たまっていた場合、確定でギガスラッシュ発動！
     if (enemyHitCount >= 5) {
-        enemyHitCount = 0;
+        enemyHitCount = 0; // ゲージリセット
         updateStatusBadges();
 
         let enemyUltDmg = pvpEnemyData.atk * 3 - getPlayerDef().total;
@@ -1306,15 +1336,19 @@ function processPvpEnemyTurn() {
             saveData.hp = Math.max(0, saveData.hp - finalDmg);
             popDamageEffect('player', finalDmg);
             document.getElementById("player-hp").innerText = saveData.hp;
-            document.getElementById("message").innerText = `相手のターン！ ${pvpEnemyData.name} の必殺技：ギガスラッシュ！！！\nあなたは ${finalDmg} の壊滅的ダメージを受けた！！`;
+            document.getElementById("message").innerText = `相手のターン！ ${pvpEnemyData.name} の必殺技：ギガスラッシュ！！！\n防御を貫く衝撃波により、あなたは ${finalDmg} の壊滅的ダメージを受けた！！`;
             saveGame();
         }
 
-        if (saveData.hp <= 0) setupNextButton(() => { gameOver(); });
-        else setupNextButton(() => { nextTurn(); });
+        if (saveData.hp <= 0) {
+            setupNextButton(() => { gameOver(); });
+        } else {
+            setupNextButton(() => { nextTurn(); });
+        }
         return;
     }
 
+    // 敵の瞑想AI（HP半分以下で30%の確率で回復）
     if (enemyHp < (enemyMaxHp / 2) && Math.random() < 0.30) {
         enemyHp = Math.min(enemyMaxHp, enemyHp + 50);
         document.getElementById("enemy-hp").innerText = enemyHp;
@@ -1323,30 +1357,36 @@ function processPvpEnemyTurn() {
         return;
     }
 
+    // 🌟 通常攻撃：相手の「命中率」でヒットするか回避するかをダイス判定！
     let dice = Math.random() * 100;
     if (dice < pvpEnemyData.hitRate) {
+        // 命中した！
         let enemyAtk = Math.max(1, pvpEnemyData.atk - getPlayerDef().total);
-        enemyHitCount++;
+        enemyHitCount++; // 🌟 攻撃が当たったのでカウント加算！
         updateStatusBadges();
 
         if (hasBarrier) {
             hasBarrier = false;
-            enemyHitCount--;
+            enemyHitCount--; // バリアで防いだらカウントしない
             updateStatusBadges();
             document.getElementById("message").innerText = `相手のターン！ ${pvpEnemyData.name} の物理攻撃！\nしかし、あなたのバリアが攻撃を無効化した！`;
         } else {
             saveData.hp = Math.max(0, saveData.hp - enemyAtk);
             popDamageEffect('player', enemyAtk);
             document.getElementById("player-hp").innerText = saveData.hp;
-            document.getElementById("message").innerText = `相手のターン！ ${pvpEnemyData.name} の物理攻撃がヒット！\nあなたは ${enemyAtk} のダメージを受けた！`;
+            document.getElementById("message").innerText = `相手のターン！ ${pvpEnemyData.name} の物理攻撃がヒット！\nあなたは ${enemyAtk} のダメージを受けた！\n(相手のSPゲージが溜まっていく…)`;
             saveGame();
         }
     } else {
-        document.getElementById("message").innerText = `相手のターン！ ${pvpEnemyData.name} の攻撃！\n🎯 相手の命中率（${pvpEnemyData.hitRate}%）をくぐり抜け、攻撃を【回避】した！`;
+        // 🌟 回避成功！外すはカウントされません！
+        document.getElementById("message").innerText = `相手のターン！ ${pvpEnemyData.name} の攻撃！\n🎯 相手の命中率（${pvpEnemyData.hitRate}%）をくぐり抜け、あなたは攻撃を華麗に【回避】した！`;
     }
 
-    if (saveData.hp <= 0) setupNextButton(() => { gameOver(); });
-    else setupNextButton(() => { nextTurn(); });
+    if (saveData.hp <= 0) {
+        setupNextButton(() => { gameOver(); });
+    } else {
+        setupNextButton(() => { nextTurn(); });
+    }
 }
 
 function processEndTurn() {
@@ -1359,9 +1399,8 @@ function processEndTurn() {
         playSe('seVictory');
         
         if(isPvpMode) {
-            // 🌟 ⑤ 勝った場合も体力を対戦前の状態に完全巻き戻し
-            cleanupPvpBattleEnd(); 
-            document.getElementById("message").innerText = `🎉 友達の勇者（${pvpEnemyData.name}）との対戦に勝利した！\n圧倒的なクイズ力だ！`;
+            cleanupPvpHp();
+            document.getElementById("message").innerText = `🎉 友達の勇者（${pvpEnemyData.name}）とのガチンコ大決戦に勝利した！\n圧倒的なクイズ力だ！`;
             setupNextButton(() => { switchPage('pvp-hub'); });
             return;
         }
@@ -1397,7 +1436,10 @@ function processEndTurn() {
         return;
     }
 
-    if (isPvpMode) { nextTurn(); return; }
+    if (isPvpMode) {
+        nextTurn();
+        return;
+    }
 
     let dotMsg = "";
     if (playerBurnTurns > 0) {
@@ -1480,7 +1522,7 @@ function processEndTurn() {
             } else {
                 enemySkillMsg = `🌌 虚構の騎士「虚無のオーラ」が勇者を圧迫する！\n`; playerStunned = true;
                 if (hasBarrier) { hasBarrier = false; enemySkillMsg += `しかしバリアが威圧を完全に打ち消した！`; playerStunned = false; } 
-                else { saveData.hp = Math.max(0, saveData.hp - 100); popDamageEffect('player', 100); enemySkillMsg += `100の固定ダメージを受け、恐怖で【足すくみ状態】に陥った！`; }
+                else { saveData.hp = Math.max(0, saveData.hp - 100); popDamageEffect('player', 100); enemySkillMsg += `100の固定ダメージを受け、恐怖で【足すくみ状態】(次の与ダメ90%カット)に陥った！`; }
             }
         }
 
@@ -1514,9 +1556,8 @@ function gameOver() {
     document.getElementById("monster").innerText = "💀";
     
     if(isPvpMode) {
-        // 🌟 ⑤ 負けた場合も体力を対戦前の状態に完全巻き戻し
-        cleanupPvpBattleEnd(); 
-        document.getElementById("message").innerText = `無念！ライバルに敗北してしまった…！やはり友達の勇者は強かった。 (対戦前のHPに戻ります)`;
+        cleanupPvpHp();
+        document.getElementById("message").innerText = `無念！ライバルに敗北してしまった…！やはり友達の勇者は強かった。 (PvPのためゴールドペナルティはありません)`;
         document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="revivePlayer()">戻る</button>`;
         return;
     }
@@ -1528,14 +1569,13 @@ function gameOver() {
 
 function revivePlayer() { 
     isDead = false; 
-    if(document.getElementById('page-quest-battle').style.display === 'block' && !isPvpMode) {
-        // 通常バトル敗北時のみ教会復活
+    if(isPvpMode) {
+        isPvpMode = false;
+        switchPage('pvp-hub');
+    } else {
         saveData.hp = getPlayerMaxHp(); 
         saveGame(); 
         switchPage('quest-hub'); 
-    } else {
-        // PvP終了時
-        switchPage('pvp-hub');
     }
 }
 
