@@ -157,6 +157,10 @@
         .sell-btn { background-color: #333; color: #ff9999; border: 1px solid #ff6666; }
         .gacha-result { border: 2px dashed #fff; padding: 15px; text-align: center; margin-top: 15px; font-size: 18px; display: none; background-color: #222; }
 
+        /* PvPコンポーネント */
+        .pvp-card { border: 2px solid #00ffcc; border-radius: 6px; padding: 15px; background-color: #0a1110; margin-bottom: 20px; }
+        .input-code { width: 100%; padding: 12px; font-size: 16px; background-color: #000; color: #00ffcc; border: 2px solid #00ffcc; border-radius: 4px; box-sizing: border-box; text-align: center; margin-bottom: 10px; letter-spacing: 2px; }
+
         /* レア度別カラー */
         .rarity-N { color: #ccc; }
         .rarity-R { color: #3399ff; font-weight: bold; }
@@ -165,7 +169,7 @@
         .rarity-UR { color: #ff3366; font-weight: bold; text-shadow: 0 0 5px #ff3366; }
 
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background-color: #111; border-top: 3px solid #fff; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
-        .nav-btn { background-color: #000; color: #aaa; border: 1px solid #444; padding: 8px 0; width: 30%; font-size: 14px; font-weight: bold; text-align: center; border-radius: 5px; }
+        .nav-btn { background-color: #000; color: #aaa; border: 1px solid #444; padding: 8px 0; width: 23%; font-size: 12px; font-weight: bold; text-align: center; border-radius: 5px; }
         .nav-btn.active { color: #fff; border: 2px solid #fff; background-color: #222; }
         .nav-btn:disabled { color: #444; border: 1px solid #222; background-color: #050505; cursor: not-allowed; }
     </style>
@@ -217,11 +221,32 @@
             <button class="equip-sub-btn" style="background-color:#331111; color:#ff9999; border:1px solid #ff3333; width:100%; margin-top:30px; padding:10px;" onclick="resetAllData()">⚠️ セーブデータを完全に削除して最初から</button>
         </div>
 
+        <div id="page-pvp-hub" class="page">
+            <h2>⚔️ 非同期対戦（PvP）</h2>
+            <p style="font-size:13px; color:#aaa; margin-bottom:20px;">お互いの最大HPに<strong style="color:#00ffcc;">固定で500プラス</strong>された特別ルール！クイズをミスすると相手の強力なカウンター攻撃が直撃！</p>
+            
+            <div class="pvp-card">
+                <h3 style="margin-top:0; color:#00ffcc;">① 自分の対戦コード</h3>
+                <p style="font-size:12px; color:#ccc;">あなたの今の強さを表す数字コードです。友達に教えて挑戦してもらいましょう！</p>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div id="my-pvp-code-display" style="background:#000; padding:10px; border:1px solid #00ffcc; color:#00ffcc; font-weight:bold; font-size:18px; flex-grow:1; text-align:center; letter-spacing:1px;">------</div>
+                    <button class="equip-sub-btn" style="background-color:#00ffcc; color:#000; padding:12px;" onclick="copyMyPvpCode()">コピー</button>
+                </div>
+            </div>
+
+            <div class="pvp-card" style="border-color:#ff3366; background-color:#150a0f;">
+                <h3 style="margin-top:0; color:#ff3366;">② 友達のコードに挑戦</h3>
+                <p style="font-size:12px; color:#ccc;">友達から教えてもらった「数字のパスコード」を入力してください。</p>
+                <input type="number" id="input-enemy-code" class="input-code" style="border-color:#ff3366; color:#ff3366;" placeholder="例: 10240502" pattern="\d*">
+                <button class="choice-btn" style="background-color:#ff3366; color:#fff; border:none; text-align:center; font-weight:bold; padding:14px;" onclick="startPvpBattle()">⚔️ 友達の勇者と対戦開始！</button>
+            </div>
+        </div>
+
         <div id="page-quest-battle" class="page">
             <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
                 <button id="btn-escape" class="equip-sub-btn" onclick="exitBattle()">🏳️ 逃げる</button>
-                <div class="turn-counter-badge">敵行動まで: <span id="enemy-turn-countdown">0</span></div>
-                <div style="font-size:13px;">敵HP: <strong id="enemy-hp" style="color:#ff3333;">30</strong></div>
+                <div class="turn-counter-badge" id="turn-badge-ui">敵行動まで: <span id="enemy-turn-countdown">0</span></div>
+                <div style="font-size:13px;">敵HP: <strong id="enemy-hp" style="color:#ff3333;">30</strong>/<span id="enemy-max-hp">30</span></div>
             </div>
 
             <div class="status-badges" id="status-badges-area"></div>
@@ -291,6 +316,7 @@
 
     <div class="nav-bar">
         <button id="btn-quest" class="nav-btn active" onclick="switchPage('quest-hub')">⚔️ クエスト</button>
+        <button id="btn-pvp" class="nav-btn" onclick="switchPage('pvp-hub')">⚔️ 対戦</button>
         <button id="btn-equip" class="nav-btn" onclick="switchPage('equip')">🛡️ 装備</button>
         <button id="btn-gacha" class="nav-btn" onclick="switchPage('gacha')">💎 ガチャ</button>
     </div>
@@ -302,6 +328,7 @@ const audioFiles = {
     battleEasyNormalHard: 'battle_easy_normal_hard.mp3',
     battleInferno: 'battle_inferno.mp3',
     battleDespair: 'battle_despair.mp3',
+    battlePvp: '対戦で流す.mp3', // 🌟 PvP専用新曲！
     seDamageGive: 'se_damage_give.mp3',
     seDamageTake: 'se_damage_take.mp3',
     seGacha: 'se_gacha.mp3',
@@ -312,29 +339,22 @@ const audioFiles = {
 let currentBgm = null;
 let audioInitialized = false;
 
-// 🌟 スタートボタンを押したときに作動する関数
 function clickStartGame() {
     if (audioInitialized) return;
     audioInitialized = true;
-    
-    // タイトル画面を画面から消し去る
     const startScreen = document.getElementById("page-start-screen");
     startScreen.style.display = "none";
-    
-    // 通常BGMを鳴らしながらゲーム本編を開始！
     playBgm('normalBgm');
 }
 
 function playBgm(key) {
     if (!audioInitialized) return;
-    
     const src = audioFiles[key];
     if (currentBgm) {
         if (currentBgm.getAttribute('src') === src) return;
         currentBgm.pause();
         currentBgm = null;
     }
-    
     currentBgm = new Audio(src);
     currentBgm.loop = true;
     currentBgm.volume = 0.5;
@@ -427,6 +447,10 @@ const questConfigs = {
     despair: { name: "虚構の騎士", emoji: "🌌", hp: 4000, atk: 400, gold: 10000, maxTurns: 3 }
 };
 
+// 🌟 暗号コード用のインデックス付き配列
+const weaponListKeys = ["ひのきのぼう", "鉄の剣", "どうのつるぎ", "はがねのつるぎ", "まどろみの剣", "ロトの剣", "ひかりのつるぎ", "天空のつるぎ", "スライムのぼう", "するどいつるぎ", "いわのつるぎ", "りゅうのつるぎ", "はめつの杖"];
+const armorListKeys = ["ぬののふく", "鉄の盾", "かわのたて", "はがねの鎧", "まほうのよろい", "ロトの鎧", "みかがみの盾", "天空のよろい"];
+
 const weaponMaster = {
     "ひのきのぼう": { atk: 10, rarity: "N", price: 10 },
     "鉄の剣": { atk: 22, rarity: "R", price: 30 },
@@ -501,6 +525,79 @@ function getPlayerDef() {
     return { total: baseDef + gearDef, base: baseDef, gear: gearDef, plus: plus };
 }
 
+// 🌟 数字だけの対戦コード（パスコード）生成ロジック
+function generateMyPvpCode() {
+    const lv = Math.min(999, saveData.lv);
+    const wIdx = Math.max(0, weaponListKeys.indexOf(saveData.equippedWeapon));
+    const wPlus = saveData.ownedWeapons[saveData.equippedWeapon] || 0;
+    const aIdx = Math.max(0, armorListKeys.indexOf(saveData.equippedArmor));
+    const aPlus = saveData.ownedArmors[saveData.equippedArmor] || 0;
+
+    // パディングして結合
+    const sLv = String(lv).padStart(3, '0'); // 3桁
+    const sW = String(wIdx).padStart(2, '0') + String(wPlus); // 3桁
+    const sA = String(aIdx).padStart(2, '0') + String(aPlus); // 3桁
+    const coreStr = sLv + sW + sA; // 計9桁
+
+    // 簡易チェックサム（下1桁）をくっつけて10桁のそれっぽいパスコードにする
+    let sum = 0;
+    for(let i=0; i<coreStr.length; i++) sum += parseInt(coreStr[i]);
+    const checkDigit = sum % 10;
+
+    return coreStr + checkDigit;
+}
+
+function copyMyPvpCode() {
+    const code = generateMyPvpCode();
+    navigator.clipboard.writeText(code).then(() => {
+        alert(`対戦コード「${code}」をクリップボードにコピーしました！友達に教えましょう。`);
+    }).catch(() => {
+        alert(`コード: ${code} (コピーに失敗したため手動で控えてください)`);
+    });
+}
+
+// 🌟 数字パスコードのデコード（読み取り）
+function parseEnemyPvpCode(codeStr) {
+    if (!codeStr || codeStr.length !== 10) return null;
+    
+    const lv = parseInt(codeStr.substring(0, 3));
+    const wIdx = parseInt(codeStr.substring(3, 5));
+    const wPlus = parseInt(codeStr.substring(5, 6));
+    const aIdx = parseInt(codeStr.substring(6, 8));
+    const aPlus = parseInt(codeStr.substring(8, 9));
+    const checkDigit = parseInt(codeStr.substring(9, 10));
+
+    // チェックサム検証
+    let sum = 0;
+    for(let i=0; i<9; i++) sum += parseInt(codeStr[i]);
+    if (sum % 10 !== checkDigit) return null;
+
+    const wName = weaponListKeys[wIdx] || "ひのきのぼう";
+    const aName = armorListKeys[aIdx] || "ぬののふく";
+
+    // 相手NPCのステータス算出
+    const baseAtk = 10 + (lv - 1) * 2;
+    let gearAtk = weaponMaster[wName] ? weaponMaster[wName].atk : 10;
+    gearAtk = Math.floor(gearAtk * (1 + wPlus * 0.2));
+    const totalAtk = baseAtk + gearAtk;
+
+    const baseDef = 0 + (lv - 1) * 1;
+    let gearDef = armorMaster[aName] ? armorMaster[aName].def : 0;
+    gearDef = Math.floor(gearDef * (1 + aPlus * 0.2));
+    const totalDef = baseDef + gearDef;
+
+    const maxHp = 100 + (lv - 1) * 20;
+
+    return {
+        name: `ライバル(Lv.${lv})`,
+        maxHp: maxHp + 500, // 🌟 固定500ブースト！
+        atk: totalAtk,
+        def: totalDef,
+        weapon: wName,
+        armor: aName
+    };
+}
+
 function saveGame() {
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
     updateUI();
@@ -535,6 +632,7 @@ function updateUI() {
     document.getElementById("current-armor").innerText = saveData.equippedArmor;
     document.getElementById("current-armor-plus").innerText = defInfo.plus > 0 ? `+${defInfo.plus}` : '';
     
+    document.getElementById("my-pvp-code-display").innerText = generateMyPvpCode();
     renderInventory();
 }
 
@@ -557,9 +655,16 @@ function switchPage(pageName) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`page-${pageName}`).classList.add('active');
-    document.getElementById(`btn-${pageName === 'quest-battle' ? 'quest' : pageName}`).classList.add('active');
     
-    if (pageName === 'quest-hub' || pageName === 'equip' || pageName === 'gacha') {
+    let activeBtnId = `btn-${pageName}`;
+    if(pageName === 'quest-battle') activeBtnId = isPvpMode ? 'btn-pvp' : 'btn-quest';
+    else if(pageName === 'pvp-hub') activeBtnId = 'btn-pvp';
+    else if(pageName === 'quest-hub') activeBtnId = 'btn-quest';
+    
+    const targetBtn = document.getElementById(activeBtnId);
+    if(targetBtn) targetBtn.classList.add('active');
+    
+    if (pageName === 'quest-hub' || pageName === 'pvp-hub' || pageName === 'equip' || pageName === 'gacha') {
         playBgm('normalBgm');
     }
     if(pageName === 'gacha') document.getElementById("gacha-result").style.display = "none";
@@ -702,17 +807,22 @@ function drawGacha() {
     }
 }
 
-let currentDifficulty = 'easy'; let enemyHp = 30; let currentQuiz = null;
+let currentDifficulty = 'easy'; let enemyHp = 30; let enemyMaxHp = 30; let currentQuiz = null;
 let isDead = false; let spGauge = 0; let hasBarrier = false;
 let currentTurnCount = 0; let enemyGuardTurns = 0;   
 let playerBurnTurns = 0; let playerStunned = false;  
 let isInBattle = false; let battleNextAction = null;
 
+// 🌟 PvP用ステータス
+let isPvpMode = false;
+let pvpEnemyData = null;
+let pvpBattleMaxHpBackup = 100;
+
 function startQuest(difficulty) {
     if (saveData.hp <= 0) { alert("HPが0です！教会で復活するか薬草を使ってください。"); return; }
-    currentDifficulty = difficulty; enemyHp = questConfigs[difficulty].hp; isDead = false;
+    currentDifficulty = difficulty; enemyHp = questConfigs[difficulty].hp; enemyMaxHp = enemyHp; isDead = false;
     spGauge = 0; hasBarrier = false; currentTurnCount = 0; enemyGuardTurns = 0; playerBurnTurns = 0;
-    playerStunned = false; isInBattle = true; battleNextAction = null;
+    playerStunned = false; isInBattle = true; battleNextAction = null; isPvpMode = false;
 
     if (difficulty === 'easy' || difficulty === 'normal' || difficulty === 'hard') {
         playBgm('battleEasyNormalHard');
@@ -722,24 +832,86 @@ function startQuest(difficulty) {
         playBgm('battleDespair');
     }
 
+    initBattleUI();
+    document.getElementById("monster").innerText = questConfigs[difficulty].emoji;
+    document.getElementById("monster-name").innerText = questConfigs[difficulty].name;
+    document.getElementById("message").innerText = `${questConfigs[difficulty].name} が現れた！\n指定ターン経過で強烈な攻撃を仕掛けてくるぞ！`;
+    nextTurn();
+}
+
+// 🌟 PvPバトル開始
+function startPvpBattle() {
+    if (saveData.hp <= 0) { alert("HPが0です！教会で復活するか薬草を使ってください。"); return; }
+    const codeInput = document.getElementById("input-enemy-code").value.trim();
+    const enemyData = parseEnemyPvpCode(codeInput);
+    
+    if(!enemyData) {
+        alert("❌ 正しい対戦コード（10桁の数字）ではありません。もう一度確認してください。");
+        return;
+    }
+
+    pvpEnemyData = enemyData;
+    isPvpMode = true;
+    isInBattle = true;
+    isDead = false;
+    spGauge = 0;
+    hasBarrier = false;
+    currentTurnCount = 0;
+    enemyGuardTurns = 0;
+    playerBurnTurns = 0;
+    playerStunned = false;
+    battleNextAction = null;
+
+    // 🌟 HPを一時的に+500補正
+    pvpBattleMaxHpBackup = getPlayerMaxHp();
+    saveData.hp = pvpBattleMaxHpBackup + 500; 
+    enemyHp = pvpEnemyData.maxHp;
+    enemyMaxHp = enemyHp;
+
+    // 🌟 PvP専用の新BGM再生！
+    playBgm('battlePvp');
+
+    initBattleUI();
+    document.getElementById("monster").innerText = "👤";
+    document.getElementById("monster-name").innerText = pvpEnemyData.name;
+    document.getElementById("message").innerText = `ライバル：友達の勇者が現れた！\nお互いのHPが500プラスされた大決戦！ミスは致命傷になるぞ！`;
+    
+    nextTurn();
+}
+
+function initBattleUI() {
     updateNavBarState();
     switchPage('quest-battle');
     updateSpUI();
     updateCountdownUI();
     updateStatusBadges();
+    
     document.getElementById("enemy-hp").innerText = enemyHp;
-    document.getElementById("monster").innerText = questConfigs[difficulty].emoji;
-    document.getElementById("monster-name").innerText = questConfigs[difficulty].name;
+    document.getElementById("enemy-max-hp").innerText = enemyMaxHp;
     document.getElementById("btn-escape").disabled = false;
     
-    document.getElementById("message").innerText = `${questConfigs[difficulty].name} が現れた！\n指定ターン経過で強烈な攻撃を仕掛けてくるぞ！`;
-    nextTurn();
+    if(isPvpMode) {
+        document.getElementById("turn-badge-ui").style.backgroundColor = "#ff3366";
+        document.getElementById("turn-badge-ui").innerText = "🔴 対人戦（PvP）";
+    } else {
+        document.getElementById("turn-badge-ui").style.backgroundColor = "#ff3333";
+        updateCountdownUI();
+    }
 }
 
 function exitBattle() {
     if (isDead) return;
     document.getElementById("btn-escape").disabled = true;
     
+    if (isPvpMode) {
+        // PvPは即座に離脱可能（ただしHPは元に戻る）
+        cleanupPvpHp();
+        isInBattle = false;
+        updateNavBarState();
+        switchPage('pvp-hub');
+        return;
+    }
+
     if (Math.random() < 0.10) {
         currentTurnCount++;
         document.getElementById("message").innerText = "🏳️ 逃げ出そうとしたが、敵に回り込まれてしまった！\n(1ターンが経過した)";
@@ -755,6 +927,13 @@ function exitBattle() {
     }
 }
 
+function cleanupPvpHp() {
+    if(isPvpMode) {
+        saveData.hp = Math.min(pvpBattleMaxHpBackup, saveData.hp); // バトル終了時に通常のHP上限以下に収める
+        saveGame();
+    }
+}
+
 function updateSpUI() {
     document.getElementById("battle-sp-text").innerText = spGauge;
     document.getElementById("battle-sp-bar").style.width = `${spGauge}%`;
@@ -763,9 +942,10 @@ function updateSpUI() {
 }
 
 function updateCountdownUI() {
+    if(isPvpMode) return;
     const maxT = questConfigs[currentDifficulty].maxTurns;
     const remaining = maxT - currentTurnCount;
-    document.getElementById("enemy-turn-countdown").innerText = remaining + " ターン";
+    document.getElementById("turn-badge-ui").innerHTML = `敵行動まで: <span id="enemy-turn-countdown">${remaining} ターン</span>`;
 }
 
 function updateStatusBadges() {
@@ -803,6 +983,9 @@ function useUltimate(type) {
         if (enemyGuardTurns > 0) ultDmg = Math.floor(ultDmg * 0.5);
         let d = Math.max(1, ultDmg);
 
+        // 🌟 PvP用の減衰補正（大味防止）
+        if(isPvpMode) d = Math.min(250, Math.max(40, d));
+
         enemyHp = Math.max(0, enemyHp - d);
         document.getElementById("enemy-hp").innerText = enemyHp;
         popDamageEffect('monster', d);
@@ -817,8 +1000,8 @@ function useUltimate(type) {
             setupNextButton(() => { processEndTurn(); });
         }, 600);
     } else if (type === 'heal') {
-        const maxHp = getPlayerMaxHp();
-        saveData.hp = Math.min(maxHp, saveData.hp + 50);
+        const maxLimit = isPvpMode ? (pvpBattleMaxHpBackup + 500) : getPlayerMaxHp();
+        saveData.hp = Math.min(maxLimit, saveData.hp + 50);
         document.getElementById("player-hp").innerText = saveData.hp;
         document.getElementById("message").innerText = `必殺技：瞑想（めいそう）！\n自分のHPが 50 回復した！`;
         saveGame();
@@ -836,10 +1019,15 @@ function nextTurn() {
     
     const target = vocabulary[Math.floor(Math.random() * vocabulary.length)];
     let qTypes = [];
-    if (currentDifficulty === 'easy') qTypes = ["w2j", "j2w"];
-    else if (currentDifficulty === 'normal') qTypes = ["w2j", "j2w", "blank"];
-    else if (currentDifficulty === 'hard') qTypes = ["blank", "trans"];
-    else qTypes = ["trans"]; 
+    
+    if(isPvpMode) {
+        qTypes = ["w2j", "j2w", "blank", "trans"]; // PvPは全形式ランダム
+    } else {
+        if (currentDifficulty === 'easy') qTypes = ["w2j", "j2w"];
+        else if (currentDifficulty === 'normal') qTypes = ["w2j", "j2w", "blank"];
+        else if (currentDifficulty === 'hard') qTypes = ["blank", "trans"];
+        else qTypes = ["trans"]; 
+    }
 
     const currentType = qTypes[Math.floor(Math.random() * qTypes.length)];
     let questionText = ""; let correctAnswer = ""; let choices = [];
@@ -878,9 +1066,26 @@ function selectAnswer(selected) {
     
     if (selected === currentQuiz.answer) {
         let dmg = getPlayerAtk().total;
-        if (playerStunned) { dmg = Math.floor(dmg * 0.1); playerStunned = false; }
-        if (enemyGuardTurns > 0) dmg = Math.floor(dmg * 0.5);
+        if (!isPvpMode) {
+            if (playerStunned) { dmg = Math.floor(dmg * 0.1); playerStunned = false; }
+            if (enemyGuardTurns > 0) dmg = Math.floor(dmg * 0.5);
+        } else {
+            // PvPダメージ計算 (自攻撃力 - 敵防御力) マイルドに調整
+            dmg = dmg - pvpEnemyData.def;
+            if (playerStunned) { dmg = Math.floor(dmg * 0.1); playerStunned = false; }
+            if (enemyGuardTurns > 0) dmg = Math.floor(dmg * 0.5);
+            // 最低20〜最大120ダメージ保証
+            dmg = Math.min(120, Math.max(20, dmg));
+        }
         let d = Math.max(1, dmg);
+
+        // 🌟 敵PvPシールド割り込み(20%の確率で無効化)
+        if (isPvpMode && Math.random() < 0.20) {
+            updateCountdownUI();
+            document.getElementById("message").innerText = `正解！しかし相手のバリア「聖なる守り」が発動し、攻撃を弾かれてしまった！`;
+            setupNextButton(() => { processEndTurn(); });
+            return;
+        }
 
         enemyHp = Math.max(0, enemyHp - d);
         document.getElementById("enemy-hp").innerText = enemyHp;
@@ -897,17 +1102,26 @@ function selectAnswer(selected) {
             setupNextButton(() => { processEndTurn(); });
         }, 600);
     } else {
-        let penaltyDmg = 5;
+        // 🌟 ミス時のペナルティ
         if (hasBarrier) {
             hasBarrier = false;
-            document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\nしかし、バリアがミスダメージを無効化した！`;
+            document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\nしかし、バリアが攻撃を無効化した！`;
             saveGame(); updateCountdownUI(); updateStatusBadges();
             setupNextButton(() => { processEndTurn(); });
         } else {
+            let penaltyDmg = 5;
+            let counterMsg = `解答ミスにより 5 の固定ダメージを受けた！`;
+
+            if(isPvpMode) {
+                // 🌟 PvP時のミスカウンター（敵の攻撃力依存、最低20〜最大60）
+                penaltyDmg = Math.min(60, Math.max(20, pvpEnemyData.atk - getPlayerDef().total));
+                counterMsg = `ミス！正解は「 ${currentQuiz.answer} 」\n隙を突かれ、相手から ${penaltyDmg} の強烈なカウンター攻撃を喰らった！`;
+            }
+
             saveData.hp = Math.max(0, saveData.hp - penaltyDmg);
             popDamageEffect('player', penaltyDmg);
             document.getElementById("player-hp").innerText = saveData.hp;
-            document.getElementById("message").innerText = `ミス！正解は「 ${currentQuiz.answer} 」\n解答ミスにより 5 の固定ダメージを受けた！`;
+            document.getElementById("message").innerText = counterMsg;
             
             saveGame(); updateCountdownUI(); updateStatusBadges();
 
@@ -929,6 +1143,14 @@ function processEndTurn() {
         stopBgm();
         playSe('seVictory');
         
+        if(isPvpMode) {
+            // PvP勝利時
+            cleanupPvpHp();
+            document.getElementById("message").innerText = `🎉 友達の勇者（${pvpEnemyData.name}）との大決戦に見事勝利した！\nさすがのクイズ力だ！`;
+            setupNextButton(() => { switchPage('pvp-hub'); });
+            return;
+        }
+
         const config = questConfigs[currentDifficulty];
         saveData.gold += config.gold; saveData.lv++;
         
@@ -960,6 +1182,21 @@ function processEndTurn() {
         return;
     }
 
+    // 🌟 PvPモード時の毎ターン敵AIの割り込み処理
+    if (isPvpMode) {
+        // 敵の残りHPが半分以下で、30%の確率で瞑想(回復)
+        if (enemyHp < (enemyMaxHp / 2) && Math.random() < 0.30) {
+            enemyHp = Math.min(enemyMaxHp, enemyHp + 50);
+            document.getElementById("enemy-hp").innerText = enemyHp;
+            document.getElementById("message").innerText = `相手のターン！ライバルは「瞑想」の必殺技を使用した！\n敵のHPが 50 回復した！\n\n次の問題に備えよ！`;
+            setupNextButton(() => { nextTurn(); });
+            return;
+        }
+        nextTurn();
+        return;
+    }
+
+    // --- ここからは通常クエストの敵行動処理 ---
     let dotMsg = "";
     if (playerBurnTurns > 0) {
         saveData.hp = Math.max(0, saveData.hp - 15);
@@ -1073,12 +1310,30 @@ function popDamageEffect(target, amount) {
 function gameOver() {
     isDead = true; isInBattle = false; updateNavBarState(); stopBgm(); playSe('seGameOver');
     document.getElementById("monster").innerText = "💀";
+    
+    if(isPvpMode) {
+        cleanupPvpHp();
+        document.getElementById("message").innerText = `無念！ライバルに敗北してしまった…！やはり友達の勇者は強かった。 (PvPのためゴールド減少ペナルティはありません)`;
+        document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="revivePlayer()">戻る</button>`;
+        return;
+    }
+
     saveData.gold = Math.floor(saveData.gold / 2);
     document.getElementById("message").innerText = `勇者は倒れた…所持金が半分になりました。`;
     document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3333;" onclick="revivePlayer()">教会で復活する</button>`;
 }
 
-function revivePlayer() { isDead = false; saveData.hp = getPlayerMaxHp(); saveGame(); switchPage('quest-hub'); }
+function revivePlayer() { 
+    isDead = false; 
+    if(isPvpMode) {
+        isPvpMode = false;
+        switchPage('pvp-hub');
+    } else {
+        saveData.hp = getPlayerMaxHp(); 
+        saveGame(); 
+        switchPage('quest-hub'); 
+    }
+}
 
 // 起動時処理
 updateUI();
