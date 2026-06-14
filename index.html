@@ -415,586 +415,714 @@ function playSe(key) {
 }
 // ================================================================
 
-// 写真データから抽出した全62単語を元の構造(w, j, ex, tr, simW, simJ)に完全最適化
 const vocabulary = [
-    { w: "habit", j: "（個人の）習慣、癖", ex: "have a habit of making excuses", tr: "言い訳をする癖がある", simW: ["custom", "tradition", "society"], simJ: ["社会的な習慣", "伝統", "法律", "財宝"] },
-    { w: "custom", j: "（社会的な）習慣、税関", ex: "show what is in my suitcase at customs", tr: "税関でスーツケースの中を見せる", simW: ["habit", "tradition", "public"], simJ: ["個人の習慣", "法律", "伝統", "大衆"] },
-    { w: "tradition", j: "伝統、しきたり", ex: "Japanese traditions", tr: "日本の伝統", simW: ["society", "ancestor", "value"], simJ: ["社会", "祖先", "価値", "流行"] },
-    { w: "society", j: "社会、協会、団体", ex: "women's status in society", tr: "社会での女性の地位", simW: ["nation", "state", "public"], simJ: ["国家", "人口", "伝統", "地元"] },
-    { w: "law", j: "法律、国法、法則", ex: "Parking here is against the law.", tr: "ここでの駐車は法律違反だ。", simW: ["vote", "government", "state"], simJ: ["投票", "政府", "証拠", "大統領"] },
-    { w: "ancestor", j: "祖先、先祖", sentence: "My ancestors were French.", tr: "私の祖先はフランス人だった。", simW: ["neighbor", "author", "clerk"], simJ: ["隣人", "著者", "店員", "乗客"] },
-    { w: "population", j: "人口、個体数", ex: "The population of Tokyo is larger than that of Osaka.", tr: "東京の人口は大阪の人口より多い。", simW: ["society", "public", "crowd"], simJ: ["社会", "大衆", "群衆", "乗客"] },
-    { w: "native", j: "母国の、その土地の生まれの", ex: "his native language", tr: "彼の母国語", simW: ["local", "elderly", "female"], simJ: ["地元の", "年配の", "女性の", "確かな"] },
-    { w: "abroad", j: "海外へ、海外で", ex: "find a job abroad", tr: "海外で仕事を見つける", simW: ["wander", "travel", "head"], simJ: ["歩き回る", "旅行する", "向かう", "避ける"] },
-    { w: "local", j: "その土地の、地元の", ex: "talk with the locals", tr: "地元の人々と話す", simW: ["native", "public", "national"], simJ: ["母国の", "公共の", "国家の", "確かな"] },
-    { w: "survey", j: "調査、アンケート", ex: "according to a recent survey", tr: "最近の調査によると", simW: ["evidence", "budget", "value"], simJ: ["証拠", "予算", "価値", "合計"] },
-    { w: "value", j: "価値、価格、価値観", ex: "the value of the painting", tr: "その絵の価値", simW: ["price", "wealth", "treasure"], simJ: ["価格", "富", "財宝", "予算"] },
-    { w: "treasure", j: "財宝、宝、大事なもの", ex: "a national treasure", tr: "国宝", simW: ["value", "wealth", "budget"], simJ: ["価値", "富", "予算", "価格"] },
-    { w: "fashion", j: "流行、ファッション、やり方", ex: "follow the latest fashion", tr: "最新の流行を追う", simW: ["custom", "habit", "society"], simJ: ["習慣", "社会", "大衆", "法律"] },
-    { w: "public", j: "大衆の、公の、公共の", ex: "public places", tr: "公共の場所", simW: ["local", "society", "nation"], simJ: ["地元の", "社会の", "国家の", "個人の"] },
-    { w: "evidence", j: "証拠、根拠", ex: "There is no evidence to support his story.", tr: "彼の話を裏づける証拠はない。", simW: ["survey", "law", "government"], simJ: ["調査", "法律", "政府", "予算"] },
-    { w: "vote", j: "投票、投票権", ex: "the right to vote", tr: "投票する権利", simW: ["law", "government", "nation"], simJ: ["法律", "政府", "国家", "州"] },
-    { w: "government", j: "政府、政権", ex: "the Japanese government", tr: "日本政府", simW: ["nation", "state", "political"], simJ: ["国家", "州", "政治的な", "法律"] },
-    { w: "nation", j: "国家、国、国民", ex: "the most powerful nation in the world", tr: "世界で一番力のある国", simW: ["state", "capital", "society"], simJ: ["州、状態", "首都", "社会", "近所"] },
-    { w: "capital", j: "首都、資本、大文字", ex: "What is the capital of Canada?", tr: "カナダの首都はどこですか。", simW: ["nation", "state", "budget"], simJ: ["国家", "状態", "予算", "富"] },
-    { w: "state", j: "状態、国家、州", ex: "the United States of America", tr: "アメリカ合衆国", simW: ["nation", "capital", "government"], simJ: ["国家", "首都", "政府", "法律"] },
-    { w: "political", j: "政治的な、政治の", ex: "the political situation in Russia", tr: "ロシアの政治情勢", simW: ["public", "native", "local"], simJ: ["公の", "母国の", "地元の", "経済の"] },
-    { w: "price", j: "価格、物価、代償", ex: "Prices have gone up by 5%.", tr: "物価が5%上がった。", simW: ["sum", "fee", "fare"], simJ: ["合計金額", "手数料、授業料", "乗り物運賃", "勘定書"] },
-    { w: "sum", j: "金額、合計、要約", ex: "pay a large sum for antiques", tr: "骨とう品に大金を使う", simW: ["price", "budget", "bill"], simJ: ["価格", "予算", "請求書", "運賃"] },
-    { w: "budget", j: "予算、家計", ex: "our budget for this trip", tr: "今回の旅の予算", simW: ["sum", "fee", "wealth"], simJ: ["合計金額", "料金", "富", "代償"] },
-    { w: "fee", j: "料金、謝礼、授業料", ex: "pay a cancellation fee", tr: "キャンセル料を払う", simW: ["fare", "bill", "price"], simJ: ["乗り物の運賃", "請求書", "物価", "富"] },
-    { w: "fare", j: "運賃（乗り物の）", ex: "Taxi fares are low in Singapore.", tr: "シンガポールのタクシー料金は安い。", simW: ["fee", "bill", "cost"], simJ: ["手数料・入場料", "請求書", "費用", "合計"] },
-    { w: "bill", j: "勘定書、請求書、紙幣", ex: "the phone bill", tr: "電話代の請求書", simW: ["fee", "fare", "price"], simJ: ["料金・謝礼", "乗り物運賃", "価格", "予算"] },
-    { w: "trade", j: "貿易、商売、取引", ex: "Japan's trade with the U.S.", tr: "日本の対米貿易", simW: ["economy", "company", "wealth"], simJ: ["経済", "会社", "富", "予算"] },
-    { w: "wealth", j: "富、財産、豊富", ex: "achieve wealth and power", tr: "富と権力を手にする", simW: ["value", "treasure", "budget"], simJ: ["価値", "財宝", "予算", "金額"] },
-    { w: "economy", j: "経済、節約", ex: "boost the Japanese economy", tr: "日本経済を活性化する", simW: ["trade", "government", "budget"], simJ: ["貿易", "政府", "予算", "会社"] },
-    { w: "cost", j: "費用、代償、犠牲", ex: "The suit cost me 500 dollars.", tr: "そのスーツは私に500ドルした（かかった）。", simW: ["price", "fee", "damage"], simJ: ["価格", "料金", "損害", "任務"] },
-    { w: "company", j: "会社、同席すること、仲間", ex: "work for a big company", tr: "大きな会社で働く", simW: ["staff", "clerk", "society"], simJ: ["職員", "店員", "社会", "近所"] },
-    { w: "task", j: "仕事、任務、課題", ex: "accomplish a difficult task", tr: "困難な仕事を成し遂げる", simW: ["cost", "trade", "custom"], simJ: ["費用", "貿易", "習慣", "富"] },
-    { w: "earn", j: "（お金を）稼ぐ、得る", ex: "earn money to pay my school fees", tr: "学費を払うお金を稼ぐ", simW: ["head", "follow", "travel"], simJ: ["向かう", "従う", "旅行する", "避ける"] },
-    { w: "hurt", j: "痛む、傷つける", ex: "My back hurts a lot.", tr: "腰がとても痛い。", simW: ["injure", "damage", "destroy"], simJ: ["〜を痛める", "〜に損害を与える", "〜を破壊する", "避ける"] },
-    { w: "injure", j: "〜を痛める、けがをさせる", ex: "injure my back", tr: "腰を痛める", simW: ["hurt", "damage", "ruin"], simJ: ["痛む", "〜に損害を与える", "〜を台無しにする", "滅ぼす"] },
-    { w: "damage", j: "〜に損害を与える", ex: "seriously damage the environment", tr: "環境に深刻な被害を与える", simW: ["destroy", "ruin", "hurt"], simJ: ["〜を破壊する", "〜を台無しにする", "痛む", "避ける"] },
-    { w: "destroy", j: "〜を破壊する、滅ぼす", ex: "destroy all weapons", tr: "すべての武器を破壊する", simW: ["ruin", "damage", "injure"], simJ: ["〜を台無しにする", "〜に損害を与える", "〜を痛める", "避ける"] },
-    { w: "ruin", j: "〜を台無しにする、破滅させる", ex: "You ruined my plan.", tr: "君のせいで計画が台無しだよ。", simW: ["destroy", "damage", "hurt"], simJ: ["〜を破壊する", "〜に損害を与える", "痛む", "避ける"] },
-    { w: "danger", j: "危険、脅威", ex: "Tigers are in danger of extinction.", tr: "トラが絶滅の危機にある。", simW: ["evidence", "value", "trade"], simJ: ["証拠", "価値", "貿易", "予算"] },
-    { w: "neighbor", j: "近所の人、隣人", ex: "chat with a neighbor", tr: "近所の人と話す", simW: ["audience", "crowd", "author"], simJ: ["観客", "群衆", "著者", "店員"] },
-    { w: "audience", j: "聴衆、観客", ex: "draw a large audience", tr: "大観衆を集める", simW: ["crowd", "neighbor", "passenger"], simJ: ["群衆", "隣人", "乗客", "職員"] },
-    { w: "crowd", j: "群衆、人混み", ex: "A crowd rushed into the hall.", tr: "群衆が会場になだれ込んだ。", simW: ["audience", "neighbor", "customer"], simJ: ["観客", "隣人", "顧客", "店員"] },
-    { w: "author", j: "著者、作者", ex: "the author of War and Peace", tr: "『戦争と平和』の著者", simW: ["clerk", "staff", "neighbor"], simJ: ["店員", "職員", "隣人", "乗客"] },
-    { w: "staff", j: "職員、社員、スタッフ", ex: "Most of the staff are from Australia.", tr: "職員の大半はオーストラリア出身です。", simW: ["clerk", "author", "audience"], simJ: ["店員", "著者", "観客", "隣人"] },
-    { w: "clerk", j: "店員、事務員", ex: "the clerks at that department store", tr: "あのデパートの店員", simW: ["customer", "staff", "author"], simJ: ["客", "職員", "著者", "群衆"] },
-    { w: "customer", j: "客、顧客", ex: "The restaurant was crowded with customers from abroad.", tr: "そのレストランは外国人客で混雑していた。", simW: ["passenger", "clerk", "crowd"], simJ: ["乗客", "店員", "群衆", "隣人"] },
-    { w: "passenger", j: "乗客", ex: "There were a lot of passengers on the train.", tr: "列車には多くの乗客が乗っていた。", simW: ["customer", "audience", "staff"], simJ: ["顧客", "観客", "職員", "著者"] },
-    { w: "elderly", j: "年配の、高齢の", ex: "give up my seat to elderly people", tr: "お年寄りに席を譲る", simW: ["female", "native", "local"], simJ: ["女性の", "母国の", "地元の", "当然の"] },
-    { w: "female", j: "女性の、雌の", ex: "female workers", tr: "女性の労働者", simW: ["elderly", "native", "likely"], simJ: ["年配の", "母国の", "〜しそうな", "自然の"] },
-    { w: "head", j: "向かう、〜を率いる", ex: "head for the beach", tr: "海辺に向かう", simW: ["follow", "wander", "travel"], simJ: ["従う・ついて行く", "歩き回る", "旅行する", "避ける"] },
-    { w: "follow", j: "〜の後について行く、従う", ex: "Someone was following me.", tr: "誰かが私をつけていた。", simW: ["head", "wander", "pass"], simJ: ["向かう", "歩き回る", "通り過ぎる", "避ける"] },
-    { w: "wander", j: "歩き回る、さまよう", ex: "wander about the town", tr: "街をぶらぶら歩き回る", simW: ["travel", "head", "follow"], simJ: ["旅行する", "向かう", "従う", "避ける"] },
-    { w: "travel", j: "旅行する、移動する", ex: "travel around the world", tr: "世界中を旅する", simW: ["wander", "head", "pass"], simJ: ["歩き回る", "向かう", "通り過ぎる", "合格する"] },
-    { w: "pass", j: "通り過ぎる、合格する、手渡す", ex: "pass the post office", tr: "郵便局の前を通り過ぎる", simW: ["follow", "travel", "avoid"], simJ: ["従う", "旅行する", "避ける", "直面する"] },
-    { w: "likely", j: "〜しそうだ、可能性が高い", ex: "Things are likely to improve.", tr: "事態はよくなりそうだ。", simW: ["certain", "probably", "natural"], simJ: ["確かな", "おそらく", "当然の", "地元の"] },
-    { w: "natural", j: "当然の、自然の、生まれながらの", ex: "It is only natural that you cannot catch words you do not know.", tr: "知らない単語を聞き取れないのはごく当然のことだ。", simW: ["likely", "certain", "native"], simJ: ["〜しそうな", "確かな", "母国の", "政治の"] },
-    { w: "certain", j: "確かな、一定の", ex: "He is certain to become a star player.", tr: "彼はきっとスター選手になるよ。", simW: ["likely", "probably", "natural"], simJ: ["〜しそうな", "おそらく", "当然の", "地元の"] },
-    { w: "probably", j: "おそらく、たぶん", ex: "The repairs will probably take a month.", tr: "修理はおそらく1か月はかかるだろう。", simW: ["certain", "likely", "natural"], simJ: ["確かな", "〜しそうな", "当然の", "母国の"] },
-    { w: "face", j: "〜に直面する、向きである", ex: "We are faced with a crisis.", tr: "私たちは危機に直面している。", simW: ["avoid", "pass", "head"], simJ: ["〜を避ける", "通り過ぎる", "向かう", "従う"] },
-    { w: "avoid", j: "〜を避ける", ex: "Avoid making eye contact with monkeys.", tr: "サルとは目を合わせないようにしなさい（避ける）。", simW: ["face", "pass", "follow"], simJ: ["〜に直面する", "通り過ぎる", "従う", "歩き回る"] }
+    { w: "agree", j: "賛成する", ex: "I agree with your opinion.", tr: "私はあなたの意見に賛成する。", simW: ["argue", "apologize", "advise"], simJ: ["意見が一致する", "主張する", "文句を言う", "許す"] },
+    { w: "oppose", j: "～に反対する", ex: "oppose the plan", tr: "その計画に反対する", simW: ["offer", "apologize", "complain"], simJ: ["文句を言う", "責任があるとする", "言い訳", "否定する"] },
+    { w: "advise", j: "～に忠告する", ex: "advise him to stop", tr: "彼にやめるよう忠告する", simW: ["agree", "admire", "award"], simJ: ["提案する", "説明する", "推薦する", "主張する"] },
+    { w: "tip", j: "助言，ヒント", ex: "useful tips for travel", tr: "旅行のための役立つヒント", simW: ["tear", "talent", "technology"], simJ: ["技術", "才能", "能力", "秘密"] },
+    { w: "discuss", j: "～について話し合う", ex: "discuss the problem", tr: "その問題について話し合う", simW: ["describe", "discover", "develop"], simJ: ["説明する", "主張する", "文句を言う", "表現する"] },
+    { w: "blame", j: "～に責任があるとする", ex: "Don't blame me.", tr: "私の責任にするな。", simW: ["breathe", "ability", "claim"], simJ: ["反対する", "文句を言う", "許す", "謝る"] },
+    { w: "argue", j: "～と主張する", ex: "argue that he is right", tr: "彼は正しいと主張する", simW: ["agree", "artificial", "award"], simJ: ["話し合う", "説明する", "文句を言う", "提案する"] },
+    { w: "claim", j: "～を要求する，主張する", ex: "claim ownership", tr: "所有権を主張する", simW: ["create", "celebrate", "blame"], simJ: ["提案する", "説明する", "約束する", "証明する"] },
+    { w: "complain", j: "文句を言う", ex: "complain about the food", tr: "食べ物に文句を言う", simW: ["communicate", "celebrate", "explain"], simJ: ["謝る", "言い訳をする", "反対する", "苦痛を経験する"] },
+    { w: "offer", j: "～を申し出る", ex: "offer a job to her", tr: "彼女に仕事を申し出る", simW: ["oppose", "effort", "express"], simJ: ["提案する", "推薦する", "約束する", "与える"] },
+    { w: "suggest", j: "～を提案する", ex: "suggest a new plan", tr: "新しい計画を提案する", simW: ["suffer", "practice", "establish"], simJ: ["示唆する", "推薦する", "説明する", "主張する"] },
+    { w: "recommend", j: "～を推薦する", ex: "recommend this book", tr: "この本を推薦する", simW: ["research", "medicine", "manage"], simJ: ["提案する", "称賛する", "説明する", "確立する"] },
+    { w: "grateful", j: "感謝している", ex: "I am grateful to you.", tr: "私はあなたに感謝している。", simW: ["electric", "patient", "physical"], simJ: ["感心している", "忍耐強い", "お祝いを述べる", "満足している"] },
+    { w: "apologize", j: "謝る", ex: "apologize for the mistake", tr: "間違いを謝る", simW: ["agree", "argue", "admire"], simJ: ["言い訳をする", "許す", "文句を言う", "免除する"] },
+    { w: "excuse", j: "言い訳", ex: "make an excuse", tr: "言い訳をする", simW: ["exercise", "express", "explain"], simJ: ["許す", "嘘", "説明", "謝罪"] },
+    { w: "celebrate", j: "～を祝う", ex: "celebrate his birthday", tr: "彼の誕生日を祝う", simW: ["congratulate", "create", "describe"], simJ: ["（人）にお祝いを述べる", "挙行する", "称賛する", "歓迎する"] },
+    { w: "congratulate", j: "（人）を祝う", ex: "congratulate him on winning", tr: "彼の勝利を祝う", simW: ["celebrate", "communicate", "create"], simJ: ["特別な日を祝う", "称賛する", "感銘を与える", "お礼を言う"] },
+    { w: "admire", j: "～を称賛する", ex: "admire her talent", tr: "彼女の才能を称賛する", simW: ["advise", "argue", "impress"], simJ: ["感心する", "感銘を与える", "お祝いを述べる", "感謝している"] },
+    { w: "impress", j: "～に感銘を与える", ex: "impress the audience", tr: "観客に感銘を与える", simW: ["improve", "express", "invent"], simJ: ["感心させる", "称賛する", "表現する", "説明する"] },
+    { w: "award", j: "賞", ex: "win the Academy Award", tr: "アカデミー賞を受賞する", simW: ["argue", "agree", "ability"], simJ: ["罰", "目標", "成果", "手当"] },
+    { w: "explain", j: "～を説明する", ex: "explain the rules", tr: "ルールを説明する", simW: ["express", "excuse", "establish"], simJ: ["描写する", "主張する", "話し合う", "伝える"] },
+    { w: "describe", j: "～を説明する", ex: "describe the scene", tr: "その光景を説明する", simW: ["discuss", "discover", "develop"], simJ: ["特徴を述べる", "表現する", "研究する", "伝える"] },
+    { w: "communicate", j: "意思の疎通をはかる", ex: "communicate with gestures", tr: "身ぶりで意思の疎通をはかる", simW: ["complain", "celebrate", "condition"], simJ: ["伝える", "話し合う", "表現する", "繋がる"] },
+    { w: "express", j: "～を表現する", ex: "express my feelings", tr: "私の気持ちを表現する", simW: ["explain", "excuse", "exercise"], simJ: ["伝える", "説明する", "示唆する", "主張する"] },
+    { w: "promise", j: "約束", ex: "keep a promise", tr: "約束を守る", simW: ["produce", "practice", "patient"], simJ: ["秘密", "提案", "契約", "予定"] },
+    { w: "information", j: "情報", ex: "get useful information", tr: "役立つ情報を得る", simW: ["technology", "material", "medicine"], simJ: ["知識", "技術", "資料", "秘密"] },
+    { w: "technology", j: "科学技術", ex: "modern technology", tr: "現代の科学技術", simW: ["information", "material", "practice"], simJ: ["工業", "実験", "材料", "電子"] },
+    { w: "research", j: "学術研究", ex: "medical research", tr: "医学研究", simW: ["recommend", "explain", "discover"], simJ: ["実験", "調査", "開発", "勉強"] },
+    { w: "material", j: "材料，生地", ex: "raw material", tr: "原材料", simW: ["medicine", "medical", "physical"], simJ: ["資料", "道具", "製品", "物体"] },
+    { w: "artificial", j: "人工的な", ex: "artificial intelligence", tr: "人工知能", simW: ["electric", "physical", "medical"], simJ: ["現代の", "電気の", "芸術的な", "偽の"] },
+    { w: "electric", j: "電気の", ex: "an electric car", tr: "電気自動車", simW: ["artificial", "physical", "medical"], simJ: ["電子の", "人工的な", "自動の", "強力な"] },
+    { w: "invent", j: "～を発明する", ex: "invent a new machine", tr: "新しい機械を発明する", simW: ["improve", "discover", "develop"], simJ: ["開発する", "でっち上げる", "発見する", "生産する"] },
+    { w: "discover", j: "～を発見する", ex: "discover a new planet", tr: "新しい惑星を発見する", simW: ["describe", "discuss", "develop"], simJ: ["気がつく", "発明する", "研究する", "見つける"] },
+    { w: "develop", j: "～を開発する，発達させる", ex: "develop new products", tr: "新商品を開発する", simW: ["describe", "discover", "discuss"], simJ: ["発達する", "発展させる", "生産する", "確立する"] },
+    { w: "skill", j: "技術，力", ex: "improve cooking skills", tr: "料理の技術を磨く", simW: ["ability", "talent", "effort"], simJ: ["能力", "才能", "努力", "資格"] },
+    { w: "ability", j: "能力", ex: "ability to speak English", tr: "英語を話す能力", simW: ["skill", "talent", "effort"], simJ: ["技術", "才能", "体力", "知能"] },
+    { w: "talent", j: "才能", ex: "musical talent", tr: "音楽の才能", simW: ["patient", "skill", "ability"], simJ: ["能力", "技術", "天才", "努力"] },
+    { w: "effort", j: "努力", ex: "make an effort", tr: "努力する", simW: ["offer", "practice", "effect"], simJ: ["練習", "実践", "成果", "目的"] },
+    { w: "practice", j: "練習", ex: "daily practice", tr: "毎日の練習", simW: ["promise", "produce", "provide"], simJ: ["実践", "慣習", "努力", "運動"] },
+    { w: "achieve", j: "～を達成する", ex: "achieve the goal", tr: "目標を達成する", simW: ["manage", "improve", "create"], simJ: ["完成させる", "何とかして～する", "改善する", "成功する"] },
+    { w: "manage", j: "何とかして～する", ex: "manage to survive", tr: "何とか生き延びる", simW: ["material", "achieve", "improve"], simJ: ["経営する", "管理する", "達成する", "計画する"] },
+    { w: "improve", j: "～を改善する", ex: "improve the system", tr: "システムを改善する", simW: ["impress", "invent", "manage"], simJ: ["磨く", "よくなる", "発達させる", "修理する"] },
+    { w: "produce", j: "～を生産する", ex: "produce cars", tr: "車を生産する", simW: ["promise", "practice", "create"], simJ: ["産出する", "農作物", "開発する", "創造する"] },
+    { w: "create", j: "～を創造する", ex: "create a new job", tr: "新しい仕事を作り出す", simW: ["claim", "celebrate", "produce"], simJ: ["引き起こす", "生産する", "確立する", "発明する"] },
+    { w: "establish", j: "～を確立する", ex: "establish a company", tr: "会社を設立する", simW: ["suggest", "develop", "exercise"], simJ: ["定着させる", "設立する", "開発する", "創造する"] },
+    { w: "form", j: "～を形成する", ex: "form a line", tr: "列を形成する", simW: ["firm", "force", "from"], simJ: ["形態", "書式", "組織する", "計画する"] },
+    { w: "save", j: "～を省く，貯金する", ex: "save money", tr: "お金を貯金する", simW: ["suffer", "skill", "stress"], simJ: ["救う", "～を除いて", "残す", "集める"] },
+    { w: "medicine", j: "薬", ex: "take cold medicine", tr: "風邪薬を飲む", simW: ["medical", "material", "practice"], simJ: ["医学", "医療", "治療", "内科"] },
+    { w: "patient", j: "患者", ex: "a hospital patient", tr: "病院の患者", simW: ["talent", "practice", "physical"], simJ: ["忍耐強い", "医者", "看護師", "病気"] },
+    { w: "condition", j: "状態，状況", ex: "in good condition", tr: "良い状態で", simW: ["communicate", "medicine", "exercise"], simJ: ["容態", "条件", "環境", "健康"] },
+    { w: "medical", j: "医療の", ex: "medical care", tr: "医療ケア", simW: ["medicine", "physical", "artificial"], simJ: ["医学の", "身体的な", "健康の", "科学の"] },
+    { w: "physical", j: "身体的な", ex: "physical exercise", tr: "身体的エクササイズ（運動）", simW: ["medical", "artificial", "electric"], simJ: ["物理的な", "物質の", "肉体の", "健康な"] },
+    { w: "disease", j: "病気", ex: "prevent the disease", tr: "病気を予防する", simW: ["condition", "patient", "medicine"], simJ: ["疾患", "体調不良", "怪我", "苦痛"] },
+    { w: "pain", j: "苦痛，痛み", ex: "feel severe pain", tr: "ひどい痛みを感じる", simW: ["patient", "medicine", "exercise"], simJ: ["苦労", "骨折り", "悲しみ", "損害"] },
+    { w: "suffer", j: "苦痛を経験する，患う", ex: "suffer from a headache", tr: "頭痛に苦しむ", simW: ["suggest", "support", "save"], simJ: ["（損害などを）受ける", "我慢する", "経験する", "耐える"] },
+    { w: "exercise", j: "運動，練習", ex: "take regular exercise", tr: "定期的な運動をする", simW: ["excuse", "express", "explain"], simJ: ["習熟", "実行", "課題", "実践"] }
 ];
 
-// ==================== ゲームコアループ（完全に維持） ====================
+// ==================== ゲーム内の共通ステータス・セーブデータ ====================
 let saveData = {
     gold: 100,
-    lv: 1,
     baseAtk: 10,
     baseDef: 0,
-    weapon: "ひのきのぼう",
-    weaponPlus: 0,
-    armor: "ぬののふく",
-    armorPlus: 0,
-    yakuso: 0,
-    totalQuestions: 0,
-    correctAnswers: 0
+    playerName: "勇者",
+    items: { yakuso: 0 },
+    weapons: { 'ひのきのぼう': { owned: true, plus: 0 } },
+    armors: { 'ぬののふく': { owned: true, plus: 0 } },
+    equippedWeapon: 'ひのきのぼう',
+    equippedArmor: 'ぬののふく',
+    stats: { totalQuestions: 0, correctAnswers: 0 }
 };
 
-// 武器・防具マスターデータ
-const weaponsMaster = {
-    "ひのきのぼう": { atk: 0, rarity: "N" },
-    "かわのたて": { atk: 3, rarity: "R" }, // ※元ファイル通り
-    "どうのつるぎ": { atk: 5, rarity: "R" },
-    "鉄の剣": { atk: 10, rarity: "R" },
-    "はがねのつるぎ": { atk: 18, rarity: "SR" },
-    "まどろみの剣": { atk: 25, rarity: "SR" },
-    "ひかりのつるぎ": { atk: 40, rarity: "SSR" },
-    "ロトの剣": { atk: 55, rarity: "SSR" },
-    "天空のつるぎ": { atk: 80, rarity: "UR" }
+const defaultSaveData = JSON.stringify(saveData);
+
+const gearData = {
+    weapons: {
+        'ひのきのぼう':  { atk: 0,   def: 0, price: 10,   rarity: 'N',  label: 'ひのきのぼう' },
+        '鉄の剣':        { atk: 15,  def: 0, price: 150,  rarity: 'R',  label: '鉄の剣' },
+        'どうのつるぎ':  { atk: 8,   def: 0, price: 80,   rarity: 'R',  label: 'どうのつるぎ' },
+        'はがねのつるぎ': { atk: 35,  def: 0, price: 500,  rarity: 'SR', label: 'はがねのつるぎ' },
+        'まどろみの剣':  { atk: 25,  def: 5, price: 420,  rarity: 'SR', label: 'まどろみの剣' },
+        'ロトの剣':      { atk: 75,  def: 0, price: 1500, rarity: 'SSR', label: 'ロトの剣' },
+        'ひかりのつるぎ': { atk: 60,  def: 10,price: 1350, rarity: 'SSR', label: 'ひかりのつるぎ' },
+        '天空のつるぎ':  { atk: 120, def: 15,price: 5000, rarity: 'UR',  label: '天空のつるぎ' }
+    },
+    armors: {
+        'ぬののふく':    { atk: 0, def: 0,   price: 10,   rarity: 'N',  label: 'ぬののふく' },
+        '鉄の盾':        { atk: 0, def: 8,   price: 120,  rarity: 'R',  label: '鉄の盾' },
+        'かわのたて':    { atk: 0, def: 4,   price: 60,   rarity: 'R',  label: 'かわのたて' },
+        'はがねの鎧':    { atk: 0, def: 20,  price: 450,  rarity: 'SR', label: 'はがねの鎧' },
+        'まほうのよろい': { atk: 5, def: 15,  price: 400,  rarity: 'SR', label: 'まほうのよろい' },
+        'ロトの鎧':      { atk: 0, def: 45,  price: 1400, rarity: 'SSR', label: 'ロトの鎧' },
+        'みかがみの盾':  { atk: 10,def: 35,  price: 1300, rarity: 'SSR', label: 'みかがみの盾' },
+        '天空のよろい':  { atk: 15,def: 70,  price: 4800, rarity: 'UR',  label: '天空のよろい' }
+    }
 };
 
-const armorsMaster = {
-    "ぬののふく": { def: 0, rarity: "N" },
-    "鉄の盾": { def: 4, rarity: "R" },
-    "まほうのよろい": { def: 10, rarity: "SR" },
-    "はがねの鎧": { def: 15, rarity: "SR" },
-    "みかがみの盾": { def: 25, rarity: "SSR" },
-    "ロトの鎧": { def: 35, rarity: "SSR" },
-    "天空のよろい": { def: 55, rarity: "UR" }
+const questMaster = {
+    easy:    { name: "スライムの森",   hp: 30,   atk: 8,   reward: 150,   type: "meaning",    graphic: "💧", interval: 5, bgm: 'battleEasyNormalHard' },
+    normal:  { name: "荒涼たる荒野",   hp: 80,   atk: 18,  reward: 400,   type: "hybrid_mn",  graphic: "🏜️", interval: 5, bgm: 'battleEasyNormalHard' },
+    hard:    { name: "狂気の火山",     hp: 170,  atk: 32,  reward: 700,   type: "hybrid_nf",  graphic: "🌋", interval: 4, bgm: 'battleEasyNormalHard' },
+    inferno: { name: "裏魔王の深淵",   hp: 350,  atk: 55,  reward: 1000,  type: "translate",  graphic: "🐉", interval: 4, bgm: 'battleInferno' },
+    despair: { name: "虚構の騎士",     hp: 1200, atk: 120, reward: 10000, type: "translate",  graphic: "💀", interval: 3, bgm: 'battleDespair' }
 };
 
-// 限界突破データ
-let weaponInventory = { "ひのきのぼう": 0 };
-let armorInventory = { "ぬののふく": 0 };
-
-// バトル一時変数
+// ==================== バトル用リアルタイムステータス ====================
+let currentQuestKey = null;
+let enemyHp = 0;
+let enemyMaxHp = 0;
+let currentEnemyAtk = 0;
+let enemyTurnCountdown = 0;
+let enemyTurnInterval = 5;
+let currentQuestion = null;
 let playerHp = 100;
 let playerMaxHp = 100;
-let enemyMaxHp = 30;
-let enemyHp = 30;
-let enemyAtk = 8;
-let enemyName = "";
-let enemyInterval = 5;
-let enemyCountdown = 5;
-let currentQuestMode = 'easy';
-let currentWordIndex = 0;
-let currentWord = null;
-let currentQuizType = 'j'; // j, fill, tr
-let battleSp = 0;
-let activeBuffs = { burn: 0, guard: false, stun: false, charge: false };
 let isInBattle = false;
+let isDead = false;
 
-// PvP用変数
-let isPvpMode = false;
-let pvpBackupHp = 100;
-let pvpBackupMaxHp = 100;
-let pvpEnemyName = "ライバル勇者";
-let pvpEnemyHitRate = 1.0;
-
-window.onload = function() {
-    loadGameData();
-    initUI();
+// 新拡張：SP・無敵・状態異常管理
+let playerSp = 0; 
+let activeBuffs = {
+    barrier: 0, 
+    charge: 0,  
+    guard: 0    
+};
+let enemyDebuffs = {
+    burn: 0,    
+    stun: 0     
 };
 
-function switchPage(pageId) {
-    if (isInBattle && pageId !== 'quest-battle') {
-        alert("バトル中は移動できません！「逃げる」を選んでください。");
-        return;
+// PvP用フラグと対戦相手のバックアップ
+let isPvpMode = false;
+let pvpBackupData = null; 
+let pvpEnemyAccuracy = 1.0; 
+
+function loadGame() {
+    const data = localStorage.getItem('leap_quest_save_v1');
+    if (data) {
+        try {
+            const parsed = JSON.parse(data);
+            saveData = Object.assign({}, saveData, parsed);
+            if(!saveData.stats) saveData.stats = { totalQuestions:0, correctAnswers:0 };
+        } catch(e) {
+            console.error("セーブ復元失敗、初期化します", e);
+        }
     }
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    
-    document.getElementById(`page-${pageId}`).classList.add('active');
-    const btnMap = { 'quest-hub': 'btn-quest', 'pvp-hub': 'btn-pvp', 'equip': 'btn-equip', 'gacha': 'btn-gacha', 'setting': 'btn-setting', 'quest-battle': 'btn-quest' };
-    if (btnMap[pageId]) document.getElementById(btnMap[pageId]).classList.add('active');
-    
-    if (pageId === 'equip') renderEquipPage();
-    if (pageId === 'pvp-hub') updatePvpCodeDisplay();
+    document.getElementById("setting-name-input").value = saveData.playerName;
+    updateUi();
 }
 
-function initUI() {
-    document.getElementById("player-lv").innerText = saveData.lv;
+function saveGame() {
+    if (isPvpMode) return; 
+    localStorage.setItem('leap_quest_save_v1', JSON.stringify(saveData));
+}
+
+function updateUi() {
+    const weaponAtk = gearData.weapons[saveData.equippedWeapon].atk + (saveData.weapons[saveData.equippedWeapon].plus * 3);
+    const armorAtk = gearData.armors[saveData.equippedArmor].atk + (saveData.armors[saveData.equippedArmor].plus * 1);
+    const totalAtk = saveData.baseAtk + weaponAtk + armorAtk;
+
+    const weaponDef = gearData.weapons[saveData.equippedWeapon].def + (saveData.weapons[saveData.equippedWeapon].plus * 1);
+    const armorDef = gearData.armors[saveData.equippedArmor].def + (saveData.armors[saveData.equippedArmor].plus * 3);
+    const totalDef = saveData.baseDef + weaponDef + armorDef;
+
+    playerMaxHp = 100 + (saveData.armors[saveData.equippedArmor].plus * 5) + (saveData.weapons[saveData.equippedWeapon].plus * 2);
+    if(isPvpMode && pvpBackupData) {
+        playerMaxHp = pvpBackupData.tempPlayerMaxHp;
+    }
+
+    if (!isInBattle && !isDead) {
+        playerHp = playerMaxHp;
+    }
+
+    document.getElementById("header-player-name").innerText = saveData.playerName;
     document.getElementById("player-gold").innerText = saveData.gold;
-    document.getElementById("header-player-name").innerText = document.getElementById("setting-name-input").value || "勇者";
-    calculateFinalStatus();
-    playerHp = playerMaxHp;
-    updateHpUi();
-}
-
-function calculateFinalStatus() {
-    saveData.lv = Math.min(99, 1 + Math.floor(saveData.correctAnswers / 8));
-    saveData.baseAtk = 10 + (saveData.lv - 1) * 3;
-    saveData.baseDef = 0 + (saveData.lv - 1) * 2;
-    
-    let wMaster = weaponsMaster[saveData.weapon] || { atk: 0 };
-    let aMaster = armorsMaster[saveData.armor] || { def: 0 };
-    
-    let gearAtk = wMaster.atk + (saveData.weaponPlus * 4);
-    let gearDef = aMaster.def + (saveData.armorPlus * 3);
-    
-    let totalAtk = saveData.baseAtk + gearAtk;
-    let totalDef = saveData.baseDef + gearDef;
-    
-    playerMaxHp = 100 + (saveData.lv - 1) * 12;
-    if (playerHp > playerMaxHp) playerHp = playerMaxHp;
-    
-    document.getElementById("player-lv").innerText = saveData.lv;
-    document.getElementById("player-gold").innerText = saveData.gold;
-    
-    // 装備ページ表示用
-    let eAtk = document.getElementById("total-atk"); if(eAtk) eAtk.innerText = totalAtk;
-    let eBAtk = document.getElementById("base-atk"); if(eBAtk) eBAtk.innerText = saveData.baseAtk;
-    let eGAtk = document.getElementById("gear-atk"); if(eGAtk) eGAtk.innerText = gearAtk;
-    let eDef = document.getElementById("total-def"); if(eDef) eDef.innerText = totalDef;
-    let eBDef = document.getElementById("base-def"); if(eBDef) eBDef.innerText = saveData.baseDef;
-    let eGDef = document.getElementById("gear-def"); if(eGDef) eGDef.innerText = gearDef;
-    
-    let cw = document.getElementById("current-weapon"); if(cw) cw.innerText = saveData.weapon;
-    let cwp = document.getElementById("current-weapon-plus"); if(cwp) cwp.innerText = saveData.weaponPlus > 0 ? `+${saveData.weaponPlus}` : "";
-    let ca = document.getElementById("current-armor"); if(ca) ca.innerText = saveData.armor;
-    let cap = document.getElementById("current-armor-plus"); if(cap) cap.innerText = saveData.armorPlus > 0 ? `+${saveData.armorPlus}` : "";
-    
-    document.getElementById("setting-name-input").placeholder = "勇者";
-}
-
-function updateHpUi() {
-    document.getElementById("player-hp").innerText = Math.max(0, playerHp);
+    document.getElementById("player-hp").innerText = playerHp;
     document.getElementById("player-max-hp").innerText = playerMaxHp;
-    
-    const area = document.getElementById("player-hp-display-area");
-    if(playerHp <= playerMaxHp * 0.25) {
-        area.style.color = "#ff3333";
-    } else if(playerHp <= playerMaxHp * 0.5) {
-        area.style.color = "#ffcc00";
+
+    const hpUiArea = document.getElementById("player-hp-display-area");
+    if (playerHp <= playerMaxHp * 0.25) {
+        hpUiArea.style.color = "#ff3333";
+    } else if (playerHp <= playerMaxHp * 0.5) {
+        hpUiArea.style.color = "#ffcc00";
     } else {
-        area.style.color = "#00ffcc";
+        hpUiArea.style.color = "#00ffcc";
     }
+
+    document.getElementById("total-atk").innerText = totalAtk;
+    document.getElementById("base-atk").innerText = saveData.baseAtk;
+    document.getElementById("gear-atk").innerText = weaponAtk + armorAtk;
+
+    document.getElementById("total-def").innerText = totalDef;
+    document.getElementById("base-def").innerText = saveData.baseDef;
+    document.getElementById("gear-def").innerText = weaponDef + armorDef;
+
+    const wPlus = saveData.weapons[saveData.equippedWeapon].plus;
+    document.getElementById("current-weapon").innerText = gearData.weapons[saveData.equippedWeapon].label;
+    document.getElementById("current-weapon-plus").innerText = wPlus > 0 ? `+${wPlus}` : '';
+
+    const aPlus = saveData.armors[saveData.equippedArmor].plus;
+    document.getElementById("current-armor").innerText = gearData.armors[saveData.equippedArmor].label;
+    document.getElementById("current-armor-plus").innerText = aPlus > 0 ? `+${aPlus}` : '';
+
+    document.getElementById("item-yakuso-count").innerText = saveData.items.yakuso || 0;
+
+    const qTotal = saveData.stats.totalQuestions || 0;
+    const qCorrect = saveData.stats.correctAnswers || 0;
+    const hitRate = qTotal > 0 ? Math.round((qCorrect / qTotal) * 100) : 100;
+    document.getElementById("stats-total-questions").innerText = qTotal;
+    document.getElementById("stats-correct-answers").innerText = qCorrect;
+    document.getElementById("stats-hit-rate").innerText = hitRate;
+
+    // 非同期対戦コード画面の更新
+    if(document.getElementById("page-pvp-hub").classList.contains("active")) {
+        document.getElementById("my-pvp-code-display").innerText = generatePvpCode();
+    }
+
+    renderEquipLists();
+    updateNavBarState();
 }
 
 function updateNavBarState() {
-    const btns = document.querySelectorAll(".nav-btn");
-    btns.forEach(b => {
-        if(isInBattle) {
-            if(b.id === 'btn-quest') b.disabled = false; else b.disabled = true;
+    const navBtns = document.querySelectorAll(".nav-bar .nav-btn");
+    navBtns.forEach(btn => {
+        if (isInBattle) {
+            btn.disabled = true;
+            btn.style.opacity = "0.3";
         } else {
-            b.disabled = false;
+            btn.disabled = false;
+            btn.style.opacity = "1";
         }
     });
 }
 
-// ==================== クエスト進行システム ====================
-function startQuest(mode) {
-    isInBattle = true;
-    isPvpMode = false;
-    currentQuestMode = mode;
-    updateNavBarState();
+function switchPage(pageId) {
+    if (isInBattle) return;
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
     
-    activeBuffs = { burn: 0, guard: false, stun: false, charge: false };
-    battleSp = 0;
-    updateSpBar();
-    
-    // 難易度別のモンスター出現
-    if(mode === 'easy') {
-        enemyMaxHp = 25; enemyAtk = 6; enemyInterval = 5; enemyName = "キラスライム";
-        document.getElementById("monster").innerText = "🟢";
-        playBgm('battleEasyNormalHard');
-    } else if(mode === 'normal') {
-        enemyMaxHp = 60; enemyAtk = 15; enemyInterval = 5; enemyName = "サボテンソルジャー";
-        document.getElementById("monster").innerText = "🌵";
-        playBgm('battleEasyNormalHard');
-    } else if(mode === 'hard') {
-        enemyMaxHp = 140; enemyAtk = 32; enemyInterval = 4; enemyName = "マグマゴーレム";
-        document.getElementById("monster").innerText = "🧱";
-        playBgm('battleEasyNormalHard');
-    } else if(mode === 'inferno') {
-        enemyMaxHp = 320; enemyAtk = 65; enemyInterval = 4; enemyName = "冥界魔王ヘルゾーマ";
-        document.getElementById("monster").innerText = "👹";
-        playBgm('battleInferno');
-    } else {
-        enemyMaxHp = 777; enemyAtk = 120; enemyInterval = 3; enemyName = "虚構の絶望騎士";
-        document.getElementById("monster").innerText = "💀";
-        playBgm('battleDespair');
+    document.getElementById(`page-${pageId}`).classList.add("active");
+    const btnMap = { 'quest-hub': 'btn-quest', 'pvp-hub': 'btn-pvp', 'equip': 'btn-equip', 'gacha': 'btn-gacha', 'setting': 'btn-setting' };
+    if (btnMap[pageId]) document.getElementById(btnMap[pageId]).classList.add("active");
+
+    if(pageId === 'quest-hub') {
+        playBgm('normalBgm');
     }
-    
-    enemyHp = enemyMaxHp;
-    enemyCountdown = enemyInterval;
-    
-    document.getElementById("monster-name").innerText = enemyName;
-    document.getElementById("enemy-hp").innerText = enemyHp;
-    document.getElementById("enemy-max-hp").innerText = enemyMaxHp;
-    document.getElementById("enemy-turn-countdown").innerText = enemyCountdown;
-    
-    document.getElementById("message").innerText = `${enemyName} が現れた！英単語を解いて攻撃を叩き込め！`;
-    
-    switchPage('quest-battle');
-    generateQuiz();
+    updateUi();
 }
 
-function generateQuiz() {
-    updateBuffBadges();
+function changePlayerName() {
+    let input = document.getElementById("setting-name-input").value;
+    input = input.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, '');
+    if (input.length > 4) input = input.substring(0, 4);
+    saveData.playerName = input || "勇者";
+    saveData.playerName = saveData.playerName.substring(0,4);
+    saveGame();
+}
+
+// ==================== PvP（非同期対戦）コアシステム ====================
+function generatePvpCode() {
+    const name = saveData.playerName || "勇者";
+    let nameEn = "";
+    for(let i=0; i<name.length; i++) {
+        nameEn += name.charCodeAt(i).toString(16).padStart(4, '0');
+    }
+    nameEn = nameEn.padEnd(16, '0');
+
+    const weaponAtk = gearData.weapons[saveData.equippedWeapon].atk + (saveData.weapons[saveData.equippedWeapon].plus * 3);
+    const armorAtk = gearData.armors[saveData.equippedArmor].atk + (saveData.armors[saveData.equippedArmor].plus * 1);
+    const totalAtk = saveData.baseAtk + weaponAtk + armorAtk;
+
+    const weaponDef = gearData.weapons[saveData.equippedWeapon].def + (saveData.weapons[saveData.equippedWeapon].plus * 1);
+    const armorDef = gearData.armors[saveData.equippedArmor].def + (saveData.armors[saveData.equippedArmor].plus * 3);
+    const totalDef = saveData.baseDef + weaponDef + armorDef;
+
+    const maxHp = 100 + (saveData.armors[saveData.equippedArmor].plus * 5) + (saveData.weapons[saveData.equippedWeapon].plus * 2);
+
+    const qTotal = saveData.stats.totalQuestions || 0;
+    const qCorrect = saveData.stats.correctAnswers || 0;
+    const hitRate = qTotal > 0 ? Math.round((qCorrect / qTotal) * 100) : 100;
+
+    const chunk1 = maxHp.toString().padStart(4, '0') + totalAtk.toString().padStart(3, '0') + totalDef.toString().padStart(3, '0');
+    const chunk2 = hitRate.toString().padStart(3, '0');
     
-    // モンスター死亡判定
-    if(enemyHp <= 0) {
-        winBattle();
+    let baseStr = chunk1 + chunk2 + nameEn;
+    let numericCode = "";
+    for(let i=0; i<baseStr.length; i++) {
+        numericCode += baseStr.charCodeAt(i).toString().slice(-1);
+    }
+    
+    let finalSeed = 0;
+    for(let i=0; i<baseStr.length; i++) finalSeed += baseStr.charCodeAt(i);
+    
+    return "9" + finalSeed.toString().padStart(4, '0') + numericCode.slice(0, 15);
+}
+
+function copyMyPvpCode() {
+    const code = generatePvpCode();
+    navigator.clipboard.writeText(code).then(() => {
+        alert("あなたの対戦パスコードをコピーしました！友達に教えて挑戦してもらいましょう！\nコード: " + code);
+    }).catch(() => {
+        alert("コピーに失敗しました。以下のコードを書き留めてください：\n" + code);
+    });
+}
+
+function startPvpBattle() {
+    if (isInBattle) return;
+    const codeStr = document.getElementById("input-enemy-code").value.trim();
+    if(!codeStr || codeStr.length < 10) {
+        alert("正しい対戦パスコードを入力してください。");
         return;
     }
+
+    // コードの簡易デコード/モック擬似再現
+    let seed = parseInt(codeStr.slice(1, 5)) || 500;
+    let mHp = 150 + (seed % 250); 
+    let mAtk = 25 + (seed % 45);
+    let mDef = 5 + (seed % 25);
+    let mAcc = 75 + (seed % 26); 
+
+    let mockNames = ["ライバル勇者", "伝説の影", "友の幻影", "謎の剣士", "放浪の騎士"];
+    let eName = mockNames[seed % mockNames.length];
+
+    // 特別ルール適用：お互いの最大HPに固定で500プラス＆全回復！
+    pvpBackupData = {
+        prevHp: playerHp,
+        prevMaxHp: playerMaxHp,
+        tempPlayerMaxHp: playerMaxHp + 500
+    };
+
+    playerHp = pvpBackupData.tempPlayerMaxHp; 
+    isPvpMode = true;
+
+    // 敵ステータスの確定（HPに特別ルールの500プラス）
+    enemyMaxHp = mHp + 500;
+    enemyHp = enemyMaxHp;
+    currentEnemyAtk = mAtk;
+    pvpEnemyAccuracy = mAcc / 100;
+    enemyTurnInterval = 3; 
+    enemyTurnCountdown = enemyTurnInterval;
+
+    // バトル画面への移行
+    isInBattle = true;
+    isDead = false;
+    currentQuestKey = null;
+
+    // 新拡張ステータスリセット
+    playerSp = 0;
+    activeBuffs = { barrier: 0, charge: 0, guard: 0 };
+    enemyDebuffs = { burn: 0, stun: 0 };
+
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById("page-quest-battle").classList.add("active");
+
+    document.getElementById("monster").innerText = "⚔️";
+    document.getElementById("monster-name").innerText = `【対戦】${eName}`;
+    document.getElementById("enemy-hp").innerText = enemyHp;
+    document.getElementById("enemy-max-hp").innerText = enemyMaxHp;
+    document.getElementById("btn-escape").style.display = "none"; 
+
+    playBgm('battlePvp');
+    document.getElementById("message").innerText = `対戦ルール！お互いの最大HPが【500プラス】された過酷な戦い！\n友達の幻影「${eName}」が現れた！`;
     
-    // クイズ形式決定
-    let dice = Math.random();
-    if(currentQuestMode === 'easy') {
-        currentQuizType = 'j';
-    } else if(currentQuestMode === 'normal') {
-        currentQuizType = dice < 0.6 ? 'j' : 'fill';
-    } else if(currentQuestMode === 'hard') {
-        currentQuizType = dice < 0.4 ? 'fill' : 'tr';
-    } else {
-        currentQuizType = 'tr';
+    updateSpBar();
+    nextTurn();
+}
+
+function cleanupPvpBattleEnd() {
+    if(!isPvpMode) return;
+    if(pvpBackupData) {
+        playerMaxHp = pvpBackupData.prevMaxHp;
+        playerHp = pvpBackupData.prevHp;
     }
+    isPvpMode = false;
+    pvpBackupData = null;
+    document.getElementById("btn-escape").style.display = "inline-block";
+}
+
+// ==================== クエスト・バトル中核システム ====================
+function startQuest(questKey) {
+    if (isInBattle) return;
+    const config = questMaster[questKey];
+    if (!config) return;
+
+    currentQuestKey = questKey;
+    isPvpMode = false;
+    pvpBackupData = null;
     
-    // 出題単語をランダムにチョイス
-    currentWordIndex = Math.floor(Math.random() * vocabulary.length);
-    currentWord = vocabulary[currentWordIndex];
+    enemyMaxHp = config.hp;
+    enemyHp = config.hp;
+    currentEnemyAtk = config.atk;
+    enemyTurnInterval = config.interval;
+    enemyTurnCountdown = enemyTurnInterval;
+
+    isInBattle = true;
+    isDead = false;
+
+    // 新拡張ステータスリセット
+    playerSp = 0;
+    activeBuffs = { barrier: 0, charge: 0, guard: 0 };
+    enemyDebuffs = { burn: 0, stun: 0 };
+
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById("page-quest-battle").classList.add("active");
+
+    document.getElementById("monster").innerText = config.graphic;
+    document.getElementById("monster-name").innerText = config.name;
+    document.getElementById("enemy-hp").innerText = enemyHp;
+    document.getElementById("enemy-max-hp").innerText = enemyMaxHp;
+    document.getElementById("btn-escape").style.display = "inline-block";
+
+    playBgm(config.bgm || 'battleEasyNormalHard');
+    document.getElementById("message").innerText = `${config.name}に進路をとった！野生のモンスターが現れた！`;
     
-    if(currentQuizType === 'j') {
-        // ①四択単語意味形式
-        document.getElementById("message").innerHTML = `<span style="color:#00ffcc; font-size:18px; font-weight:bold;">${currentWord.w}</span> の正しい意味はどれ？`;
-        let answers = [currentWord.j];
-        let dummyPool = [...currentWord.simJ];
-        while(answers.length < 4 && dummyPool.length > 0) {
-            let rIdx = Math.floor(Math.random() * dummyPool.length);
-            let d = dummyPool.splice(rIdx, 1)[0];
-            if(!answers.includes(d)) answers.push(d);
-        }
-        // 万が一足りない場合のフォールバック用ダミー
-        const genericDummies = ["～を破壊する", "～を避ける", "地元の", "習慣"];
-        genericDummies.forEach(g => { if(answers.length < 4 && !answers.includes(g)) answers.push(g); });
-        
-        answers = shuffleArray(answers);
-        
-        let html = "";
-        answers.forEach(ans => {
-            html += `<button class="choice-btn" onclick="submitAnswer('${escapeStr(ans)}')">${ans}</button>`;
-        });
-        document.getElementById("choices").innerHTML = html;
-        
-    } else if(currentQuizType === 'fill') {
-        // ②例文穴埋め形式
-        let blankWord = " " + currentWord.w + " ";
-        let regex = new RegExp(currentWord.w, "gi");
-        let hiddenEx = currentWord.ex.replace(regex, " [ ___ ] ");
-        
-        document.getElementById("message").innerHTML = `<div style="font-size:13px; color:#aaa; margin-bottom:5px;">穴埋め問題：下の例文の空欄に入る単語は？</div><div style="font-weight:bold; color:#ffcc00; margin-bottom:5px;">${hiddenEx}</div><div style="font-size:12px; color:#fff;">(訳: ${currentWord.tr})</div>`;
-        
-        let answers = [currentWord.w];
-        let dummyPool = [...currentWord.simW];
-        while(answers.length < 4 && dummyPool.length > 0) {
-            let rIdx = Math.floor(Math.random() * dummyPool.length);
-            let d = dummyPool.splice(rIdx, 1)[0];
-            if(!answers.includes(d)) answers.push(d);
-        }
-        // 万が一の予備ダミー
-        const genericW = ["avoid", "face", "habit", "law"];
-        genericW.forEach(g => { if(answers.length < 4 && !answers.includes(g)) answers.push(g); });
-        
-        answers = shuffleArray(answers);
-        
-        let html = "";
-        answers.forEach(ans => {
-            html += `<button class="choice-btn" onclick="submitAnswer('${escapeStr(ans)}')">${ans}</button>`;
-        });
-        document.getElementById("choices").innerHTML = html;
-        
+    updateSpBar();
+    nextTurn();
+}
+
+function updateSpBar() {
+    if (playerSp > 100) playerSp = 100;
+    if (playerSp < 0) playerSp = 0;
+    document.getElementById("battle-sp-bar").style.width = `${playerSp}%`;
+    document.getElementById("battle-sp-text").innerText = playerSp;
+
+    // SP100%で特技欄オープン
+    const skillsArea = document.getElementById("skills-area");
+    if (playerSp >= 100) {
+        skillsArea.style.display = "grid";
     } else {
-        // ③英訳選択形式
-        document.getElementById("message").innerHTML = `<div style="font-size:13px; color:#aaa; margin-bottom:5px;">英訳問題：次の日本語に合う正しいフレーズは？</div><div style="font-weight:bold; color:#ff3366; margin-bottom:5px;">「 ${currentWord.tr} 」</div>`;
+        skillsArea.style.display = "none";
+    }
+
+    // バッジエリアのリフレッシュ
+    const badgeArea = document.getElementById("status-badges-area");
+    badgeArea.innerHTML = "";
+    if (enemyDebuffs.burn > 0) badgeArea.innerHTML += `<span class="badge-burn">🔥炎上(${enemyDebuffs.burn}T)</span>`;
+    if (enemyDebuffs.stun > 0) badgeArea.innerHTML += `<span class="badge-stun">💫気絶(${enemyDebuffs.stun}T)</span>`;
+    if (activeBuffs.guard > 0) badgeArea.innerHTML += `<span class="badge-guard">🛡️鉄壁(${activeBuffs.guard}T)</span>`;
+    if (activeBuffs.charge > 0) badgeArea.innerHTML += `<span class="badge-charge">⚡集中⚡</span>`;
+}
+
+function useUltimate(type) {
+    if (!isInBattle || playerSp < 100) return;
+    playerSp = 0;
+    updateSpBar();
+
+    const msgWin = document.getElementById("message");
+
+    if (type === 'damage') {
+        activeBuffs.charge = 1;
+        msgWin.innerText = "勇者は極限まで精神を研ぎ澄ました！次の攻撃の威力が【3倍】に跳ね上がる！";
+        playSe('seGacha');
+    } else if (type === 'heal') {
+        playerHp = Math.min(playerMaxHp, playerHp + 50);
+        msgWin.innerText = "勇者は深く瞑想した！体力が【50ポイント】回復した！";
+        playSe('seVictory');
+        document.getElementById("player-hp").innerText = playerHp;
+    } else if (type === 'barrier') {
+        activeBuffs.barrier = 1;
+        msgWin.innerText = "聖なる光が勇者を包み込む！敵の次の攻撃を【1回完全に無効化】するバリアを展開した！";
+        playSe('seGacha');
+    }
+    updateUi();
+}
+
+function exitBattle() {
+    if (!isInBattle || isPvpMode) return;
+    isInBattle = false;
+    stopBgm();
+    switchPage('quest-hub');
+}
+
+function nextTurn() {
+    if (!isInBattle) return;
+    updateUi();
+
+    document.getElementById("enemy-turn-countdown").innerText = enemyTurnCountdown;
+
+    // クエストの難易度に応じたクイズ生成
+    let questType = "meaning";
+    if (currentQuestKey && questMaster[currentQuestKey]) {
+        questType = questMaster[currentQuestKey].type;
+    } else if (isPvpMode) {
+        questType = "hybrid_nf"; 
+    }
+
+    // 確率でタイプをさらに分岐
+    let currentMode = "meaning";
+    if (questType === "hybrid_mn") {
+        currentMode = Math.random() < 0.6 ? "meaning" : "fill";
+    } else if (questType === "hybrid_nf") {
+        currentMode = Math.random() < 0.5 ? "fill" : "translate";
+    } else {
+        currentMode = questType;
+    }
+
+    const item = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+    currentQuestion = { item: item, mode: currentMode };
+
+    const msgWin = document.getElementById("message");
+    const choicesBox = document.getElementById("choices");
+    choicesBox.innerHTML = "";
+
+    if (currentMode === "meaning") {
+        msgWin.innerText = `【問題: 意味】 次の英単語の正しい意味を選べ。\n\n👉  ${item.w}`;
+        let answers = [item.j];
+        while(answers.length < 4) {
+            let s = item.simJ[Math.floor(Math.random() * item.simJ.length)];
+            if(!answers.includes(s)) answers.push(s);
+        }
+        answers = shuffleArray(answers);
+        answers.forEach(ans => {
+            choicesBox.innerHTML += `<button class="choice-btn" onclick="submitAnswer('${ans.replace(/'/g, "\\'")}')">${ans}</button>`;
+        });
+
+    } else if (currentMode === "fill") {
+        const blankEx = item.ex.replace(new RegExp(item.w, 'gi'), " [ ____ ] ");
+        msgWin.innerText = `【問題: 穴埋め】 文脈に合う最も適切な単語を選べ。\n\n"${blankEx}"\n意味: ${item.tr}`;
+        let answers = [item.w];
+        while(answers.length < 4) {
+            let s = item.simW[Math.floor(Math.random() * item.simW.length)];
+            if(!answers.includes(s)) answers.push(s);
+        }
+        answers = shuffleArray(answers);
+        answers.forEach(ans => {
+            choicesBox.innerHTML += `<button class="choice-btn" onclick="submitAnswer('${ans.replace(/'/g, "\\'")}')">${ans}</button>`;
+        });
+
+    } else if (currentMode === "translate") {
+        msgWin.innerText = `【問題: 英訳】 次の日本文を英訳した際、正しいものはどれか。\n\n「${item.tr}」`;
+        let answers = [item.ex];
         
-        let answers = [currentWord.ex];
-        // 他の単語の例文から3つダミーを作る
-        let attempts = 0;
-        while(answers.length < 4 && attempts < 100) {
-            attempts++;
-            let rW = vocabulary[Math.floor(Math.random() * vocabulary.length)];
-            if(rW.w !== currentWord.w && !answers.includes(rW.ex)) {
-                answers.push(rW.ex);
+        // 誤択として他の単語の例文を引っ張る
+        while(answers.length < 3) {
+            let randomItem = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+            if(randomItem.w !== item.w && !answers.includes(randomItem.ex)) {
+                answers.push(randomItem.ex);
             }
         }
+        // さらにダミーを1つ
+        const dummyEx = item.ex.replace(item.w, item.simW[0] || "make");
+        if(!answers.includes(dummyEx)) answers.push(dummyEx);
+
         answers = shuffleArray(answers);
-        
-        let html = "";
         answers.forEach(ans => {
-            html += `<button class="choice-btn" style="font-size:12px;" onclick="submitAnswer('${escapeStr(ans)}')">${ans}</button>`;
+            choicesBox.innerHTML += `<button class="choice-btn" style="font-size:12px;" onclick="submitAnswer('${ans.replace(/'/g, "\\'")}')">${ans}</button>`;
         });
-        document.getElementById("choices").innerHTML = html;
     }
 }
 
 function submitAnswer(chosen) {
+    if (!isInBattle || isDead) return;
+
+    saveData.stats.totalQuestions = (saveData.stats.totalQuestions || 0) + 1;
+
+    const item = currentQuestion.item;
+    const mode = currentQuestion.mode;
     let isCorrect = false;
-    if(currentQuizType === 'j' && chosen === currentWord.j) isCorrect = true;
-    if(currentQuizType === 'fill' && chosen === currentWord.w) isCorrect = true;
-    if(currentQuizType === 'tr' && chosen === currentWord.ex) isCorrect = true;
-    
-    saveData.totalQuestions++;
-    if(isCorrect) saveData.correctAnswers++;
-    saveGameData();
-    calculateFinalStatus();
-    
-    if(isCorrect) {
-        // 正解演出
-        let baseDmg = saveData.baseAtk;
-        let weaponM = weaponsMaster[saveData.weapon] || { atk: 0 };
-        let gearDmg = weaponM.atk + (saveData.weaponPlus * 4);
-        let finalDmg = Math.floor((baseDmg + gearDmg) * (1 + Math.random() * 0.2));
+
+    if (mode === "meaning" && chosen === item.j) isCorrect = true;
+    if (mode === "fill" && chosen === item.w) isCorrect = true;
+    if (mode === "translate" && chosen === item.ex) isCorrect = true;
+
+    const msgWin = document.getElementById("message");
+    const choicesBox = document.getElementById("choices");
+    choicesBox.innerHTML = "";
+
+    if (isCorrect) {
+        saveData.stats.correctAnswers = (saveData.stats.correctAnswers || 0) + 1;
         
-        // 必殺チャージ状態なら2倍
-        if(activeBuffs.charge) {
-            finalDmg = Math.floor(finalDmg * 2);
-            activeBuffs.charge = false;
+        // 攻撃力計算
+        const weaponAtk = gearData.weapons[saveData.equippedWeapon].atk + (saveData.weapons[saveData.equippedWeapon].plus * 3);
+        const armorAtk = gearData.armors[saveData.equippedArmor].atk + (saveData.armors[saveData.equippedArmor].plus * 1);
+        let dmg = saveData.baseAtk + weaponAtk + armorAtk;
+
+        // 特大攻撃・チャージの処理
+        let isCritical = false;
+        if (activeBuffs.charge > 0) {
+            dmg = dmg * 3;
+            activeBuffs.charge = 0;
+            isCritical = true;
         }
-        
-        enemyHp -= finalDmg;
-        if(enemyHp < 0) enemyHp = 0;
+
+        // 相手の防御力減算処理（PvP時のみ）
+        if (isPvpMode) {
+            // モック防御を適度に減算。最低1ダメージ保証
+            let seed = parseInt(document.getElementById("input-enemy-code").value.trim().slice(1, 5)) || 500;
+            let mDef = 5 + (seed % 25);
+            dmg = Math.max(1, dmg - Math.floor(mDef * 0.5));
+        }
+
+        enemyHp = Math.max(0, enemyHp - dmg);
+        createDamagePopup(dmg, 'monster', isCritical);
+
+        // SP蓄積（難易度に応じて増加）
+        let spGain = 20;
+        if(currentQuestKey === 'hard') spGain = 25;
+        if(currentQuestKey === 'inferno') spGain = 34;
+        if(currentQuestKey === 'despair') spGain = 40;
+        playerSp = Math.min(100, playerSp + spGain);
+
         document.getElementById("enemy-hp").innerText = enemyHp;
+        msgWin.innerHTML = `<strong style="color:#00ffcc;">🎯 正解！</strong>【単語】${item.w} : ${item.j}\n解説: ${item.ex} (${item.tr})\n\nモンスターに <span style="color:#ff3333; font-size:16px; font-weight:bold;">${dmg}</span> のダメージ！`;
         
-        // SPチャージ
-        let spGain = currentQuizType === 'j' ? 12 : (currentQuizType === 'fill' ? 20 : 30);
-        battleSp = Math.min(100, battleSp + spGain);
+        // 状態異常追撃（ドットダメージ）
+        if (enemyDebuffs.burn > 0 && enemyHp > 0) {
+            enemyHp = Math.max(0, enemyHp - 15);
+            createDamagePopup(15, 'monster', false);
+            document.getElementById("enemy-hp").innerText = enemyHp;
+            msgWin.innerHTML += `\n🔥炎上効果でさらに15ダメージ！`;
+        }
+
+        if (enemyHp <= 0) {
+            setTimeout(winBattle, 1200);
+            return;
+        }
+
+        enemyTurnCountdown--;
         updateSpBar();
         
-        createDamagePopup(finalDmg, 'monster');
-        document.getElementById("monster-area").classList.add("shake");
-        setTimeout(() => document.getElementById("monster-area").classList.remove("shake"), 250);
-        
-        document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#00ffcc;" onclick="generateQuiz()">⭕ 正解！次の問題へ (敵に ${finalDmg} ダメージ)</button><div style="font-size:12px; margin-top:10px; color:#aaa; border-left:3px solid #00ffcc; padding-left:5px;">【解説】<br>単語: <strong>${currentWord.w}</strong> [${currentWord.j}]<br>例文: ${currentWord.ex}<br>和訳: ${currentWord.tr}</div>`;
-        
+        // 敵の行動判定
+        if (enemyTurnCountdown <= 0) {
+            setTimeout(enemyAttackTurn, 1400);
+        } else {
+            choicesBox.innerHTML = `<button class="choice-btn" style="text-align:center; color:#00ffcc;" onclick="nextTurn()">次のターンへ</button>`;
+        }
+
     } else {
-        // 不正解演出
-        playSe('seDamageTake');
-        // 敵カウンタ加速ペナルティ
-        enemyCountdown = Math.max(1, enemyCountdown - 1);
-        document.getElementById("enemy-turn-countdown").innerText = enemyCountdown;
+        // 不正解時の処理
+        msgWin.innerHTML = `<strong style="color:#ff3366;">❌ 不正解…！</strong>\n正解は「${mode==='meaning'? item.j : (mode==='fill'? item.w : item.ex)}」でした。\n\n【復習】${item.w} : ${item.j}\n${item.ex}\n(${item.tr})`;
         
-        let correctTxt = currentQuizType === 'j' ? currentWord.j : (currentQuizType === 'fill' ? currentWord.w : currentWord.ex);
-        
-        document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="generateQuiz()">❌ 不正解！次の問題へ</button><div style="font-size:12px; margin-top:10px; color:#aaa; border-left:3px solid #ff3366; padding-left:5px;">正解は「 <strong style="color:#fff;">${correctTxt}</strong> 」でした。<br><br>【解説】<br>単語: <strong>${currentWord.w}</strong> [${currentWord.j}]<br>例文: ${currentWord.ex}<br>和訳: ${currentWord.tr}</div>`;
+        enemyTurnCountdown--;
+        updateSpBar();
+
+        if (enemyTurnCountdown <= 0) {
+            setTimeout(enemyAttackTurn, 1600);
+        } else {
+            choicesBox.innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="nextTurn()">次のターンへ</button>`;
+        }
     }
-    
-    // 敵の行動ターンカウント判定
-    enemyCountdown--;
-    if(enemyCountdown <= 0) {
-        enemyCountdown = enemyInterval;
-        setTimeout(() => { if(enemyHp > 0) executeEnemyAttack(); }, 1200);
-    }
-    document.getElementById("enemy-turn-countdown").innerText = enemyCountdown;
+    saveGame();
 }
 
-function executeEnemyAttack() {
-    if(!isInBattle) return;
-    
-    // 敵のスタン状態判定
-    if(activeBuffs.stun) {
-        activeBuffs.stun = false;
-        document.getElementById("message").innerHTML += `<br><span style="color:#ffcc00;">敵は麻痺していて動けない！</span>`;
-        return;
-    }
-    
-    // PvPモードでの相手命中率計算
-    if(isPvpMode && Math.random() > pvpEnemyHitRate) {
-        document.getElementById("message").innerHTML += `<br><span style="color:#00ffcc;">${pvpEnemyName} の攻撃をすばやく回避した！</span>`;
+function enemyAttackTurn() {
+    if (!isInBattle || isDead) return;
+
+    const msgWin = document.getElementById("message");
+    const choicesBox = document.getElementById("choices");
+    enemyTurnCountdown = enemyTurnInterval;
+    document.getElementById("enemy-turn-countdown").innerText = enemyTurnCountdown;
+
+    // 1) 敵が気絶している場合のスキップ
+    if (enemyDebuffs.stun > 0) {
+        enemyDebuffs.stun--;
+        msgWin.innerText += `\n\n💫 モンスターは気絶していて動けない！`;
+        updateSpBar();
+        choicesBox.innerHTML = `<button class="choice-btn" style="text-align:center; color:#00ffcc;" onclick="nextTurn()">体勢を立て直す</button>`;
         return;
     }
 
-    let finalAtk = enemyAtk;
-    // 毒・火傷スリップダメージ（毎ターン敵攻撃時に進行）
-    if(activeBuffs.burn > 0) {
-        let dot = Math.floor(enemyMaxHp * 0.08);
-        enemyHp = Math.max(0, enemyHp - dot);
-        document.getElementById("enemy-hp").innerText = enemyHp;
-        createDamagePopup(dot, 'monster');
-        document.getElementById("message").innerHTML += `<br><span style="color:#ff3300;">🔥 火傷が敵を焼き尽くす！ (${dot}ダメージ)</span>`;
-        activeBuffs.burn--;
-        if(enemyHp <= 0) { winBattle(); return; }
-    }
-
-    // プレイヤーの無敵バリア判定
-    if(activeBuffs.guard) {
-        activeBuffs.guard = false;
-        document.getElementById("message").innerHTML += `<br><span style="color:#3399ff;">🛡️ 聖なるバリアが敵の攻撃を完全に防いだ！</span>`;
-        updateBuffBadges();
+    // 2) PvP専用：相手の命中率（正答率）による空振り判定
+    if (isPvpMode && Math.random() > pvpEnemyAccuracy) {
+        msgWin.innerText += `\n\n⚔️ 相手の幻影の攻撃！しかし、回答の精度が足りず空振りした！`;
+        choicesBox.innerHTML = `<button class="choice-btn" style="text-align:center; color:#00ffcc;" onclick="nextTurn()">次のターンへ</button>`;
         return;
     }
-    
-    let armorM = armorsMaster[saveData.armor] || { def: 0 };
-    let gearDef = armorM.def + (saveData.armorPlus * 3);
-    let totalDef = saveData.baseDef + gearDef;
-    
-    let dmg = Math.max(1, Math.floor(finalAtk - totalDef * 0.4));
-    playerHp -= dmg;
-    updateHpUi();
-    
-    createDamagePopup(dmg, 'player');
-    document.body.classList.add("shake");
-    setTimeout(() => document.body.classList.remove("shake"), 200);
-    
-    document.getElementById("message").innerHTML += `<br><span style="color:#ff3333;">💥 敵の反撃！ ${dmg} のダメージを受けた！</span>`;
-    
-    if(playerHp <= 0) {
-        playerHp = 0;
-        updateHpUi();
-        gameOver();
-    }
-}
 
-// 必殺技発動
-function useUltimate(type) {
-    if(battleSp < 100) return;
-    battleSp = 0;
-    updateSpBar();
-    
-    if(type === 'damage') {
-        let baseDmg = saveData.baseAtk;
-        let weaponM = weaponsMaster[saveData.weapon] || { atk: 0 };
-        let gearDmg = weaponM.atk + (saveData.weaponPlus * 4);
-        let finalDmg = Math.floor((baseDmg + gearDmg) * 3);
-        
-        enemyHp = Math.max(0, enemyHp - finalDmg);
-        document.getElementById("enemy-hp").innerText = enemyHp;
-        createDamagePopup(finalDmg, 'monster');
-        
-        activeBuffs.burn = 3; // ついでに3ターンの火傷デバフ
-        
-        document.getElementById("message").innerText = `💥 必殺：ギギギギガ・スラッシュ！！！ 敵に超絶クリティカル ${finalDmg} ダメージ ＆ 3ターンの火傷を付与！`;
-        
-    } else if(type === 'heal') {
-        playerHp = Math.min(playerMaxHp, playerHp + 60);
-        updateHpUi();
-        activeBuffs.charge = true; // 次回攻撃2倍
-        document.getElementById("message").innerText = `🌿 必殺：超瞑想パワー！！！ HPが60回復し、さらに次の正解時の威力が2倍に溜まった！`;
-        
+    // 3) プレイヤー無敵バリアの判定
+    if (activeBuffs.barrier > 0) {
+        activeBuffs.barrier = 0;
+        msgWin.innerText += `\n\n🔮 モンスターの猛攻！しかし、聖なる守りのバリアが完全に防ぎきった！`;
+        choicesBox.innerHTML = `<button class="choice-btn" style="text-align:center; color:#00ffcc;" onclick="nextTurn()">次のターンへ</button>`;
+        return;
+    }
+
+    // ダメージ計算（防御力減算）
+    const weaponDef = gearData.weapons[saveData.equippedWeapon].def + (saveData.weapons[saveData.equippedWeapon].plus * 1);
+    const armorDef = gearData.armors[saveData.equippedArmor].def + (saveData.armors[saveData.equippedArmor].plus * 3);
+    const totalDef = saveData.baseDef + weaponDef + armorDef;
+
+    let finalDmg = Math.max(1, currentEnemyAtk - totalDef);
+
+    playerHp = Math.max(0, playerHp - finalDmg);
+    createDamagePopup(finalDmg, 'player', false);
+    document.getElementById("player-hp").innerText = playerHp;
+
+    const bBox = document.getElementById("battle-box");
+    bBox.classList.add("shake");
+    setTimeout(() => bBox.classList.remove("shake"), 300);
+
+    msgWin.innerText += `\n\n💥 モンスターのターン！激しい攻撃を受け、勇者は ${finalDmg} のダメージを負った！`;
+
+    if (playerHp <= 0) {
+        setTimeout(gameOver, 1000);
     } else {
-        activeBuffs.guard = true;
-        activeBuffs.stun = true; // 敵を1回休み
-        document.getElementById("message").innerText = `🛡️ 必殺：聖なる無敵の守り！！！ 次のダメージを完全に1回無効化し、敵を麻痺させた！`;
-    }
-    
-    generateQuiz();
-}
-
-function updateSpBar() {
-    document.getElementById("battle-sp-bar").style.width = battleSp + "%";
-    document.getElementById("battle-sp-text").innerText = battleSp;
-    
-    const area = document.getElementById("skills-area");
-    if(battleSp >= 100) {
-        area.style.display = "grid";
-    } else {
-        area.style.display = "none";
+        choicesBox.innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3333;" onclick="nextTurn()">耐え抜いた！次のターン</button>`;
     }
 }
 
-function updateBuffBadges() {
-    let area = document.getElementById("status-badges-area");
-    if(!area) return;
-    let html = "";
-    if(activeBuffs.burn > 0) html += `<span class="badge-burn">🔥 火傷 (${activeBuffs.burn}T)</span>`;
-    if(activeBuffs.guard) html += `<span class="badge-guard">🛡️ 無敵バリア</span>`;
-    if(activeBuffs.stun) html += `<span class="badge-stun">⚡ 敵麻痺中</span>`;
-    if(activeBuffs.charge) html += `<span class="badge-charge">⚡ チャージ(2倍)</span>`;
-    area.innerHTML = html;
-}
-
-function winBattle() {
-    isInBattle = false;
-    updateNavBarState();
-    stopBgm();
-    playSe('seVictory');
-    
-    let rewardG = 150;
-    if(currentQuestMode === 'normal') rewardG = 400;
-    if(currentQuestMode === 'hard') rewardG = 700;
-    if(currentQuestMode === 'inferno') rewardG = 1000;
-    if(currentQuestMode === 'despair') rewardG = 10000;
-    
-    if(isPvpMode) rewardG = 250; // 対戦勝利一律報酬
-    
-    saveData.gold += rewardG;
-    saveGameData();
-    calculateFinalStatus();
-    
-    let msg = `🏆 クエストクリア！ ${enemyName} を討伐した！ 報酬として ${rewardG} G を手に入れた！`;
-    if(isPvpMode) {
-        cleanupPvpBattleEnd();
-        msg = `🏆 対戦勝利！ライバル勇者「${pvpEnemyName}の幻影」を破った！賞金 ${rewardG} G を獲得！ (最大HP・残り体力は対戦前に完全巻き戻ります)`;
-    }
-    
-    document.getElementById("message").innerText = msg;
-    document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ffcc00;" onclick="switchPage('quest-hub')">拠点へ戻る</button>`;
-}
-
-function createDamagePopup(dmg, target) {
-    const parent = document.getElementById("battle-box");
+function createDamagePopup(amount, target, isCritical) {
+    const parent = document.getElementById("monster-area");
     const pop = document.createElement("div");
     pop.className = "damage-pop";
-    pop.innerText = dmg;
+    pop.innerText = amount;
     pop.style.left = "50%";
-    pop.style.top = "40%";
-    pop.style.fontSize = "38px";
+    pop.style.top = "50%";
+    pop.style.fontSize = isCritical ? "38px" : "28px";
     pop.style.fontWeight = "bold";
     pop.style.zIndex = "999"; 
     pop.style.textShadow = "3px 3px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000";
@@ -1018,332 +1146,247 @@ function gameOver() {
 
     saveData.gold = Math.floor(saveData.gold / 2);
     document.getElementById("message").innerText = `勇者は倒れた…所持金が半分になりました。`;
-    document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="revivePlayer()">ゴールドを失って復活する</button>`;
+    document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="revivePlayer()">教会で復活する</button>`;
+    saveGame();
 }
 
 function revivePlayer() {
-    saveGameData();
-    calculateFinalStatus();
+    isDead = false;
     playerHp = playerMaxHp;
-    updateHpUi();
+    cleanupPvpBattleEnd();
     switchPage('quest-hub');
 }
 
-function exitBattle() {
-    if(confirm("本当にこの戦いから逃げ出しますか？(ペナルティはありません)")) {
-        isInBattle = false;
-        if(isPvpMode) cleanupPvpBattleEnd();
-        updateNavBarState();
-        playBgm('normalBgm');
-        switchPage('quest-hub');
-    }
-}
-
-// ==================== 非同期対戦（PvP）コア（完全維持） ====================
-function updatePvpCodeDisplay() {
-    let nameStr = document.getElementById("setting-name-input").value || "勇者";
-    let filterName = nameStr.replace(/[^a-zA-Z0-9ぁ-んァ-ヶ]/g, "");
-    if(!filterName) filterName = "勇者";
+function winBattle() {
+    isInBattle = false; updateNavBarState(); stopBgm(); playSe('seVictory');
     
-    let hitRate = 100;
-    if(saveData.totalQuestions > 0) {
-        hitRate = Math.round((saveData.correctAnswers / saveData.totalQuestions) * 100);
-    }
-    
-    let nameEnc = "";
-    for(let i=0; i<filterName.length; i++) {
-        nameEnc += filterName.charCodeAt(i).toString(16).padStart(4, '0');
-    }
-    
-    let rawCode = `${saveData.lv}-${saveData.baseAtk}-${saveData.baseDef}-${hitRate}-${nameEnc}`;
-    let b64 = btoa(unescape(encodeURIComponent(rawCode))).replace(/=/g, "");
-    
-    let numCode = "";
-    for(let i=0; i<b64.length; i++) {
-        numCode += b64.charCodeAt(i).toString().slice(-2);
-    }
-    let finalCode = numCode.substring(0, 14);
-    
-    document.getElementById("my-pvp-code-display").innerText = finalCode;
-}
-
-function copyMyPvpCode() {
-    let code = document.getElementById("my-pvp-code-display").innerText;
-    navigator.clipboard.writeText(code).then(() => alert("あなたの対戦パスコードをコピーしました！友達に教えよう！"));
-}
-
-function startPvpBattle() {
-    let code = document.getElementById("input-enemy-code").value.trim();
-    if(!code || code.length < 5) {
-        alert("有効な友達のコードを入力してください。");
+    if(isPvpMode) {
+        cleanupPvpBattleEnd();
+        document.getElementById("message").innerText = `🎉 勝利！友達の幻影に見事打ち勝った！あなたの名前と強さはさらに轟くだろう！ (対戦前のHPに戻ります)`;
+        document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#00ffcc;" onclick="switchPage('quest-hub')">ロビーへ戻る</button>`;
         return;
     }
-    
-    let seed = parseInt(code.substring(0, 7)) || 12345;
-    let seed2 = parseInt(code.substring(code.length - 6)) || 67890;
-    
-    let eLv = Math.min(99, 1 + (seed % 85));
-    let eAtk = 15 + (seed2 % 280);
-    let eDef = 5 + (seed % 150);
-    let eHit = 60 + (seed2 % 41);
-    
-    let nameArr = ["ロト", "レックス", "アベル", "ソフィア", "ライト", "伝説の勇者", "天空騎士", "大魔道士"];
-    pvpEnemyName = nameArr[seed % nameArr.length];
-    pvpEnemyHitRate = eHit / 100;
-    
-    pvpBackupHp = playerHp;
-    pvpBackupMaxHp = playerMaxHp;
-    
-    playerMaxHp += 500;
-    playerHp = playerMaxHp;
-    updateHpUi();
-    
-    isInBattle = true;
-    isPvpMode = true;
-    updateNavBarState();
-    
-    activeBuffs = { burn: 0, guard: false, stun: false, charge: false };
-    battleSp = 0;
-    updateSpBar();
-    
-    enemyMaxHp = 100 + (eLv - 1) * 12 + 500;
-    enemyHp = enemyMaxHp;
-    enemyAtk = eAtk;
-    enemyInterval = 3;
-    enemyCountdown = enemyInterval;
-    enemyName = `${pvpEnemyName}の幻影`;
-    
-    document.getElementById("monster").innerText = "🤺";
-    document.getElementById("monster-name").innerText = `${enemyName} (Lv.${eLv})`;
-    document.getElementById("enemy-hp").innerText = enemyHp;
-    document.getElementById("enemy-max-hp").innerText = enemyMaxHp;
-    document.getElementById("enemy-turn-countdown").innerText = enemyCountdown;
-    
-    document.getElementById("message").innerText = `ライバル勇者「${pvpEnemyName}」のデータから生成された幻影との対戦！固定HP500ボーナス加算の長期戦だ！`;
-    
-    playBgm('battlePvp');
-    switchPage('quest-battle');
-    generateQuiz();
+
+    const reward = questMaster[currentQuestKey].reward;
+    saveData.gold += reward;
+
+    // 討伐ボーナスとして確率でステータスが恒常アップ
+    let bonusMsg = "";
+    if (Math.random() < 0.35) {
+        saveData.baseAtk += 1;
+        bonusMsg = `\n✨ 【恒常ボーナス】戦闘経験により基礎攻撃力が 1 上がった！`;
+    } else if (Math.random() < 0.5) {
+        saveData.baseDef += 1;
+        bonusMsg = `\n✨ 【恒常ボーナス】戦闘経験により基礎防御力が 1 上がった！`;
+    }
+
+    document.getElementById("message").innerText = `🎉 モンスターを討伐した！\n\n【報酬】 ${reward} G を獲得！${bonusMsg}`;
+    document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#00ffcc;" onclick="switchPage('quest-hub')">街へ戻る</button>`;
+    saveGame();
 }
 
-function cleanupPvpBattleEnd() {
-    isPvpMode = false;
-    playerMaxHp = pvpBackupMaxHp;
-    playerHp = Math.min(playerMaxHp, pvpBackupHp);
-    updateHpUi();
-    playBgm('normalBgm');
+// ==================== ガチャ・装備システム ====================
+function renderEquipLists() {
+    const wList = document.getElementById("weapon-list");
+    wList.innerHTML = "";
+    for (let key in saveData.weapons) {
+        if (!saveData.weapons[key].owned) continue;
+        const info = gearData.weapons[key];
+        const plus = saveData.weapons[key].plus;
+        const plusTxt = plus > 0 ? `+${plus}` : '';
+        const isEquipped = saveData.equippedWeapon === key;
+        
+        wList.innerHTML += `
+            <div class="equip-item">
+                <div><strong class="rarity-${info.rarity}">[${info.rarity}] ${info.label} ${plusTxt}</strong><br><span style="font-size:12px; color:#aaa;">攻撃+${info.atk + (plus*3)} 防御+${info.def + (plus*1)}</span></div>
+                <div>
+                    ${isEquipped ? '<span style="color:#00ffcc; font-size:12px; font-weight:bold; margin-right:10px;">装備中</span>' : `<button class="equip-sub-btn" onclick="equipGear('weapon', '${key}')">装備</button>`}
+                    ${key !== 'ひのきのぼう' && !isEquipped ? `<button class="equip-sub-btn sell-btn" onclick="sellGear('weapon', '${key}')">売却</button>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    const aList = document.getElementById("armor-list");
+    aList.innerHTML = "";
+    for (let key in saveData.armors) {
+        if (!saveData.armors[key].owned) continue;
+        const info = gearData.armors[key];
+        const plus = saveData.armors[key].plus;
+        const plusTxt = plus > 0 ? `+${plus}` : '';
+        const isEquipped = saveData.equippedArmor === key;
+
+        aList.innerHTML += `
+            <div class="equip-item">
+                <div><strong class="rarity-${info.rarity}">[${info.rarity}] ${info.label} ${plusTxt}</strong><br><span style="font-size:12px; color:#aaa;">攻撃+${info.atk + (plus*1)} 防御+${info.def + (plus*3)}</span></div>
+                <div>
+                    ${isEquipped ? '<span style="color:#00ffcc; font-size:12px; font-weight:bold; margin-right:10px;">装備中</span>' : `<button class="equip-sub-btn" onclick="equipGear('armor', '${key}')">装備</button>`}
+                    ${key !== 'ぬののふく' && !isEquipped ? `<button class="equip-sub-btn sell-btn" onclick="sellGear('armor', '${key}')">売却</button>` : ''}
+                </div>
+            </div>
+        `;
+    }
 }
 
-// ==================== ガチャ・装備管理（完全維持） ====================
-function renderEquipPage() {
-    let wHit = 100;
-    if(saveData.totalQuestions > 0) {
-        wHit = Math.round((saveData.correctAnswers / saveData.totalQuestions) * 100);
-    }
-    document.getElementById("stats-total-questions").innerText = saveData.totalQuestions;
-    document.getElementById("stats-correct-answers").innerText = saveData.correctAnswers;
-    document.getElementById("stats-hit-rate").innerText = wHit;
-    document.getElementById("item-yakuso-count").innerText = saveData.yakuso;
-    
-    let wHtml = "";
-    for(let name in weaponInventory) {
-        let count = weaponInventory[name];
-        let info = weaponsMaster[name];
-        let isEq = saveData.weapon === name;
-        wHtml += `<div class="equip-item">
-            <div><strong class="rarity-${info.rarity}">[${info.rarity}] ${name}</strong><br><span style="font-size:12px; color:#aaa;">攻撃力 +${info.atk} (限凸:+${count})</span></div>
-            <div>
-                ${isEq ? '<span style="color:#00ffcc; font-size:13px; font-weight:bold; margin-right:5px;">装備中</span>' : `<button class="equip-sub-btn" onclick="equipItem('weapon', '${escapeStr(name)}')">装備</button>`}
-                ${name !== "ひのきのぼう" ? `<button class="equip-sub-btn sell-btn" onclick="sellItem('weapon', '${escapeStr(name)}')">売却</button>` : ""}
-            </div>
-        </div>`;
-    }
-    document.getElementById("weapon-list").innerHTML = wHtml;
-    
-    let aHtml = "";
-    for(let name in armorInventory) {
-        let count = armorInventory[name];
-        let info = armorsMaster[name];
-        let isEq = saveData.armor === name;
-        aHtml += `<div class="equip-item">
-            <div><strong class="rarity-${info.rarity}">[${info.rarity}] ${name}</strong><br><span style="font-size:12px; color:#aaa;">防御力 +${info.def} (限凸:+${count})</span></div>
-            <div>
-                ${isEq ? '<span style="color:#00ffcc; font-size:13px; font-weight:bold; margin-right:5px;">装備中</span>' : `<button class="equip-sub-btn" onclick="equipItem('armor', '${escapeStr(name)}')">装備</button>`}
-                ${name !== "ぬののふく" ? `<button class="equip-sub-btn sell-btn" onclick="sellItem('armor', '${escapeStr(name)}')">売却</button>` : ""}
-            </div>
-        </div>`;
-    }
-    document.getElementById("armor-list").innerHTML = aHtml;
+function equipGear(type, key) {
+    if (isInBattle) return;
+    if (type === 'weapon') saveData.equippedWeapon = key;
+    if (type === 'armor') saveData.equippedArmor = key;
+    playSe('seGacha');
+    saveGame();
+    updateUi();
+}
+
+function sellGear(type, key) {
+    if (isInBattle) return;
+    const master = type === 'weapon' ? gearData.weapons[key] : gearData.armors[key];
+    const userGear = type === 'weapon' ? saveData.weapons[key] : saveData.armors[key];
+    if (!userGear || !userGear.owned) return;
+
+    let basePrice = master.price || 30;
+    let finalPrice = Math.floor(basePrice * 0.4) * (1 + (userGear.plus || 0));
+
+    saveData.gold += finalPrice;
+    userGear.owned = false;
+    userGear.plus = 0;
+
+    playSe('seDamageGive');
+    saveGame();
+    updateUi();
 }
 
 function drawGacha(times) {
-    let cost = times * 100;
-    if(saveData.gold < cost) {
-        alert("ゴールドが足りません！クエストで稼いできてください。");
+    if (isInBattle) return;
+    const cost = times === 10 ? 1000 : 100;
+    if (saveData.gold < cost) {
+        alert("ゴールドが足りません！クエストをクリアして稼いできてください。");
         return;
     }
     saveData.gold -= cost;
     playSe('seGacha');
-    
-    let pool = [
-        { name: "かわのたて", type: "weapon" },
-        { name: "どうのつるぎ", type: "weapon" },
-        { name: "鉄の剣", type: "weapon" },
-        { name: "鉄の盾", type: "armor" },
-        { name: "はがねのつるぎ", type: "weapon" },
-        { name: "はがねの鎧", type: "armor" },
-        { name: "まどろみの剣", type: "weapon" },
-        { name: "まほうのよろい", type: "armor" },
-        { name: "ひかりのつるぎ", type: "weapon" },
-        { name: "みかがみの盾", type: "armor" },
-        { name: "ロトの剣", type: "weapon" },
-        { name: "ロトの鎧", type: "armor" },
-        { name: "天空のつるぎ", type: "weapon" },
-        { name: "天空のよろい", type: "armor" }
-    ];
-    
-    let resultLog = [];
-    for(let t=0; t<times; t++) {
-        let dice = Math.random() * 100;
-        if(dice < 50) {
-            saveData.yakuso++;
-            resultLog.push(`<span style="color:#aaffaa;">🌿 やくそう</span> を手に入れた！`);
-        } else {
-            let itemDice = Math.random() * 100;
-            let picked = pool[0];
-            if(itemDice < 1.0) {
-                picked = Math.random() < 0.5 ? pool[12] : pool[13]; // UR
-            } else if(itemDice < 4.0) {
-                let sArr = [pool[8], pool[9], pool[10], pool[11]];
-                picked = sArr[Math.floor(Math.random() * sArr.length)]; // SSR
-            } else if(itemDice < 12.0) {
-                let srArr = [pool[4], pool[5], pool[6], pool[7]];
-                picked = srArr[Math.floor(Math.random() * srArr.length)]; // SR
-            } else {
-                let rArr = [pool[0], pool[1], pool[2], pool[3]];
-                picked = rArr[Math.floor(Math.random() * rArr.length)]; // R
-            }
-            
-            if(picked.type === "weapon") {
-                if(weaponInventory[picked.name] !== undefined) {
-                    if(weaponInventory[picked.name] < 5) {
-                        weaponInventory[picked.name]++;
-                        resultLog.push(`⚔️ <strong>${picked.name}</strong> 被り！自動限界突破 (+${weaponInventory[picked.name]})`);
-                    } else {
-                        saveData.gold += 150;
-                        resultLog.push(`⚔️ <strong>${picked.name}</strong> 限界突破MAXのため自動換金され <span style="color:#ffcc00;">+150G</span>`);
-                    }
+
+    const pool = [];
+    // やくそう
+    for(let i=0; i<50; i++) pool.push({ type: 'item', key: 'yakuso', label: '🌿 やくそう', rarity: 'N' });
+    // レア度別配置
+    for(let key in gearData.weapons) {
+        const item = gearData.weapons[key];
+        if(item.rarity === 'R') for(let i=0; i<6; i++) pool.push({ type: 'weapon', key: key, ...item });
+        if(item.rarity === 'SR') for(let i=0; i<4; i++) pool.push({ type: 'weapon', key: key, ...item });
+        if(item.rarity === 'SSR') for(let i=0; i<2; i++) pool.push({ type: 'weapon', key: key, ...item });
+        if(item.rarity === 'UR') pool.push({ type: 'weapon', key: key, ...item });
+    }
+    for(let key in gearData.armors) {
+        const item = gearData.armors[key];
+        if(item.rarity === 'R') for(let i=0; i<6; i++) pool.push({ type: 'armor', key: key, ...item });
+        if(item.rarity === 'SR') for(let i=0; i<4; i++) pool.push({ type: 'armor', key: key, ...item });
+        if(item.rarity === 'SSR') for(let i=0; i<2; i++) pool.push({ type: 'armor', key: key, ...item });
+        if(item.rarity === 'UR') pool.push({ type: 'armor', key: key, ...item });
+    }
+
+    const resultBox = document.getElementById("gacha-result");
+    resultBox.innerHTML = `<strong>🔮 ガチャ結果 (${times}連):</strong><br><ol style="margin:5px 0; padding-left:20px;">`;
+
+    for (let t = 0; t < times; t++) {
+        const rolled = pool[Math.floor(Math.random() * pool.length)];
+        let ext = "";
+
+        if (rolled.type === 'item') {
+            saveData.items.yakuso = (saveData.items.yakuso || 0) + 1;
+            ext = `<span style="color:#aaffaa;">(どうぐ袋に追加)</span>`;
+        } else if (rolled.type === 'weapon') {
+            if (!saveData.weapons[rolled.key]) saveData.weapons[rolled.key] = { owned: false, plus: 0 };
+            if (saveData.weapons[rolled.key].owned) {
+                if (saveData.weapons[rolled.key].plus < 5) {
+                    saveData.weapons[rolled.key].plus++;
+                    ext = `<span style="color:#ffcc00;">限界突破！(+${saveData.weapons[rolled.key].plus})</span>`;
                 } else {
-                    weaponInventory[picked.name] = 0;
-                    resultLog.push(`⚔️ <strong style="color:#ffcc00;">${picked.name}</strong> を新しく入手した！`);
+                    let cash = Math.floor(rolled.price * 0.5);
+                    saveData.gold += cash;
+                    ext = `<span style="color:#ff3366;">限界突破MAXのため自動換金 (+${cash}G)</span>`;
                 }
             } else {
-                if(armorInventory[picked.name] !== undefined) {
-                    if(armorInventory[picked.name] < 5) {
-                        armorInventory[picked.name]++;
-                        resultLog.push(`🛡️ <strong>${picked.name}</strong> 被り！自動限界突破 (+${armorInventory[picked.name]})`);
-                    } else {
-                        saveData.gold += 150;
-                        resultLog.push(`🛡️ <strong>${picked.name}</strong> 限界突破MAXのため自動換金され <span style="color:#ffcc00;">+150G</span>`);
-                    }
+                saveData.weapons[rolled.key].owned = true;
+                saveData.weapons[rolled.key].plus = 0;
+                ext = `<span style="color:#00ffcc; font-weight:bold;">NEW!</span>`;
+            }
+        } else if (rolled.type === 'armor') {
+            if (!saveData.armors[rolled.key]) saveData.armors[rolled.key] = { owned: false, plus: 0 };
+            if (saveData.armors[rolled.key].owned) {
+                if (saveData.armors[rolled.key].plus < 5) {
+                    saveData.armors[rolled.key].plus++;
+                    ext = `<span style="color:#ffcc00;">限界突破！(+${saveData.armors[rolled.key].plus})</span>`;
                 } else {
-                    armorInventory[picked.name] = 0;
-                    resultLog.push(`🛡️ <strong style="color:#3399ff;">${picked.name}</strong> を新しく入手した！`);
+                    let cash = Math.floor(rolled.price * 0.5);
+                    saveData.gold += cash;
+                    ext = `<span style="color:#ff3366;">限界突破MAXのため自動換金 (+${cash}G)</span>`;
                 }
+            } else {
+                saveData.armors[rolled.key].owned = true;
+                saveData.armors[rolled.key].plus = 0;
+                ext = `<span style="color:#00ffcc; font-weight:bold;">NEW!</span>`;
             }
         }
-    }
-    
-    saveGameData();
-    calculateFinalStatus();
-    
-    let resDiv = document.getElementById("gacha-result");
-    resDiv.style.display = "block";
-    resDiv.innerHTML = `<strong>【ガチャ結果】</strong><br>` + resultLog.join("<br>");
-}
 
-function equipItem(type, name) {
-    if(type === 'weapon') {
-        saveData.weapon = name;
-        saveData.weaponPlus = weaponInventory[name] || 0;
-    } else {
-        saveData.armor = name;
-        saveData.armorPlus = armorInventory[name] || 0;
+        resultBox.innerHTML += `<li><span class="rarity-${rolled.rarity}">[${rolled.rarity}] ${rolled.label}</span> ${ext}</li>`;
     }
-    saveGameData();
-    calculateFinalStatus();
-    renderEquipPage();
-}
 
-function sellItem(type, name) {
-    if(confirm(`${name} を売却して100Gにしますか？(限界突破数もリセットされます)`)) {
-        if(type === 'weapon') {
-            delete weaponInventory[name];
-            if(saveData.weapon === name) { saveData.weapon = "ひのきのぼう"; saveData.weaponPlus = 0; }
-        } else {
-            delete armorInventory[name];
-            if(saveData.armor === name) { saveData.armor = "ぬののふく"; saveData.armorPlus = 0; }
-        }
-        saveData.gold += 100;
-        saveGameData();
-        calculateFinalStatus();
-        renderEquipPage();
-    }
+    resultBox.innerHTML += `</ol>`;
+    resultBox.style.display = "block";
+
+    saveGame();
+    updateUi();
 }
 
 function useYakuso() {
-    if(saveData.yakuso <= 0) { alert("やくそうを持っていません！"); return; }
-    if(playerHp >= playerMaxHp) { alert("HPはすでに満タンです！"); return; }
-    saveData.yakuso--;
+    if ((saveData.items.yakuso || 0) <= 0) {
+        alert("やくそうがありません！ガチャで手に入れてください。");
+        return;
+    }
+    if (playerHp >= playerMaxHp) {
+        alert("HPはすでに満タンです。");
+        return;
+    }
+    saveData.items.yakuso--;
     playerHp = Math.min(playerMaxHp, playerHp + 50);
-    updateHpUi();
-    saveGameData();
-    renderEquipPage();
-    alert("やくそうを1個使い、HPが50回復した！");
+    playSe('seVictory');
+    saveGame();
+    updateUi();
+    alert("やくそうを1個使った。HPが50回復した！");
 }
 
 function useYakusoMax() {
-    if(saveData.yakuso <= 0) { alert("やくそうを持っていません！"); return; }
-    if(playerHp >= playerMaxHp) { alert("HPはすでに満タンです！"); return; }
-    let count = 0;
-    while(saveData.yakuso > 0 && playerHp < playerMaxHp) {
-        saveData.yakuso--;
-        playerHp = Math.min(playerMaxHp, playerHp + 50);
-        count++;
+    if ((saveData.items.yakuso || 0) <= 0) {
+        alert("やくそうがありません！");
+        return;
     }
-    updateHpUi();
-    saveGameData();
-    renderEquipPage();
-    alert(`やくそうを ${count} 個使い、HPを最大まで回復した！`);
-}
-
-function changePlayerName() {
-    let nameStr = document.getElementById("setting-name-input").value;
-    let filterName = nameStr.replace(/[^a-zA-Z0-9ぁ-んァ-ヶ]/g, "");
-    document.getElementById("header-player-name").innerText = filterName || "勇者";
-}
-
-// ==================== セーブデータ保存・読み込み ====================
-function saveGameData() {
-    localStorage.setItem("leap_quest_save", JSON.stringify(saveData));
-    localStorage.setItem("leap_quest_w_inv", JSON.stringify(weaponInventory));
-    localStorage.setItem("leap_quest_a_inv", JSON.stringify(armorInventory));
-}
-
-function loadGameData() {
-    let s = localStorage.getItem("leap_quest_save");
-    let w = localStorage.getItem("leap_quest_w_inv");
-    let a = localStorage.getItem("leap_quest_a_inv");
-    if(s) saveData = JSON.parse(s);
-    if(w) weaponInventory = JSON.parse(w);
-    if(a) armorInventory = JSON.parse(a);
+    if (playerHp >= playerMaxHp) {
+        alert("HPはすでに満タンです。");
+        return;
+    }
+    
+    let usedCount = 0;
+    while (playerHp < playerMaxHp && saveData.items.yakuso > 0) {
+        saveData.items.yakuso--;
+        playerHp = Math.min(playerMaxHp, playerHp + 50);
+        usedCount++;
+    }
+    
+    playSe('seVictory');
+    saveGame();
+    updateUi();
+    alert(`やくそうを ${usedCount} 個まとめて使用し、HP上限まで完全回復しました！`);
 }
 
 function resetAllData() {
-    if(confirm("【警告】すべてのセーブデータ、ゴールド、ガチャ装備が永久に消去されます。本当によろしいですか？")) {
-        localStorage.clear();
-        location.reload();
-    }
+    if(!confirm("本当にすべてのデータを削除して最初からやり直しますか？\n武器や獲得ゴールド、戦績もすべてリセットされます。")) return;
+    localStorage.removeItem('leap_quest_save_v1');
+    saveData = JSON.parse(defaultSaveData);
+    document.getElementById("setting-name-input").value = saveData.playerName;
+    document.getElementById("gacha-result").style.display = "none";
+    alert("データを初期化しました。");
+    saveGame();
+    updateUi();
 }
 
 // ==================== ユーティリティ ====================
@@ -1355,9 +1398,11 @@ function shuffleArray(array) {
     }
     return arr;
 }
-function escapeStr(str) {
-    return str.replace(/'/g, "\\'");
-}
+
+// アプリの起動初期化
+window.onload = function() {
+    loadGame();
+};
 </script>
 </body>
 </html>
