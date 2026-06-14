@@ -2,628 +2,1362 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LEAP QUEST - Vocabulary RPG -</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LEAP QUEST</title>
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --container-bg: #1e293b;
-            --primary-color: #38bdf8;
-            --text-color: #f8fafc;
-            --accent-color: #f43f5e;
-            --success-color: #10b981;
-            --border-color: #334155;
-        }
-
-        * {
-            box-sizing: border-box;
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace, sans-serif;
             margin: 0;
             padding: 0;
+            padding-bottom: 75px;
+            touch-action: manipulation;
         }
-
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .game-container {
-            width: 100%;
-            max-width: 600px;
-            background-color: var(--container-bg);
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            border: 2px solid var(--border-color);
-        }
-
-        /* スクリーン管理 */
-        .screen {
-            display: none;
-            padding: 24px;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        /* タイトル画面 */
-        #start-screen {
-            text-align: center;
-            padding: 48px 24px;
-        }
-
-        .game-title {
-            font-size: 3rem;
-            color: var(--primary-color);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-        }
-
-        .game-subtitle {
-            font-size: 1.1rem;
-            color: #94a3b8;
-            margin-bottom: 40px;
-        }
-
-        /* バトルステータス */
-        .battle-hud {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-            background: rgba(0,0,0,0.2);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .character-status h3 {
-            font-size: 0.9rem;
-            color: #94a3b8;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .hp-bar-bg {
-            height: 12px;
-            background-color: #475569;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-top: 4px;
-        }
-
-        .hp-bar {
-            height: 100%;
-            background-color: var(--success-color);
-            width: 100%;
-            transition: width 0.3s ease, background-color 0.3s ease;
-        }
-
-        .hp-bar.danger {
-            background-color: var(--accent-color);
-        }
-
-        .hp-text {
-            font-size: 0.85rem;
-            text-align: right;
-            margin-top: 2px;
-            color: #cbd5e1;
-        }
-
-        /* バトルログ・演出 */
-        .battle-stage {
-            height: 120px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(to bottom, #0f172a, #1e293b);
-            border-radius: 12px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border-color);
-            position: relative;
-        }
-
-        .enemy-sprite {
-            font-size: 3.5rem;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* 問題エリア */
-        .question-box {
-            background-color: rgba(15, 23, 42, 0.6);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--primary-color);
-            min-height: 80px;
+        
+        /* タイトル・スタート画面のスタイル */
+        #page-start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             justify-content: center;
-        }
-
-        .question-text {
-            font-size: 1.15rem;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        .question-hint {
-            font-size: 0.9rem;
-            color: #94a3b8;
-            margin-top: 8px;
-        }
-
-        /* 選択肢ボタン */
-        .choices-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        .btn {
-            background-color: #334155;
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 14px 20px;
-            font-size: 1rem;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: left;
-            width: 100%;
-        }
-
-        .btn:hover:not(:disabled) {
-            background-color: #475569;
-            border-color: var(--primary-color);
-            transform: translateY(-1px);
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: #0f172a;
-            font-weight: bold;
+            align-items: center;
             text-align: center;
-        }
-
-        .btn-primary:hover {
-            background-color: #7dd3fc;
-        }
-
-        /* フィードバック & 解説 */
-        .feedback-box {
-            margin-top: 20px;
-            padding: 16px;
-            border-radius: 10px;
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .feedback-box.correct {
-            display: block;
-            background-color: rgba(16, 185, 129, 0.15);
-            border: 1px solid var(--success-color);
-            color: #34d399;
-        }
-
-        .feedback-box.incorrect {
-            display: block;
-            background-color: rgba(244, 63, 94, 0.15);
-            border: 1px solid var(--accent-color);
-            color: #fb7185;
-        }
-
-        .commentary-text {
-            margin-top: 8px;
-            color: var(--text-color);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            white-space: pre-wrap;
-        }
-
-        /* 結果画面 */
-        .result-stats {
-            margin: 24px 0;
-            background-color: rgba(0,0,0,0.2);
+            box-sizing: border-box;
             padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
+        }
+        .title-logo {
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px #ff3366, 0 0 20px #000;
+            margin-bottom: 10px;
+            color: #fff;
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.98); text-shadow: 0 0 10px #ff3366; }
+            100% { transform: scale(1.02); text-shadow: 0 0 25px #ff3366, 0 0 40px #ffcc00; }
+        }
+        .title-sub {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 60px;
+        }
+        .start-btn {
+            background-color: #000;
+            color: #00ffcc;
+            border: 3px solid #00ffcc;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            transition: all 0.2s;
+        }
+        .start-btn:active {
+            background-color: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.7);
         }
 
-        .result-row {
+        .header-status {
+            background-color: #111;
+            border-bottom: 2px solid #fff;
+            padding: 10px;
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+        }
+        .game-window {
+            padding: 15px;
+            max-width: 450px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* クエスト選択画面 */
+        .quest-select-btn {
+            background-color: #111;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+        }
+        .quest-select-btn:active { background-color: #333; }
+
+        /* バトル画面 */
+        .battle-box { border: 4px solid #fff; border-radius: 5px; padding: 15px; position: relative; }
+        .monster-area { text-align: center; height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        .monster-graphic { font-size: 50px; }
+        
+        /* SPゲージ・ターンカウンター */
+        .sp-bar-container { background-color: #333; border: 1px solid #fff; height: 12px; border-radius: 6px; margin: 8px 0; overflow: hidden; position: relative; }
+        .sp-bar { background: linear-gradient(90deg, #ffcc00, #ff3366); height: 100%; width: 0%; transition: width 0.3s ease; }
+        .sp-text { position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: bold; line-height: 12px; color: #fff; text-shadow: 1px 1px #000; }
+
+        .turn-counter-badge {
+            background-color: #ff3333;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid #fff;
         }
 
-        .result-row:last-child {
-            border-bottom: none;
+        /* 状態異常・バフ表示バッジ */
+        .status-badges { display: flex; gap: 5px; margin-bottom: 8px; justify-content: center; font-size: 11px; font-weight: bold; flex-wrap: wrap; }
+        .badge-burn { background-color: #ff3300; color: #fff; padding: 2px 6px; border-radius: 3px; border: 1px solid #fff; }
+        .badge-guard { background-color: #3399ff; color: #fff; padding: 2px 6px; border-radius: 3px; border: 1px solid #fff; }
+        .badge-stun { background-color: #ffcc00; color: #000; padding: 2px 6px; border-radius: 3px; border: 1px solid #000; }
+        .badge-charge { background-color: #cc00ff; color: #fff; padding: 2px 6px; border-radius: 3px; border: 1px solid #fff; animation: blink 1s infinite alternate; }
+        @keyframes blink { 0% { opacity: 0.6; } 100% { opacity: 1; font-size: 12px; } }
+
+        /* 必殺技ボタンエリア */
+        .skills-container { display: none; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 10px; }
+        .skill-btn { background-color: #220033; color: #ff99ff; border: 2px solid #ff99ff; padding: 8px 2px; font-size: 11px; font-weight: bold; border-radius: 4px; text-align: center; }
+        .skill-btn:active { background-color: #ff99ff; color: #000; }
+
+        /* 特大ダメージポップアップ */
+        .damage-pop {
+            position: absolute;
+            animation: fadeUp 1.2s ease-out forwards;
+            pointer-events: none;
+            opacity: 0;
         }
+        @keyframes fadeUp {
+            0% { transform: translate(-50%, -30%) scale(0.5); opacity: 0; }
+            15% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            30% { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
+            100% { transform: translate(-50%, -90%) scale(1.0); opacity: 0; }
+        }
+
+        .shake { animation: shake 0.2s ease-in-out 2; }
+        @keyframes shake { 0% { transform: translateX(0); } 50% { transform: translateX(-10px); } 100% { transform: translateX(10px); } }
+        .message-window { border: 2px solid #fff; padding: 12px; height: 110px; margin-bottom: 15px; font-size: 14px; overflow-y: auto; line-height: 1.4; }
+        .choices-container { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .choice-btn { background-color: #000; color: #fff; border: 2px solid #fff; padding: 12px; font-size: 14px; text-align: left; border-radius: 5px; width: 100%; box-sizing: border-box; }
+        .choice-btn:active { background-color: #fff; color: #000; }
+
+        /* 装備・ガチャ */
+        .equip-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid #fff; padding: 10px; margin-bottom: 8px; background-color: #111; }
+        .equip-sub-btn { background-color: #fff; color: #000; border: none; padding: 5px 10px; font-weight: bold; border-radius: 3px; font-size: 12px; margin-left: 5px; }
+        .sell-btn { background-color: #333; color: #ff9999; border: 1px solid #ff6666; }
+        .gacha-result { border: 2px dashed #fff; padding: 15px; text-align: left; margin-top: 15px; font-size: 14px; display: none; background-color: #111; max-height: 250px; overflow-y: auto; line-height: 1.5; }
+
+        /* PvPコンポーネント */
+        .pvp-card { border: 2px solid #00ffcc; border-radius: 6px; padding: 15px; background-color: #0a1110; margin-bottom: 20px; }
+        .input-code { width: 100%; padding: 12px; font-size: 16px; background-color: #000; color: #00ffcc; border: 2px solid #00ffcc; border-radius: 4px; box-sizing: border-box; text-align: center; margin-bottom: 10px; letter-spacing: 2px; }
+
+        /* 設定コンポーネント */
+        .setting-row { margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+        .setting-label { font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block; color: #00ffcc; }
+        .setting-input-text { width: 100%; padding: 10px; font-size: 16px; background-color: #111; color: #fff; border: 1px solid #fff; border-radius: 4px; box-sizing: border-box; }
+
+        /* レア度別カラー */
+        .rarity-N { color: #ccc; }
+        .rarity-R { color: #3399ff; font-weight: bold; }
+        .rarity-SR { color: #cc66ff; font-weight: bold; }
+        .rarity-SSR { color: #ffcc00; font-weight: bold; }
+        .rarity-UR { color: #ff3366; font-weight: bold; text-shadow: 0 0 5px #ff3366; }
+
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background-color: #111; border-top: 3px solid #fff; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+        .nav-btn { background-color: #000; color: #aaa; border: 1px solid #444; padding: 8px 0; width: 19%; font-size: 11px; font-weight: bold; text-align: center; border-radius: 5px; }
+        .nav-btn.active { color: #fff; border: 2px solid #fff; background-color: #222; }
+        .nav-btn:disabled { color: #444; border: 1px solid #222; background-color: #050505; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-<div class="game-container">
-    <div id="start-screen" class="screen active">
-        <h1 class="game-title">Leap Quest</h1>
-        <p class="game-subtitle">- Vocabulary RPG -</p>
-        <button class="btn btn-primary" onclick="startGame()">冒険に出る</button>
+    <div id="page-start-screen">
+        <div class="title-logo">LEAP QUEST</div>
+        <div class="title-sub">~ 英単語バトルRPG ~</div>
+        <button class="start-btn" onclick="clickStartGame()">START GAME</button>
     </div>
 
-    <div id="battle-screen" class="screen">
-        <div class="battle-hud">
-            <div class="character-status">
-                <h3>Hero (Player)</h3>
-                <div class="hp-bar-bg">
-                    <div id="player-hp-bar" class="hp-bar"></div>
+    <div class="header-status">
+        <div><span id="header-player-name">勇者</span> Lv.<span id="player-lv">1</span> (<span id="hp-label-ui">HP:</span> <strong id="player-hp-display-area" style="transition: color 0.3s;"><span id="player-hp">100</span>/<span id="player-max-hp">100</span></strong>)</div>
+        <div>所持金: <span id="player-gold">100</span> G</div>
+    </div>
+
+    <div class="game-window">
+        
+        <div id="page-quest-hub" class="page active">
+            <h2>⚔️ クエスト選択</h2>
+            <p style="font-size:13px; color:#aaa; margin-bottom:20px;">正解を重ねてSPゲージを溜め、強力な必殺技を発動しよう！</p>
+           
+            <button class="quest-select-btn" onclick="startQuest('easy')">
+                <strong style="color:#00ff00;">【初級】スライムの森</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: 単語の意味（択一） / 報酬: 150G / 敵攻撃: 5ターンごと</span>
+            </button>
+
+            <button class="quest-select-btn" onclick="startQuest('normal')">
+                <strong style="color:#3399ff;">【中級】荒涼たる荒野</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: 意味 ＋ 穴埋め / 報酬: 400G / 敵攻撃: 5ターンごと</span>
+            </button>
+
+            <button class="quest-select-btn" onclick="startQuest('hard')">
+                <strong style="color:#ff9900;">【上級】狂気の火山</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: 穴埋め ＋ 例文英訳 / 報酬: 700G / 敵攻撃: 4ターンごと</span>
+            </button>
+
+            <button class="quest-select-btn" onclick="startQuest('inferno')">
+                <strong style="color:#ff3333;">【超上級】裏魔王の深淵</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: すべて例文英訳 / 報酬: 1000G / 敵攻撃: 4ターンごと</span>
+            </button>
+
+            <button class="quest-select-btn" onclick="startQuest('despair')">
+                <strong style="color:#cc66ff; text-shadow: 0 0 3px #cc66ff;">【絶望】虚構の騎士</strong><br>
+                <span style="font-size:12px; color:#ccc;">形式: 最高難度例文英訳 / 報酬: 10000G / 敵攻撃: 3ターンごと</span>
+            </button>
+        </div>
+
+        <div id="page-pvp-hub" class="page">
+            <h2>⚔️ 非同期対戦（PvP）</h2>
+            <p style="font-size:13px; color:#aaa; margin-bottom:20px;">お互いの最大HPに<strong style="color:#00ffcc;">固定で500プラス＆全回復</strong>された特別ルール！対戦が終了すると、最大HPも残り体力も対戦前の状態に完全に巻き戻ります。お気軽に挑戦しよう！</p>
+            
+            <div class="pvp-card">
+                <h3 style="margin-top:0; color:#00ffcc;">① 自分の対戦コード</h3>
+                <p style="font-size:12px; color:#ccc;">あなたの今の強さ、名前、精度を埋め込んだコードです。たくさん正解するほど、友達の画面であなたが強くなります！</p>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div id="my-pvp-code-display" style="background:#000; padding:10px; border:1px solid #00ffcc; color:#00ffcc; font-weight:bold; font-size:15px; flex-grow:1; text-align:center; letter-spacing:1px; overflow-x:auto; white-space:nowrap;">------</div>
+                    <button class="equip-sub-btn" style="background-color:#00ffcc; color:#000; padding:12px; font-size:12px;" onclick="copyMyPvpCode()">コピー</button>
                 </div>
-                <div id="player-hp-text" class="hp-text">10 / 10</div>
             </div>
-            <div class="character-status">
-                <h3 id="enemy-name">Monster</h3>
-                <div class="hp-bar-bg">
-                    <div id="enemy-hp-bar" class="hp-bar"></div>
+
+            <div class="pvp-card" style="border-color:#ff3366; background-color:#150a0f;">
+                <h3 style="margin-top:0; color:#ff3366;">② 友達のコードに挑戦</h3>
+                <p style="font-size:12px; color:#ccc;">友達から教えてもらった「数字のパスコード」を入力してください。</p>
+                <input type="number" id="input-enemy-code" class="input-code" style="border-color:#ff3366; color:#ff3366;" placeholder="例: 10240502..." pattern="\d*">
+                <button class="choice-btn" style="background-color:#ff3366; color:#fff; border:none; text-align:center; font-weight:bold; padding:14px;" onclick="startPvpBattle()">⚔️ 友達の勇者と対戦開始！</button>
+            </div>
+        </div>
+
+        <div id="page-quest-battle" class="page">
+            <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+                <button id="btn-escape" class="equip-sub-btn" onclick="exitBattle()">🏳️ 逃げる</button>
+                <div class="turn-counter-badge" id="turn-badge-ui">敵行動まで: <span id="enemy-turn-countdown">0</span></div>
+                <div style="font-size:13px;">敵HP: <strong id="enemy-hp" style="color:#ff3333;">30</strong>/<span id="enemy-max-hp">30</span></div>
+            </div>
+
+            <div class="status-badges" id="status-badges-area"></div>
+
+            <div class="sp-bar-container">
+                <div id="battle-sp-bar" class="sp-bar"></div>
+                <div class="sp-text">必殺技ゲージ SP: <span id="battle-sp-text">0</span>%</div>
+            </div>
+
+            <div id="skills-area" class="skills-container">
+                <button class="skill-btn" onclick="useUltimate('damage')">⚔️ギガスラッシュ<br>(3倍ダメ)</button>
+                <button class="skill-btn" onclick="useUltimate('heal')">🌿瞑想<br>(HP50回復)</button>
+                <button class="skill-btn" onclick="useUltimate('barrier')">🛡️聖なる守り<br>(1回無敵)</button>
+            </div>
+
+            <div class="battle-box" id="battle-box">
+                <div class="monster-area" id="monster-area">
+                    <div id="monster" class="monster-graphic">😈</div>
+                    <div id="monster-name">単語モンスター</div>
                 </div>
-                <div id="enemy-hp-text" class="hp-text">5 / 5</div>
+                <div id="message" class="message-window">冒険が始まる…！</div>
+                <div class="choices-container" id="choices"></div>
             </div>
         </div>
 
-        <div class="battle-stage">
-            <div id="enemy-avatar" class="enemy-sprite">😈</div>
-        </div>
-
-        <div class="question-box">
-            <div id="question-text" class="question-text"></div>
-            <div id="question-hint" class="question-hint"></div>
-        </div>
-
-        <div id="choices-container" class="choices-grid">
+        <div id="page-equip" class="page">
+            <h2>🛡️ 装備・ステータス</h2>
+            <div style="border: 1px solid #fff; padding: 12px; background-color: #111; font-size: 14px; line-height: 1.6;">
+                <p style="margin: 3px 0;">⚔️ <strong>総攻撃力: <span id="total-atk" style="color:#ffcc00; font-size:16px;">10</span></strong> (基礎:<span id="base-atk">10</span> + 装備:<span id="gear-atk">0</span>)</p>
+                <p style="margin: 3px 0;">🛡️ <strong>総防御力: <span id="total-def" style="color:#00ccff; font-size:16px;">0</span></strong> (基礎:<span id="base-def">0</span> + 装備:<span id="gear-def">0</span>)</p>
+                <hr style="border-color: #333; margin: 8px 0;">
+                <p style="margin: 3px 0; font-size:13px; color:#ccc;">現在の武器: <strong id="current-weapon">ひのきのぼう</strong> <span id="current-weapon-plus" style="color:#ff3366;"></span></p>
+                <p style="margin: 3px 0; font-size:13px; color:#ccc;">現在の防具: <strong id="current-armor">ぬののふく</strong> <span id="current-armor-plus" style="color:#ff3366;"></span></p>
             </div>
 
-        <div id="feedback-box" class="feedback-box">
-            <strong id="feedback-title">正解！</strong>
-            <div id="commentary-content" class="commentary-text"></div>
-            <button id="next-btn" class="btn btn-primary" style="margin-top: 16px; width: 100%;" onclick="advanceTurn()">次へ進む</button>
+            <h3 style="margin-top:20px;">📊 あなたの対戦用ステータス</h3>
+            <div style="border: 1px dashed #00ffcc; padding: 12px; background-color: #05110e; font-size: 14px; line-height: 1.6; border-radius: 4px;">
+                <p style="margin: 3px 0;">📝 回答した総問題数: <strong><span id="stats-total-questions" style="color:#fff;">0</span> 問</strong></p>
+                <p style="margin: 3px 0;">✅ 正解した問題数: <strong><span id="stats-correct-answers" style="color:#00ff00;">0</span> 問</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 15px;">🎯 あなたの命中率(正答率): <strong style="color:#00ffcc; font-size:18px;"><span id="stats-hit-rate">100</span> %</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 11px; color: #888; line-height: 1.3;">※クイズ正答率が高いと友達があなたと対戦した時、幻影の攻撃が当たりやすくなります！</p>
+            </div>
+
+            <h3 style="margin-top:20px;">🎒 どうぐ袋</h3>
+            <div class="equip-item">
+                <div><strong>🌿 やくそう</strong><br><span style="font-size:12px; color:#aaa;">所持数: <span id="item-yakuso-count">0</span> 個 (HPを50回復)</span></div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <button class="equip-sub-btn" onclick="useYakuso()">1個使う</button>
+                    <button class="equip-sub-btn" style="background-color: #aaffaa; color:#000;" onclick="useYakusoMax()">上限まで使う</button>
+                </div>
+            </div>
+
+            <hr style="margin-top:25px;">
+            <h3>武器一覧</h3>
+            <div id="weapon-list"></div>
+            <h3 style="margin-top:20px;">防具一覧</h3>
+            <div id="armor-list"></div>
         </div>
+
+        <div id="page-gacha" class="page">
+            <h2>💎 装備ガチャ</h2>
+            <p>被った装備は最大+5まで自動限界突破！最大時は自動換金されます。</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="choice-btn" style="text-align:center; padding: 15px 5px;" onclick="drawGacha(1)">単発ガチャ<br>(100G)</button>
+                <button class="choice-btn" style="text-align:center; border-color: #ffcc00; color: #ffcc00; padding: 15px 5px;" onclick="drawGacha(10)">🔥 10連ガチャ<br>(1000G)</button>
+            </div>
+            
+            <div id="gacha-result" class="gacha-result"></div>
+            
+            <h3 style="margin-top:20px;">ガチャ確率リスト</h3>
+            <ul style="font-size:13px; color:#ccc; padding-left:20px; line-height: 1.6;">
+                <li style="color:#aaffaa;">🌿 やくそう (HP50回復) 【50%】</li>
+                <li class="rarity-UR">🌈 UR：天空のつるぎ / 天空のよろい 【各 0.5%】</li>
+                <li class="rarity-SSR">👑 SSR：ロトの剣 / ロトの鎧 / ひかりのつるぎ / みかがみの盾 【各 1.5%】</li>
+                <li class="rarity-SR">🔮 SR：はがねのつるぎ / はがねの鎧 / まどろみの剣 / まほうのよろい 【各 4.0%】</li>
+                <li class="rarity-R">🔷 R：鉄の剣 / 鉄の盾 / どうのつるぎ / かわのたて 【各 6.5%】</li>
+            </ul>
+        </div>
+
+        <div id="page-setting" class="page">
+            <h2>⚙️ ゲーム設定</h2>
+            
+            <div class="setting-row">
+                <label class="setting-label">👤 プレイヤー名設定 (最大4文字)</label>
+                <p style="font-size:12px; color:#ccc; margin-top:0;">対戦機能で相手の画面にあなたの名前が表示されます。<br>(ひらがな・カタカナ・英数字のみ対応)</p>
+                <input type="text" id="setting-name-input" class="setting-input-text" maxlength="4" placeholder="勇者" oninput="changePlayerName()">
+            </div>
+
+            <div class="setting-row" style="margin-top:40px; border-bottom:none;">
+                <button class="equip-sub-btn" style="background-color:#331111; color:#ff9999; border:1px solid #ff3333; width:100%; padding:12px;" onclick="resetAllData()">⚠️ セーブデータを完全に削除して最初から</button>
+            </div>
+        </div>
+
     </div>
 
-    <div id="result-screen" class="screen">
-        <h2 class="game-title" style="font-size: 2rem; text-align: center;" id="result-title">Quest Clear!</h2>
-        <div class="result-stats">
-            <div class="result-row">
-                <span>倒したモンスター:</span>
-                <strong id="result-enemies">0 体</strong>
-            </div>
-            <div class="result-row">
-                <span>正解数:</span>
-                <strong id="result-score">0 / 0</strong>
-            </div>
-        </div>
-        <button class="btn btn-primary" style="width: 100%;" onclick="resetGame()">タイトルへ戻る</button>
+    <div class="nav-bar">
+        <button id="btn-quest" class="nav-btn active" onclick="switchPage('quest-hub')">⚔️ クエ</button>
+        <button id="btn-pvp" class="nav-btn" onclick="switchPage('pvp-hub')">⚔️ 対戦</button>
+        <button id="btn-equip" class="nav-btn" onclick="switchPage('equip')">🛡️ 装備</button>
+        <button id="btn-gacha" class="nav-btn" onclick="switchPage('gacha')">💎 ガチャ</button>
+        <button id="btn-setting" class="nav-btn" onclick="switchPage('setting')">⚙️ 設定</button>
     </div>
-</div>
 
 <script>
-    // --- 写真データから抽出した全62単語のデータベース ---
-    const quizData = [
-      // --- 1枚目・2枚目 ---
-      { word: "habit", meaning: "（個人の）習慣、癖", sentence: "have a habit of making excuses", translation: "言い訳をする癖がある" },
-      { word: "custom", meaning: "（社会的な）習慣、税関", sentence: "show what is in my suitcase at customs", translation: "税関でスーツケースの中を見せる" },
-      { word: "tradition", meaning: "伝統、しきたり", sentence: "Japanese traditions", translation: "日本の伝統" },
-      { word: "society", meaning: "社会、協会、団体", sentence: "women's status in society", translation: "社会での女性の地位" },
-      { word: "law", meaning: "法律、国法、法則", sentence: "Parking here is against the law.", translation: "ここでの駐車は法律違反だ。" },
-      { word: "ancestor", meaning: "祖先、先祖", sentence: "My ancestors were French.", translation: "私の祖先はフランス人だった。" },
-      { word: "population", meaning: "人口、個体数", sentence: "The population of Tokyo is larger than that of Osaka.", translation: "東京の人口は大阪の人口より多い。" },
-      { word: "native", meaning: "母国の、その土地の生まれの", sentence: "his native language", translation: "彼の母国語" },
-      { word: "abroad", meaning: "海外へ、海外で", sentence: "find a job abroad", translation: "海外で仕事を見つける" },
-      { word: "local", meaning: "その土地の、地元の", sentence: "talk with the locals", translation: "地元の人々と話す" },
-      { word: "survey", meaning: "調査、アンケート", sentence: "according to a recent survey", translation: "最近の調査によると" },
-      { word: "value", meaning: "価値、価格、価値観", sentence: "the value of the painting", translation: "その絵の価値" },
-      { word: "treasure", meaning: "財宝、宝、大事なもの", sentence: "a national treasure", translation: "国宝" },
-      { word: "fashion", meaning: "流行、ファッション、やり方", sentence: "follow the latest fashion", translation: "最新の流行を追う" },
-      { word: "public", meaning: "大衆の、公の、公共の", sentence: "public places", translation: "公共の場所" },
+// ==================== オーディオシステムの設定 ====================
+const audioFiles = {
+    normalBgm: 'normal_bgm.mp3',
+    battleEasyNormalHard: 'battle_easy.mp3',
+    battleInferno: 'battle_hard.mp3',
+    battleDespair: 'battle_boss.mp3',
+    battlePvp: 'battle_pvp.mp3',
+    seDamageGive: 'se_attack.mp3',
+    seDamageTake: 'se_damage.mp3',
+    seGacha: 'se_gacha.mp3',
+    seVictory: 'se_victory.mp3',
+    seGameOver: 'se_gameover.mp3'
+};
 
-      // --- 3枚目（政治） ---
-      { word: "evidence", meaning: "証拠、根拠", sentence: "There is no evidence to support his story.", translation: "彼の話を裏づける証拠はない。" },
-      { word: "vote", meaning: "投票、投票権", sentence: "the right to vote", translation: "投票する権利" },
-      { word: "government", meaning: "政府、政権", sentence: "the Japanese government", translation: "日本政府" },
-      { word: "nation", meaning: "国家、国、国民", sentence: "the most powerful nation in the world", translation: "世界で一番力のある国" },
-      { word: "capital", meaning: "首都、資本、大文字", sentence: "What is the capital of Canada?", translation: "カナダの首都はどこですか。" },
-      { word: "state", meaning: "状態、国家、州", sentence: "the United States of America", translation: "アメリカ合衆国" },
-      { word: "political", meaning: "政治的な、政治の", sentence: "the political situation in Russia", translation: "ロシアの政治情勢" },
+let currentBgm = null;
+let audioInitialized = false;
+let globalBgmVolume = 0.5;
+let globalSeVolume = 0.7;
 
-      // --- 4枚目（経済） ---
-      { word: "price", meaning: "価格、物価、代償", sentence: "Prices have gone up by 5%.", translation: "物価が5%上がった。" },
-      { word: "sum", meaning: "金額、合計、要約", sentence: "pay a large sum for antiques", translation: "骨とう品に大金を使う" },
-      { word: "budget", meaning: "予算、家計", sentence: "our budget for this trip", translation: "今回の旅の予算" },
-      { word: "fee", meaning: "料金、謝礼、授業料", sentence: "pay a cancellation fee", translation: "キャンセル料を払う" },
-      { word: "fare", meaning: "運賃（乗り物の）", sentence: "Taxi fares are low in Singapore.", translation: "シンガポールのタクシー料金は安い。" },
-      { word: "bill", meaning: "勘定書、請求書、紙幣", sentence: "the phone bill", translation: "電話代の請求書" },
-      { word: "trade", meaning: "貿易、商売、取引", sentence: "Japan's trade with the U.S.", translation: "日本の対米貿易" },
-      { word: "wealth", meaning: "富、財産、豊富", sentence: "achieve wealth and power", translation: "富と権力を手にする" },
-      { word: "economy", meaning: "経済、節約", sentence: "boost the Japanese economy", translation: "日本経済を活性化する" },
+function clickStartGame() {
+    if (audioInitialized) return;
+    audioInitialized = true;
+    const startScreen = document.getElementById("page-start-screen");
+    startScreen.style.display = "none";
+    playBgm('normalBgm');
+}
 
-      // --- 5枚目（仕事・損害） ---
-      { word: "cost", meaning: "費用、代償、犠牲", sentence: "The suit cost me 500 dollars.", translation: "そのスーツは私に500ドルした（かかった）。" },
-      { word: "company", meaning: "会社、同席すること、仲間", sentence: "work for a big company", translation: "大きな会社で働く" },
-      { word: "task", meaning: "仕事、任務、課題", sentence: "accomplish a difficult task", translation: "困難な仕事を成し遂げる" },
-      { word: "earn", meaning: "（お金を）稼ぐ、得る", sentence: "earn money to pay my school fees", translation: "学費を払うお金を稼ぐ" },
-      { word: "hurt", meaning: "痛む、傷つける", sentence: "My back hurts a lot.", translation: "腰がとても痛い。" },
-      { word: "injure", meaning: "〜を痛める、けがをさせる", sentence: "injure my back", translation: "腰を痛める" },
-      { word: "damage", meaning: "〜に損害を与える", sentence: "seriously damage the environment", translation: "環境に深刻な被害を与える" },
+function playBgm(key) {
+    if (!audioInitialized) return;
+    const src = audioFiles[key];
+    if (currentBgm) {
+        if (currentBgm.getAttribute('src') === src) {
+            currentBgm.volume = globalBgmVolume;
+            return;
+        }
+        currentBgm.pause();
+        currentBgm = null;
+    }
+    currentBgm = new Audio(src);
+    currentBgm.loop = true;
+    currentBgm.volume = globalBgmVolume;
+    currentBgm.play().catch(e => console.log("BGM再生ブロック:", e));
+}
 
-      // --- 6枚目（破壊・人） ---
-      { word: "destroy", meaning: "〜を破壊する、滅ぼす", sentence: "destroy all weapons", translation: "すべての武器を破壊する" },
-      { word: "ruin", meaning: "〜を台無しにする、破滅させる", sentence: "You ruined my plan.", translation: "君のせいで計画が台無しだよ。" },
-      { word: "danger", meaning: "危険、脅威", sentence: "Tigers are in danger of extinction.", translation: "トラが絶滅の危機にある。" },
-      { word: "neighbor", meaning: "近所の人、隣人", sentence: "chat with a neighbor", translation: "近所の人と話す" },
-      { word: "audience", meaning: "聴衆、観客", sentence: "draw a large audience", translation: "大観衆を集める" },
-      { word: "crowd", meaning: "群衆、人混み", sentence: "A crowd rushed into the hall.", translation: "群衆が会場になだれ込んだ。" },
-      { word: "author", meaning: "著者、作者", sentence: "the author of War and Peace", translation: "『戦争と平和』の著者" },
-      { word: "staff", meaning: "職員、社員、スタッフ", sentence: "Most of the staff are from Australia.", translation: "職員の大半はオーストラリア出身です。" },
-      { word: "clerk", meaning: "店員、事務員", sentence: "the clerks at that department store", translation: "あのデパートの店員" },
+function stopBgm() {
+    if (currentBgm) {
+        currentBgm.pause();
+        currentBgm = null;
+    }
+}
 
-      // --- 7枚目（移動） ---
-      { word: "customer", meaning: "客、顧客", sentence: "The restaurant was crowded with customers from abroad.", translation: "そのレストランは外国人客で混雑していた。" },
-      { word: "passenger", meaning: "乗客", sentence: "There were a lot of passengers on the train.", translation: "列車には多くの乗客が乗っていた。" },
-      { word: "elderly", meaning: "年配の、高齢の", sentence: "give up my seat to elderly people", translation: "お年寄りに席を譲る" },
-      { word: "female", meaning: "女性の、雌の", sentence: "female workers", translation: "女性の労働者" },
-      { word: "head", meaning: "向かう、〜を率いる", sentence: "head for the beach", translation: "海辺に向かう" },
-      { word: "follow", meaning: "〜の後について行く、従う", sentence: "Someone was following me.", translation: "誰かが私をつけていた。" },
-      { word: "wander", meaning: "歩き回る、さまよう", sentence: "wander about the town", translation: "街をぶらぶら歩き回る" },
-      { word: "travel", meaning: "旅行する、移動する", sentence: "travel around the world", translation: "世界中を旅する" },
+function playSe(key) {
+    if (!audioInitialized) return;
+    const se = new Audio(audioFiles[key]);
+    se.volume = globalSeVolume;
+    se.play().catch(e => console.log("SE再生ブロック:", e));
+}
+// ================================================================
 
-      // --- 8枚目（確実性・直面） ---
-      { word: "pass", meaning: "通り過ぎる、合格する、手渡す", sentence: "pass the post office", translation: "郵便局の前を通り過ぎる" },
-      { word: "likely", meaning: "〜しそうだ、可能性が高い", sentence: "Things are likely to improve.", translation: "事態はよくなりそうだ。" },
-      { word: "natural", meaning: "当然の、自然の、生まれながらの", sentence: "It is only natural that you cannot catch words you do not know.", translation: "知らない単語を聞き取れないのはごく当然のことだ。" },
-      { word: "certain", meaning: "確かな、一定の", sentence: "He is certain to become a star player.", translation: "彼はきっとスター選手になるよ。" },
-      { word: "probably", meaning: "おそらく、たぶん", sentence: "The repairs will probably take a month.", translation: "修理はおそらく1か月はかかるだろう。" },
-      { word: "face", meaning: "〜に直面する、向きである", sentence: "We are faced with a crisis.", translation: "私たちは危機に直面している。" },
-      { word: "avoid", meaning: "〜を避ける", sentence: "Avoid making eye contact with monkeys.", translation: "サルとは目を合わせないようにしなさい（避ける）。" }
-    ];
+// 写真データから抽出した全62単語を元の構造(w, j, ex, tr, simW, simJ)に完全最適化
+const vocabulary = [
+    { w: "habit", j: "（個人の）習慣、癖", ex: "have a habit of making excuses", tr: "言い訳をする癖がある", simW: ["custom", "tradition", "society"], simJ: ["社会的な習慣", "伝統", "法律", "財宝"] },
+    { w: "custom", j: "（社会的な）習慣、税関", ex: "show what is in my suitcase at customs", tr: "税関でスーツケースの中を見せる", simW: ["habit", "tradition", "public"], simJ: ["個人の習慣", "法律", "伝統", "大衆"] },
+    { w: "tradition", j: "伝統、しきたり", ex: "Japanese traditions", tr: "日本の伝統", simW: ["society", "ancestor", "value"], simJ: ["社会", "祖先", "価値", "流行"] },
+    { w: "society", j: "社会、協会、団体", ex: "women's status in society", tr: "社会での女性の地位", simW: ["nation", "state", "public"], simJ: ["国家", "人口", "伝統", "地元"] },
+    { w: "law", j: "法律、国法、法則", ex: "Parking here is against the law.", tr: "ここでの駐車は法律違反だ。", simW: ["vote", "government", "state"], simJ: ["投票", "政府", "証拠", "大統領"] },
+    { w: "ancestor", j: "祖先、先祖", sentence: "My ancestors were French.", tr: "私の祖先はフランス人だった。", simW: ["neighbor", "author", "clerk"], simJ: ["隣人", "著者", "店員", "乗客"] },
+    { w: "population", j: "人口、個体数", ex: "The population of Tokyo is larger than that of Osaka.", tr: "東京の人口は大阪の人口より多い。", simW: ["society", "public", "crowd"], simJ: ["社会", "大衆", "群衆", "乗客"] },
+    { w: "native", j: "母国の、その土地の生まれの", ex: "his native language", tr: "彼の母国語", simW: ["local", "elderly", "female"], simJ: ["地元の", "年配の", "女性の", "確かな"] },
+    { w: "abroad", j: "海外へ、海外で", ex: "find a job abroad", tr: "海外で仕事を見つける", simW: ["wander", "travel", "head"], simJ: ["歩き回る", "旅行する", "向かう", "避ける"] },
+    { w: "local", j: "その土地の、地元の", ex: "talk with the locals", tr: "地元の人々と話す", simW: ["native", "public", "national"], simJ: ["母国の", "公共の", "国家の", "確かな"] },
+    { w: "survey", j: "調査、アンケート", ex: "according to a recent survey", tr: "最近の調査によると", simW: ["evidence", "budget", "value"], simJ: ["証拠", "予算", "価値", "合計"] },
+    { w: "value", j: "価値、価格、価値観", ex: "the value of the painting", tr: "その絵の価値", simW: ["price", "wealth", "treasure"], simJ: ["価格", "富", "財宝", "予算"] },
+    { w: "treasure", j: "財宝、宝、大事なもの", ex: "a national treasure", tr: "国宝", simW: ["value", "wealth", "budget"], simJ: ["価値", "富", "予算", "価格"] },
+    { w: "fashion", j: "流行、ファッション、やり方", ex: "follow the latest fashion", tr: "最新の流行を追う", simW: ["custom", "habit", "society"], simJ: ["習慣", "社会", "大衆", "法律"] },
+    { w: "public", j: "大衆の、公の、公共の", ex: "public places", tr: "公共の場所", simW: ["local", "society", "nation"], simJ: ["地元の", "社会の", "国家の", "個人の"] },
+    { w: "evidence", j: "証拠、根拠", ex: "There is no evidence to support his story.", tr: "彼の話を裏づける証拠はない。", simW: ["survey", "law", "government"], simJ: ["調査", "法律", "政府", "予算"] },
+    { w: "vote", j: "投票、投票権", ex: "the right to vote", tr: "投票する権利", simW: ["law", "government", "nation"], simJ: ["法律", "政府", "国家", "州"] },
+    { w: "government", j: "政府、政権", ex: "the Japanese government", tr: "日本政府", simW: ["nation", "state", "political"], simJ: ["国家", "州", "政治的な", "法律"] },
+    { w: "nation", j: "国家、国、国民", ex: "the most powerful nation in the world", tr: "世界で一番力のある国", simW: ["state", "capital", "society"], simJ: ["州、状態", "首都", "社会", "近所"] },
+    { w: "capital", j: "首都、資本、大文字", ex: "What is the capital of Canada?", tr: "カナダの首都はどこですか。", simW: ["nation", "state", "budget"], simJ: ["国家", "状態", "予算", "富"] },
+    { w: "state", j: "状態、国家、州", ex: "the United States of America", tr: "アメリカ合衆国", simW: ["nation", "capital", "government"], simJ: ["国家", "首都", "政府", "法律"] },
+    { w: "political", j: "政治的な、政治の", ex: "the political situation in Russia", tr: "ロシアの政治情勢", simW: ["public", "native", "local"], simJ: ["公の", "母国の", "地元の", "経済の"] },
+    { w: "price", j: "価格、物価、代償", ex: "Prices have gone up by 5%.", tr: "物価が5%上がった。", simW: ["sum", "fee", "fare"], simJ: ["合計金額", "手数料、授業料", "乗り物運賃", "勘定書"] },
+    { w: "sum", j: "金額、合計、要約", ex: "pay a large sum for antiques", tr: "骨とう品に大金を使う", simW: ["price", "budget", "bill"], simJ: ["価格", "予算", "請求書", "運賃"] },
+    { w: "budget", j: "予算、家計", ex: "our budget for this trip", tr: "今回の旅の予算", simW: ["sum", "fee", "wealth"], simJ: ["合計金額", "料金", "富", "代償"] },
+    { w: "fee", j: "料金、謝礼、授業料", ex: "pay a cancellation fee", tr: "キャンセル料を払う", simW: ["fare", "bill", "price"], simJ: ["乗り物の運賃", "請求書", "物価", "富"] },
+    { w: "fare", j: "運賃（乗り物の）", ex: "Taxi fares are low in Singapore.", tr: "シンガポールのタクシー料金は安い。", simW: ["fee", "bill", "cost"], simJ: ["手数料・入場料", "請求書", "費用", "合計"] },
+    { w: "bill", j: "勘定書、請求書、紙幣", ex: "the phone bill", tr: "電話代の請求書", simW: ["fee", "fare", "price"], simJ: ["料金・謝礼", "乗り物運賃", "価格", "予算"] },
+    { w: "trade", j: "貿易、商売、取引", ex: "Japan's trade with the U.S.", tr: "日本の対米貿易", simW: ["economy", "company", "wealth"], simJ: ["経済", "会社", "富", "予算"] },
+    { w: "wealth", j: "富、財産、豊富", ex: "achieve wealth and power", tr: "富と権力を手にする", simW: ["value", "treasure", "budget"], simJ: ["価値", "財宝", "予算", "金額"] },
+    { w: "economy", j: "経済、節約", ex: "boost the Japanese economy", tr: "日本経済を活性化する", simW: ["trade", "government", "budget"], simJ: ["貿易", "政府", "予算", "会社"] },
+    { w: "cost", j: "費用、代償、犠牲", ex: "The suit cost me 500 dollars.", tr: "そのスーツは私に500ドルした（かかった）。", simW: ["price", "fee", "damage"], simJ: ["価格", "料金", "損害", "任務"] },
+    { w: "company", j: "会社、同席すること、仲間", ex: "work for a big company", tr: "大きな会社で働く", simW: ["staff", "clerk", "society"], simJ: ["職員", "店員", "社会", "近所"] },
+    { w: "task", j: "仕事、任務、課題", ex: "accomplish a difficult task", tr: "困難な仕事を成し遂げる", simW: ["cost", "trade", "custom"], simJ: ["費用", "貿易", "習慣", "富"] },
+    { w: "earn", j: "（お金を）稼ぐ、得る", ex: "earn money to pay my school fees", tr: "学費を払うお金を稼ぐ", simW: ["head", "follow", "travel"], simJ: ["向かう", "従う", "旅行する", "避ける"] },
+    { w: "hurt", j: "痛む、傷つける", ex: "My back hurts a lot.", tr: "腰がとても痛い。", simW: ["injure", "damage", "destroy"], simJ: ["〜を痛める", "〜に損害を与える", "〜を破壊する", "避ける"] },
+    { w: "injure", j: "〜を痛める、けがをさせる", ex: "injure my back", tr: "腰を痛める", simW: ["hurt", "damage", "ruin"], simJ: ["痛む", "〜に損害を与える", "〜を台無しにする", "滅ぼす"] },
+    { w: "damage", j: "〜に損害を与える", ex: "seriously damage the environment", tr: "環境に深刻な被害を与える", simW: ["destroy", "ruin", "hurt"], simJ: ["〜を破壊する", "〜を台無しにする", "痛む", "避ける"] },
+    { w: "destroy", j: "〜を破壊する、滅ぼす", ex: "destroy all weapons", tr: "すべての武器を破壊する", simW: ["ruin", "damage", "injure"], simJ: ["〜を台無しにする", "〜に損害を与える", "〜を痛める", "避ける"] },
+    { w: "ruin", j: "〜を台無しにする、破滅させる", ex: "You ruined my plan.", tr: "君のせいで計画が台無しだよ。", simW: ["destroy", "damage", "hurt"], simJ: ["〜を破壊する", "〜に損害を与える", "痛む", "避ける"] },
+    { w: "danger", j: "危険、脅威", ex: "Tigers are in danger of extinction.", tr: "トラが絶滅の危機にある。", simW: ["evidence", "value", "trade"], simJ: ["証拠", "価値", "貿易", "予算"] },
+    { w: "neighbor", j: "近所の人、隣人", ex: "chat with a neighbor", tr: "近所の人と話す", simW: ["audience", "crowd", "author"], simJ: ["観客", "群衆", "著者", "店員"] },
+    { w: "audience", j: "聴衆、観客", ex: "draw a large audience", tr: "大観衆を集める", simW: ["crowd", "neighbor", "passenger"], simJ: ["群衆", "隣人", "乗客", "職員"] },
+    { w: "crowd", j: "群衆、人混み", ex: "A crowd rushed into the hall.", tr: "群衆が会場になだれ込んだ。", simW: ["audience", "neighbor", "customer"], simJ: ["観客", "隣人", "顧客", "店員"] },
+    { w: "author", j: "著者、作者", ex: "the author of War and Peace", tr: "『戦争と平和』の著者", simW: ["clerk", "staff", "neighbor"], simJ: ["店員", "職員", "隣人", "乗客"] },
+    { w: "staff", j: "職員、社員、スタッフ", ex: "Most of the staff are from Australia.", tr: "職員の大半はオーストラリア出身です。", simW: ["clerk", "author", "audience"], simJ: ["店員", "著者", "観客", "隣人"] },
+    { w: "clerk", j: "店員、事務員", ex: "the clerks at that department store", tr: "あのデパートの店員", simW: ["customer", "staff", "author"], simJ: ["客", "職員", "著者", "群衆"] },
+    { w: "customer", j: "客、顧客", ex: "The restaurant was crowded with customers from abroad.", tr: "そのレストランは外国人客で混雑していた。", simW: ["passenger", "clerk", "crowd"], simJ: ["乗客", "店員", "群衆", "隣人"] },
+    { w: "passenger", j: "乗客", ex: "There were a lot of passengers on the train.", tr: "列車には多くの乗客が乗っていた。", simW: ["customer", "audience", "staff"], simJ: ["顧客", "観客", "職員", "著者"] },
+    { w: "elderly", j: "年配の、高齢の", ex: "give up my seat to elderly people", tr: "お年寄りに席を譲る", simW: ["female", "native", "local"], simJ: ["女性の", "母国の", "地元の", "当然の"] },
+    { w: "female", j: "女性の、雌の", ex: "female workers", tr: "女性の労働者", simW: ["elderly", "native", "likely"], simJ: ["年配の", "母国の", "〜しそうな", "自然の"] },
+    { w: "head", j: "向かう、〜を率いる", ex: "head for the beach", tr: "海辺に向かう", simW: ["follow", "wander", "travel"], simJ: ["従う・ついて行く", "歩き回る", "旅行する", "避ける"] },
+    { w: "follow", j: "〜の後について行く、従う", ex: "Someone was following me.", tr: "誰かが私をつけていた。", simW: ["head", "wander", "pass"], simJ: ["向かう", "歩き回る", "通り過ぎる", "避ける"] },
+    { w: "wander", j: "歩き回る、さまよう", ex: "wander about the town", tr: "街をぶらぶら歩き回る", simW: ["travel", "head", "follow"], simJ: ["旅行する", "向かう", "従う", "避ける"] },
+    { w: "travel", j: "旅行する、移動する", ex: "travel around the world", tr: "世界中を旅する", simW: ["wander", "head", "pass"], simJ: ["歩き回る", "向かう", "通り過ぎる", "合格する"] },
+    { w: "pass", j: "通り過ぎる、合格する、手渡す", ex: "pass the post office", tr: "郵便局の前を通り過ぎる", simW: ["follow", "travel", "avoid"], simJ: ["従う", "旅行する", "避ける", "直面する"] },
+    { w: "likely", j: "〜しそうだ、可能性が高い", ex: "Things are likely to improve.", tr: "事態はよくなりそうだ。", simW: ["certain", "probably", "natural"], simJ: ["確かな", "おそらく", "当然の", "地元の"] },
+    { w: "natural", j: "当然の、自然の、生まれながらの", ex: "It is only natural that you cannot catch words you do not know.", tr: "知らない単語を聞き取れないのはごく当然のことだ。", simW: ["likely", "certain", "native"], simJ: ["〜しそうな", "確かな", "母国の", "政治の"] },
+    { w: "certain", j: "確かな、一定の", ex: "He is certain to become a star player.", tr: "彼はきっとスター選手になるよ。", simW: ["likely", "probably", "natural"], simJ: ["〜しそうな", "おそらく", "当然の", "地元の"] },
+    { w: "probably", j: "おそらく、たぶん", ex: "The repairs will probably take a month.", tr: "修理はおそらく1か月はかかるだろう。", simW: ["certain", "likely", "natural"], simJ: ["確かな", "〜しそうな", "当然の", "母国の"] },
+    { w: "face", j: "〜に直面する、向きである", ex: "We are faced with a crisis.", tr: "私たちは危機に直面している。", simW: ["avoid", "pass", "head"], simJ: ["〜を避ける", "通り過ぎる", "向かう", "従う"] },
+    { w: "avoid", j: "〜を避ける", ex: "Avoid making eye contact with monkeys.", tr: "サルとは目を合わせないようにしなさい（避ける）。", simW: ["face", "pass", "follow"], simJ: ["〜に直面する", "通り過ぎる", "従う", "歩き回る"] }
+];
 
-    const enemies = [
-        { name: "スライムゴブリン", emoji: "🤢", maxHp: 3 },
-        { name: "シャドウバット", emoji: "🦇", maxHp: 4 },
-        { name: "マインゴーレム", emoji: "🤖", maxHp: 5 },
-        { name: "ダークナイト", emoji: "😈", maxHp: 6 },
-        { name: "レックスドラゴン", emoji: "🦖", maxHp: 8 }
-    ];
+// ==================== ゲームコアループ（完全に維持） ====================
+let saveData = {
+    gold: 100,
+    lv: 1,
+    baseAtk: 10,
+    baseDef: 0,
+    weapon: "ひのきのぼう",
+    weaponPlus: 0,
+    armor: "ぬののふく",
+    armorPlus: 0,
+    yakuso: 0,
+    totalQuestions: 0,
+    correctAnswers: 0
+};
 
-    // ゲーム状態管理変数
-    let currentWordsPool = [];
-    let currentQuizIndex = 0;
-    let currentQuizItem = null;
+// 武器・防具マスターデータ
+const weaponsMaster = {
+    "ひのきのぼう": { atk: 0, rarity: "N" },
+    "かわのたて": { atk: 3, rarity: "R" }, // ※元ファイル通り
+    "どうのつるぎ": { atk: 5, rarity: "R" },
+    "鉄の剣": { atk: 10, rarity: "R" },
+    "はがねのつるぎ": { atk: 18, rarity: "SR" },
+    "まどろみの剣": { atk: 25, rarity: "SR" },
+    "ひかりのつるぎ": { atk: 40, rarity: "SSR" },
+    "ロトの剣": { atk: 55, rarity: "SSR" },
+    "天空のつるぎ": { atk: 80, rarity: "UR" }
+};
+
+const armorsMaster = {
+    "ぬののふく": { def: 0, rarity: "N" },
+    "鉄の盾": { def: 4, rarity: "R" },
+    "まほうのよろい": { def: 10, rarity: "SR" },
+    "はがねの鎧": { def: 15, rarity: "SR" },
+    "みかがみの盾": { def: 25, rarity: "SSR" },
+    "ロトの鎧": { def: 35, rarity: "SSR" },
+    "天空のよろい": { def: 55, rarity: "UR" }
+};
+
+// 限界突破データ
+let weaponInventory = { "ひのきのぼう": 0 };
+let armorInventory = { "ぬののふく": 0 };
+
+// バトル一時変数
+let playerHp = 100;
+let playerMaxHp = 100;
+let enemyMaxHp = 30;
+let enemyHp = 30;
+let enemyAtk = 8;
+let enemyName = "";
+let enemyInterval = 5;
+let enemyCountdown = 5;
+let currentQuestMode = 'easy';
+let currentWordIndex = 0;
+let currentWord = null;
+let currentQuizType = 'j'; // j, fill, tr
+let battleSp = 0;
+let activeBuffs = { burn: 0, guard: false, stun: false, charge: false };
+let isInBattle = false;
+
+// PvP用変数
+let isPvpMode = false;
+let pvpBackupHp = 100;
+let pvpBackupMaxHp = 100;
+let pvpEnemyName = "ライバル勇者";
+let pvpEnemyHitRate = 1.0;
+
+window.onload = function() {
+    loadGameData();
+    initUI();
+};
+
+function switchPage(pageId) {
+    if (isInBattle && pageId !== 'quest-battle') {
+        alert("バトル中は移動できません！「逃げる」を選んでください。");
+        return;
+    }
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
-    let playerHp = 15;
-    const playerMaxHp = 15;
-    let enemyHp = 0;
-    let enemyMaxHp = 0;
-    let defeatedEnemiesCount = 0;
-    let totalQuestionsAnswered = 0;
-    let correctAnswersCount = 0;
+    document.getElementById(`page-${pageId}`).classList.add('active');
+    const btnMap = { 'quest-hub': 'btn-quest', 'pvp-hub': 'btn-pvp', 'equip': 'btn-equip', 'gacha': 'btn-gacha', 'setting': 'btn-setting', 'quest-battle': 'btn-quest' };
+    if (btnMap[pageId]) document.getElementById(btnMap[pageId]).classList.add('active');
+    
+    if (pageId === 'equip') renderEquipPage();
+    if (pageId === 'pvp-hub') updatePvpCodeDisplay();
+}
 
-    // 画面切り替え関数
-    function showScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
+function initUI() {
+    document.getElementById("player-lv").innerText = saveData.lv;
+    document.getElementById("player-gold").innerText = saveData.gold;
+    document.getElementById("header-player-name").innerText = document.getElementById("setting-name-input").value || "勇者";
+    calculateFinalStatus();
+    playerHp = playerMaxHp;
+    updateHpUi();
+}
+
+function calculateFinalStatus() {
+    saveData.lv = Math.min(99, 1 + Math.floor(saveData.correctAnswers / 8));
+    saveData.baseAtk = 10 + (saveData.lv - 1) * 3;
+    saveData.baseDef = 0 + (saveData.lv - 1) * 2;
+    
+    let wMaster = weaponsMaster[saveData.weapon] || { atk: 0 };
+    let aMaster = armorsMaster[saveData.armor] || { def: 0 };
+    
+    let gearAtk = wMaster.atk + (saveData.weaponPlus * 4);
+    let gearDef = aMaster.def + (saveData.armorPlus * 3);
+    
+    let totalAtk = saveData.baseAtk + gearAtk;
+    let totalDef = saveData.baseDef + gearDef;
+    
+    playerMaxHp = 100 + (saveData.lv - 1) * 12;
+    if (playerHp > playerMaxHp) playerHp = playerMaxHp;
+    
+    document.getElementById("player-lv").innerText = saveData.lv;
+    document.getElementById("player-gold").innerText = saveData.gold;
+    
+    // 装備ページ表示用
+    let eAtk = document.getElementById("total-atk"); if(eAtk) eAtk.innerText = totalAtk;
+    let eBAtk = document.getElementById("base-atk"); if(eBAtk) eBAtk.innerText = saveData.baseAtk;
+    let eGAtk = document.getElementById("gear-atk"); if(eGAtk) eGAtk.innerText = gearAtk;
+    let eDef = document.getElementById("total-def"); if(eDef) eDef.innerText = totalDef;
+    let eBDef = document.getElementById("base-def"); if(eBDef) eBDef.innerText = saveData.baseDef;
+    let eGDef = document.getElementById("gear-def"); if(eGDef) eGDef.innerText = gearDef;
+    
+    let cw = document.getElementById("current-weapon"); if(cw) cw.innerText = saveData.weapon;
+    let cwp = document.getElementById("current-weapon-plus"); if(cwp) cwp.innerText = saveData.weaponPlus > 0 ? `+${saveData.weaponPlus}` : "";
+    let ca = document.getElementById("current-armor"); if(ca) ca.innerText = saveData.armor;
+    let cap = document.getElementById("current-armor-plus"); if(cap) cap.innerText = saveData.armorPlus > 0 ? `+${saveData.armorPlus}` : "";
+    
+    document.getElementById("setting-name-input").placeholder = "勇者";
+}
+
+function updateHpUi() {
+    document.getElementById("player-hp").innerText = Math.max(0, playerHp);
+    document.getElementById("player-max-hp").innerText = playerMaxHp;
+    
+    const area = document.getElementById("player-hp-display-area");
+    if(playerHp <= playerMaxHp * 0.25) {
+        area.style.color = "#ff3333";
+    } else if(playerHp <= playerMaxHp * 0.5) {
+        area.style.color = "#ffcc00";
+    } else {
+        area.style.color = "#00ffcc";
     }
+}
 
-    // 配列のシャッフル
-    function shuffleArray(array) {
-        const arr = [...array];
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
+function updateNavBarState() {
+    const btns = document.querySelectorAll(".nav-btn");
+    btns.forEach(b => {
+        if(isInBattle) {
+            if(b.id === 'btn-quest') b.disabled = false; else b.disabled = true;
+        } else {
+            b.disabled = false;
         }
-        return arr;
+    });
+}
+
+// ==================== クエスト進行システム ====================
+function startQuest(mode) {
+    isInBattle = true;
+    isPvpMode = false;
+    currentQuestMode = mode;
+    updateNavBarState();
+    
+    activeBuffs = { burn: 0, guard: false, stun: false, charge: false };
+    battleSp = 0;
+    updateSpBar();
+    
+    // 難易度別のモンスター出現
+    if(mode === 'easy') {
+        enemyMaxHp = 25; enemyAtk = 6; enemyInterval = 5; enemyName = "キラスライム";
+        document.getElementById("monster").innerText = "🟢";
+        playBgm('battleEasyNormalHard');
+    } else if(mode === 'normal') {
+        enemyMaxHp = 60; enemyAtk = 15; enemyInterval = 5; enemyName = "サボテンソルジャー";
+        document.getElementById("monster").innerText = "🌵";
+        playBgm('battleEasyNormalHard');
+    } else if(mode === 'hard') {
+        enemyMaxHp = 140; enemyAtk = 32; enemyInterval = 4; enemyName = "マグマゴーレム";
+        document.getElementById("monster").innerText = "🧱";
+        playBgm('battleEasyNormalHard');
+    } else if(mode === 'inferno') {
+        enemyMaxHp = 320; enemyAtk = 65; enemyInterval = 4; enemyName = "冥界魔王ヘルゾーマ";
+        document.getElementById("monster").innerText = "👹";
+        playBgm('battleInferno');
+    } else {
+        enemyMaxHp = 777; enemyAtk = 120; enemyInterval = 3; enemyName = "虚構の絶望騎士";
+        document.getElementById("monster").innerText = "💀";
+        playBgm('battleDespair');
     }
+    
+    enemyHp = enemyMaxHp;
+    enemyCountdown = enemyInterval;
+    
+    document.getElementById("monster-name").innerText = enemyName;
+    document.getElementById("enemy-hp").innerText = enemyHp;
+    document.getElementById("enemy-max-hp").innerText = enemyMaxHp;
+    document.getElementById("enemy-turn-countdown").innerText = enemyCountdown;
+    
+    document.getElementById("message").innerText = `${enemyName} が現れた！英単語を解いて攻撃を叩き込め！`;
+    
+    switchPage('quest-battle');
+    generateQuiz();
+}
 
-    // ゲームスタート
-    function startGame() {
-        // 出題プールをランダムにシャッフルしてセット
-        currentWordsPool = shuffleArray(quizData);
-        currentQuizIndex = 0;
-        
-        // ステータス初期化
-        playerHp = playerMaxHp;
-        defeatedEnemiesCount = 0;
-        totalQuestionsAnswered = 0;
-        correctAnswersCount = 0;
-
-        updatePlayerHpBar();
-        spawnEnemy();
-        showScreen('battle-screen');
-        loadNextQuestion();
+function generateQuiz() {
+    updateBuffBadges();
+    
+    // モンスター死亡判定
+    if(enemyHp <= 0) {
+        winBattle();
+        return;
     }
-
-    // モンスターの出現
-    function spawnEnemy() {
-        // エネミーリストからランダムで選択、後半ほどHPが高くなるように少し調整も可能
-        const baseEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-        document.getElementById('enemy-name').textContent = baseEnemy.name;
-        document.getElementById('enemy-avatar').textContent = baseEnemy.emoji;
-        
-        enemyMaxHp = baseEnemy.maxHp;
-        enemyHp = enemyMaxHp;
-        updateEnemyHpBar();
+    
+    // クイズ形式決定
+    let dice = Math.random();
+    if(currentQuestMode === 'easy') {
+        currentQuizType = 'j';
+    } else if(currentQuestMode === 'normal') {
+        currentQuizType = dice < 0.6 ? 'j' : 'fill';
+    } else if(currentQuestMode === 'hard') {
+        currentQuizType = dice < 0.4 ? 'fill' : 'tr';
+    } else {
+        currentQuizType = 'tr';
     }
-
-    // HPバーの更新
-    function updatePlayerHpBar() {
-        const percent = Math.max(0, (playerHp / playerMaxHp) * 100);
-        const bar = document.getElementById('player-hp-bar');
-        bar.style.width = percent + '%';
-        document.getElementById('player-hp-text').textContent = `${playerHp} / ${playerMaxHp}`;
-        
-        if (percent <= 30) bar.classList.add('danger');
-        else bar.classList.remove('danger');
-    }
-
-    function updateEnemyHpBar() {
-        const percent = Math.max(0, (enemyHp / enemyMaxHp) * 100);
-        const bar = document.getElementById('enemy-hp-bar');
-        bar.style.width = percent + '%';
-        document.getElementById('enemy-hp-text').textContent = `${enemyHp} / ${enemyMaxHp}`;
-    }
-
-    // クイズの読み込み
-    function loadNextQuestion() {
-        // フィードバック非表示
-        document.getElementById('feedback-box').style.display = 'none';
-
-        // 問題プールが尽きたら再シャッフルしてループ
-        if (currentQuizIndex >= currentWordsPool.length) {
-            currentWordsPool = shuffleArray(quizData);
-            currentQuizIndex = 0;
+    
+    // 出題単語をランダムにチョイス
+    currentWordIndex = Math.floor(Math.random() * vocabulary.length);
+    currentWord = vocabulary[currentWordIndex];
+    
+    if(currentQuizType === 'j') {
+        // ①四択単語意味形式
+        document.getElementById("message").innerHTML = `<span style="color:#00ffcc; font-size:18px; font-weight:bold;">${currentWord.w}</span> の正しい意味はどれ？`;
+        let answers = [currentWord.j];
+        let dummyPool = [...currentWord.simJ];
+        while(answers.length < 4 && dummyPool.length > 0) {
+            let rIdx = Math.floor(Math.random() * dummyPool.length);
+            let d = dummyPool.splice(rIdx, 1)[0];
+            if(!answers.includes(d)) answers.push(d);
         }
-
-        currentQuizItem = currentWordsPool[currentQuizIndex];
-        currentQuizIndex++;
-
-        // 例文のターゲット単語部分を `___` に置換して問題文を作成
-        // 大文字小文字（例: Prices など）や複数形、過去形にもなるべく対応できるように正規表現で部分置換
-        const targetWord = currentQuizItem.word;
-        const escapedWord = targetWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // 単語の語幹に近い部分でマッチさせる簡易的な正規表現
-        const regex = new RegExp(escapedWord.substring(0, Math.min(4, escapedWord.length)) + '[a-z]*', 'gi');
+        // 万が一足りない場合のフォールバック用ダミー
+        const genericDummies = ["～を破壊する", "～を避ける", "地元の", "習慣"];
+        genericDummies.forEach(g => { if(answers.length < 4 && !answers.includes(g)) answers.push(g); });
         
-        let questionSentence = currentQuizItem.sentence.replace(regex, "___");
-        // 万が一置換されなかった場合のエスケープ処理
-        if (!questionSentence.includes("___")) {
-            questionSentence = questionSentence.replace(targetWord, "___");
-        }
-
-        document.getElementById('question-text').textContent = questionSentence;
-        document.getElementById('question-hint').textContent = `意味：${currentQuizItem.translation}`;
-
-        // 選択肢の生成（正解の日本語 + ダミーの日本語3つ）
-        let choices = [currentQuizItem.meaning];
+        answers = shuffleArray(answers);
         
-        // ダミーをプールからランダムに3つ選ぶ
-        let dummyPool = quizData.filter(item => item.word !== currentQuizItem.word);
-        dummyPool = shuffleArray(dummyPool);
-        
-        for (let i = 0; i < 3 && i < dummyPool.length; i++) {
-            choices.push(dummyPool[i].meaning);
-        }
-        
-        // 選択肢をシャッフル
-        choices = shuffleArray(choices);
-
-        // ボタンの配置
-        const container = document.getElementById('choices-container');
-        container.innerHTML = '';
-        container.style.display = 'grid';
-
-        choices.forEach(choice => {
-            const button = document.createElement('button');
-            button.className = 'btn';
-            button.textContent = choice;
-            button.onclick = () => selectAnswer(choice, button);
-            container.appendChild(button);
+        let html = "";
+        answers.forEach(ans => {
+            html += `<button class="choice-btn" onclick="submitAnswer('${escapeStr(ans)}')">${ans}</button>`;
         });
-    }
-
-    // 選択肢をクリックしたとき
-    function selectAnswer(selectedChoice, selectedButton) {
-        // ボタンをすべて無効化
-        const buttons = document.querySelectorAll('#choices-container .btn');
-        buttons.forEach(b => b.disabled = true);
-
-        const isCorrect = (selectedChoice === currentQuizItem.meaning);
-        totalQuestionsAnswered++;
-
-        const feedbackBox = document.getElementById('feedback-box');
-        const feedbackTitle = document.getElementById('feedback-title');
-        const commentaryContent = document.getElementById('commentary-content');
-
-        if (isCorrect) {
-            correctAnswersCount++;
-            enemyHp -= 1; // モンスターに1ダメージ
-            updateEnemyHpBar();
-
-            feedbackBox.className = "feedback-box correct";
-            feedbackTitle.textContent = "⚔️ ATTACK SUCCESS !! (正解)";
-            selectedButton.style.borderColor = "var(--success-color)";
-            selectedButton.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
-        } else {
-            playerHp -= 2; // プレイヤーに2ダメージ
-            updatePlayerHpBar();
-
-            feedbackBox.className = "feedback-box incorrect";
-            feedbackTitle.textContent = "💥 PLAYER DAMAGED !! (不正解)";
-            selectedButton.style.borderColor = "var(--accent-color)";
-            selectedButton.style.backgroundColor = "rgba(244, 63, 94, 0.2)";
-        }
-
-        // 解説テキストの構築
-        commentaryContent.textContent = `【単語】 ${currentQuizItem.word} : ${currentQuizItem.meaning}\n【元の例文】 ${currentQuizItem.sentence}\n【例文の訳】 ${currentQuizItem.translation}`;
+        document.getElementById("choices").innerHTML = html;
         
-        // 選択肢を非表示にしてフィードバックを表示
-        document.getElementById('choices-container').style.display = 'none';
-        feedbackBox.style.display = 'block';
-    }
-
-    // ターンを進める（次へボタンを押した時）
-    function advanceTurn() {
-        if (enemyHp <= 0) {
-            // 敵を倒した場合
-            defeatedEnemiesCount++;
-            alert("モンスターを倒した！次のモンスターが現れた！");
-            spawnEnemy();
-            loadNextQuestion();
-        } else if (playerHp <= 0) {
-            // プレイヤーが倒された場合
-            endGame(false);
-        } else {
-            // バトル継続
-            loadNextQuestion();
-        }
-    }
-
-    // ゲーム終了
-    function endGame(isClear) {
-        const title = document.getElementById('result-title');
-        if (playerHp <= 0) {
-            title.textContent = "Game Over...";
-            title.style.color = "var(--accent-color)";
-        } else {
-            title.textContent = "Quest Clear!";
-            title.style.color = "var(--primary-color)";
-        }
-
-        document.getElementById('result-enemies').textContent = defeatedEnemiesCount + " 体";
-        document.getElementById('result-score').textContent = `${correctAnswersCount} / ${totalQuestionsAnswered} 問`;
+    } else if(currentQuizType === 'fill') {
+        // ②例文穴埋め形式
+        let blankWord = " " + currentWord.w + " ";
+        let regex = new RegExp(currentWord.w, "gi");
+        let hiddenEx = currentWord.ex.replace(regex, " [ ___ ] ");
         
-        showScreen('result-screen');
+        document.getElementById("message").innerHTML = `<div style="font-size:13px; color:#aaa; margin-bottom:5px;">穴埋め問題：下の例文の空欄に入る単語は？</div><div style="font-weight:bold; color:#ffcc00; margin-bottom:5px;">${hiddenEx}</div><div style="font-size:12px; color:#fff;">(訳: ${currentWord.tr})</div>`;
+        
+        let answers = [currentWord.w];
+        let dummyPool = [...currentWord.simW];
+        while(answers.length < 4 && dummyPool.length > 0) {
+            let rIdx = Math.floor(Math.random() * dummyPool.length);
+            let d = dummyPool.splice(rIdx, 1)[0];
+            if(!answers.includes(d)) answers.push(d);
+        }
+        // 万が一の予備ダミー
+        const genericW = ["avoid", "face", "habit", "law"];
+        genericW.forEach(g => { if(answers.length < 4 && !answers.includes(g)) answers.push(g); });
+        
+        answers = shuffleArray(answers);
+        
+        let html = "";
+        answers.forEach(ans => {
+            html += `<button class="choice-btn" onclick="submitAnswer('${escapeStr(ans)}')">${ans}</button>`;
+        });
+        document.getElementById("choices").innerHTML = html;
+        
+    } else {
+        // ③英訳選択形式
+        document.getElementById("message").innerHTML = `<div style="font-size:13px; color:#aaa; margin-bottom:5px;">英訳問題：次の日本語に合う正しいフレーズは？</div><div style="font-weight:bold; color:#ff3366; margin-bottom:5px;">「 ${currentWord.tr} 」</div>`;
+        
+        let answers = [currentWord.ex];
+        // 他の単語の例文から3つダミーを作る
+        let attempts = 0;
+        while(answers.length < 4 && attempts < 100) {
+            attempts++;
+            let rW = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+            if(rW.w !== currentWord.w && !answers.includes(rW.ex)) {
+                answers.push(rW.ex);
+            }
+        }
+        answers = shuffleArray(answers);
+        
+        let html = "";
+        answers.forEach(ans => {
+            html += `<button class="choice-btn" style="font-size:12px;" onclick="submitAnswer('${escapeStr(ans)}')">${ans}</button>`;
+        });
+        document.getElementById("choices").innerHTML = html;
+    }
+}
+
+function submitAnswer(chosen) {
+    let isCorrect = false;
+    if(currentQuizType === 'j' && chosen === currentWord.j) isCorrect = true;
+    if(currentQuizType === 'fill' && chosen === currentWord.w) isCorrect = true;
+    if(currentQuizType === 'tr' && chosen === currentWord.ex) isCorrect = true;
+    
+    saveData.totalQuestions++;
+    if(isCorrect) saveData.correctAnswers++;
+    saveGameData();
+    calculateFinalStatus();
+    
+    if(isCorrect) {
+        // 正解演出
+        let baseDmg = saveData.baseAtk;
+        let weaponM = weaponsMaster[saveData.weapon] || { atk: 0 };
+        let gearDmg = weaponM.atk + (saveData.weaponPlus * 4);
+        let finalDmg = Math.floor((baseDmg + gearDmg) * (1 + Math.random() * 0.2));
+        
+        // 必殺チャージ状態なら2倍
+        if(activeBuffs.charge) {
+            finalDmg = Math.floor(finalDmg * 2);
+            activeBuffs.charge = false;
+        }
+        
+        enemyHp -= finalDmg;
+        if(enemyHp < 0) enemyHp = 0;
+        document.getElementById("enemy-hp").innerText = enemyHp;
+        
+        // SPチャージ
+        let spGain = currentQuizType === 'j' ? 12 : (currentQuizType === 'fill' ? 20 : 30);
+        battleSp = Math.min(100, battleSp + spGain);
+        updateSpBar();
+        
+        createDamagePopup(finalDmg, 'monster');
+        document.getElementById("monster-area").classList.add("shake");
+        setTimeout(() => document.getElementById("monster-area").classList.remove("shake"), 250);
+        
+        document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#00ffcc;" onclick="generateQuiz()">⭕ 正解！次の問題へ (敵に ${finalDmg} ダメージ)</button><div style="font-size:12px; margin-top:10px; color:#aaa; border-left:3px solid #00ffcc; padding-left:5px;">【解説】<br>単語: <strong>${currentWord.w}</strong> [${currentWord.j}]<br>例文: ${currentWord.ex}<br>和訳: ${currentWord.tr}</div>`;
+        
+    } else {
+        // 不正解演出
+        playSe('seDamageTake');
+        // 敵カウンタ加速ペナルティ
+        enemyCountdown = Math.max(1, enemyCountdown - 1);
+        document.getElementById("enemy-turn-countdown").innerText = enemyCountdown;
+        
+        let correctTxt = currentQuizType === 'j' ? currentWord.j : (currentQuizType === 'fill' ? currentWord.w : currentWord.ex);
+        
+        document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="generateQuiz()">❌ 不正解！次の問題へ</button><div style="font-size:12px; margin-top:10px; color:#aaa; border-left:3px solid #ff3366; padding-left:5px;">正解は「 <strong style="color:#fff;">${correctTxt}</strong> 」でした。<br><br>【解説】<br>単語: <strong>${currentWord.w}</strong> [${currentWord.j}]<br>例文: ${currentWord.ex}<br>和訳: ${currentWord.tr}</div>`;
+    }
+    
+    // 敵の行動ターンカウント判定
+    enemyCountdown--;
+    if(enemyCountdown <= 0) {
+        enemyCountdown = enemyInterval;
+        setTimeout(() => { if(enemyHp > 0) executeEnemyAttack(); }, 1200);
+    }
+    document.getElementById("enemy-turn-countdown").innerText = enemyCountdown;
+}
+
+function executeEnemyAttack() {
+    if(!isInBattle) return;
+    
+    // 敵のスタン状態判定
+    if(activeBuffs.stun) {
+        activeBuffs.stun = false;
+        document.getElementById("message").innerHTML += `<br><span style="color:#ffcc00;">敵は麻痺していて動けない！</span>`;
+        return;
+    }
+    
+    // PvPモードでの相手命中率計算
+    if(isPvpMode && Math.random() > pvpEnemyHitRate) {
+        document.getElementById("message").innerHTML += `<br><span style="color:#00ffcc;">${pvpEnemyName} の攻撃をすばやく回避した！</span>`;
+        return;
     }
 
-    // タイトルへ戻る
-    function resetGame() {
-        showScreen('start-screen');
+    let finalAtk = enemyAtk;
+    // 毒・火傷スリップダメージ（毎ターン敵攻撃時に進行）
+    if(activeBuffs.burn > 0) {
+        let dot = Math.floor(enemyMaxHp * 0.08);
+        enemyHp = Math.max(0, enemyHp - dot);
+        document.getElementById("enemy-hp").innerText = enemyHp;
+        createDamagePopup(dot, 'monster');
+        document.getElementById("message").innerHTML += `<br><span style="color:#ff3300;">🔥 火傷が敵を焼き尽くす！ (${dot}ダメージ)</span>`;
+        activeBuffs.burn--;
+        if(enemyHp <= 0) { winBattle(); return; }
     }
+
+    // プレイヤーの無敵バリア判定
+    if(activeBuffs.guard) {
+        activeBuffs.guard = false;
+        document.getElementById("message").innerHTML += `<br><span style="color:#3399ff;">🛡️ 聖なるバリアが敵の攻撃を完全に防いだ！</span>`;
+        updateBuffBadges();
+        return;
+    }
+    
+    let armorM = armorsMaster[saveData.armor] || { def: 0 };
+    let gearDef = armorM.def + (saveData.armorPlus * 3);
+    let totalDef = saveData.baseDef + gearDef;
+    
+    let dmg = Math.max(1, Math.floor(finalAtk - totalDef * 0.4));
+    playerHp -= dmg;
+    updateHpUi();
+    
+    createDamagePopup(dmg, 'player');
+    document.body.classList.add("shake");
+    setTimeout(() => document.body.classList.remove("shake"), 200);
+    
+    document.getElementById("message").innerHTML += `<br><span style="color:#ff3333;">💥 敵の反撃！ ${dmg} のダメージを受けた！</span>`;
+    
+    if(playerHp <= 0) {
+        playerHp = 0;
+        updateHpUi();
+        gameOver();
+    }
+}
+
+// 必殺技発動
+function useUltimate(type) {
+    if(battleSp < 100) return;
+    battleSp = 0;
+    updateSpBar();
+    
+    if(type === 'damage') {
+        let baseDmg = saveData.baseAtk;
+        let weaponM = weaponsMaster[saveData.weapon] || { atk: 0 };
+        let gearDmg = weaponM.atk + (saveData.weaponPlus * 4);
+        let finalDmg = Math.floor((baseDmg + gearDmg) * 3);
+        
+        enemyHp = Math.max(0, enemyHp - finalDmg);
+        document.getElementById("enemy-hp").innerText = enemyHp;
+        createDamagePopup(finalDmg, 'monster');
+        
+        activeBuffs.burn = 3; // ついでに3ターンの火傷デバフ
+        
+        document.getElementById("message").innerText = `💥 必殺：ギギギギガ・スラッシュ！！！ 敵に超絶クリティカル ${finalDmg} ダメージ ＆ 3ターンの火傷を付与！`;
+        
+    } else if(type === 'heal') {
+        playerHp = Math.min(playerMaxHp, playerHp + 60);
+        updateHpUi();
+        activeBuffs.charge = true; // 次回攻撃2倍
+        document.getElementById("message").innerText = `🌿 必殺：超瞑想パワー！！！ HPが60回復し、さらに次の正解時の威力が2倍に溜まった！`;
+        
+    } else {
+        activeBuffs.guard = true;
+        activeBuffs.stun = true; // 敵を1回休み
+        document.getElementById("message").innerText = `🛡️ 必殺：聖なる無敵の守り！！！ 次のダメージを完全に1回無効化し、敵を麻痺させた！`;
+    }
+    
+    generateQuiz();
+}
+
+function updateSpBar() {
+    document.getElementById("battle-sp-bar").style.width = battleSp + "%";
+    document.getElementById("battle-sp-text").innerText = battleSp;
+    
+    const area = document.getElementById("skills-area");
+    if(battleSp >= 100) {
+        area.style.display = "grid";
+    } else {
+        area.style.display = "none";
+    }
+}
+
+function updateBuffBadges() {
+    let area = document.getElementById("status-badges-area");
+    if(!area) return;
+    let html = "";
+    if(activeBuffs.burn > 0) html += `<span class="badge-burn">🔥 火傷 (${activeBuffs.burn}T)</span>`;
+    if(activeBuffs.guard) html += `<span class="badge-guard">🛡️ 無敵バリア</span>`;
+    if(activeBuffs.stun) html += `<span class="badge-stun">⚡ 敵麻痺中</span>`;
+    if(activeBuffs.charge) html += `<span class="badge-charge">⚡ チャージ(2倍)</span>`;
+    area.innerHTML = html;
+}
+
+function winBattle() {
+    isInBattle = false;
+    updateNavBarState();
+    stopBgm();
+    playSe('seVictory');
+    
+    let rewardG = 150;
+    if(currentQuestMode === 'normal') rewardG = 400;
+    if(currentQuestMode === 'hard') rewardG = 700;
+    if(currentQuestMode === 'inferno') rewardG = 1000;
+    if(currentQuestMode === 'despair') rewardG = 10000;
+    
+    if(isPvpMode) rewardG = 250; // 対戦勝利一律報酬
+    
+    saveData.gold += rewardG;
+    saveGameData();
+    calculateFinalStatus();
+    
+    let msg = `🏆 クエストクリア！ ${enemyName} を討伐した！ 報酬として ${rewardG} G を手に入れた！`;
+    if(isPvpMode) {
+        cleanupPvpBattleEnd();
+        msg = `🏆 対戦勝利！ライバル勇者「${pvpEnemyName}の幻影」を破った！賞金 ${rewardG} G を獲得！ (最大HP・残り体力は対戦前に完全巻き戻ります)`;
+    }
+    
+    document.getElementById("message").innerText = msg;
+    document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ffcc00;" onclick="switchPage('quest-hub')">拠点へ戻る</button>`;
+}
+
+function createDamagePopup(dmg, target) {
+    const parent = document.getElementById("battle-box");
+    const pop = document.createElement("div");
+    pop.className = "damage-pop";
+    pop.innerText = dmg;
+    pop.style.left = "50%";
+    pop.style.top = "40%";
+    pop.style.fontSize = "38px";
+    pop.style.fontWeight = "bold";
+    pop.style.zIndex = "999"; 
+    pop.style.textShadow = "3px 3px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000";
+
+    if (target === 'monster') { pop.style.color = "#ff3333"; playSe('seDamageGive'); } 
+    else { pop.style.color = "#ffff33"; playSe('seDamageTake'); }
+    
+    parent.appendChild(pop); setTimeout(() => { pop.remove(); }, 1200); 
+}
+
+function gameOver() {
+    isDead = true; isInBattle = false; updateNavBarState(); stopBgm(); playSe('seGameOver');
+    document.getElementById("monster").innerText = "💀";
+    
+    if(isPvpMode) {
+        cleanupPvpBattleEnd(); 
+        document.getElementById("message").innerText = `無念！ライバルに敗北してしまった…！やはり友達の勇者は強かった。 (対戦前のHPに戻ります)`;
+        document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="revivePlayer()">戻る</button>`;
+        return;
+    }
+
+    saveData.gold = Math.floor(saveData.gold / 2);
+    document.getElementById("message").innerText = `勇者は倒れた…所持金が半分になりました。`;
+    document.getElementById("choices").innerHTML = `<button class="choice-btn" style="text-align:center; color:#ff3366;" onclick="revivePlayer()">ゴールドを失って復活する</button>`;
+}
+
+function revivePlayer() {
+    saveGameData();
+    calculateFinalStatus();
+    playerHp = playerMaxHp;
+    updateHpUi();
+    switchPage('quest-hub');
+}
+
+function exitBattle() {
+    if(confirm("本当にこの戦いから逃げ出しますか？(ペナルティはありません)")) {
+        isInBattle = false;
+        if(isPvpMode) cleanupPvpBattleEnd();
+        updateNavBarState();
+        playBgm('normalBgm');
+        switchPage('quest-hub');
+    }
+}
+
+// ==================== 非同期対戦（PvP）コア（完全維持） ====================
+function updatePvpCodeDisplay() {
+    let nameStr = document.getElementById("setting-name-input").value || "勇者";
+    let filterName = nameStr.replace(/[^a-zA-Z0-9ぁ-んァ-ヶ]/g, "");
+    if(!filterName) filterName = "勇者";
+    
+    let hitRate = 100;
+    if(saveData.totalQuestions > 0) {
+        hitRate = Math.round((saveData.correctAnswers / saveData.totalQuestions) * 100);
+    }
+    
+    let nameEnc = "";
+    for(let i=0; i<filterName.length; i++) {
+        nameEnc += filterName.charCodeAt(i).toString(16).padStart(4, '0');
+    }
+    
+    let rawCode = `${saveData.lv}-${saveData.baseAtk}-${saveData.baseDef}-${hitRate}-${nameEnc}`;
+    let b64 = btoa(unescape(encodeURIComponent(rawCode))).replace(/=/g, "");
+    
+    let numCode = "";
+    for(let i=0; i<b64.length; i++) {
+        numCode += b64.charCodeAt(i).toString().slice(-2);
+    }
+    let finalCode = numCode.substring(0, 14);
+    
+    document.getElementById("my-pvp-code-display").innerText = finalCode;
+}
+
+function copyMyPvpCode() {
+    let code = document.getElementById("my-pvp-code-display").innerText;
+    navigator.clipboard.writeText(code).then(() => alert("あなたの対戦パスコードをコピーしました！友達に教えよう！"));
+}
+
+function startPvpBattle() {
+    let code = document.getElementById("input-enemy-code").value.trim();
+    if(!code || code.length < 5) {
+        alert("有効な友達のコードを入力してください。");
+        return;
+    }
+    
+    let seed = parseInt(code.substring(0, 7)) || 12345;
+    let seed2 = parseInt(code.substring(code.length - 6)) || 67890;
+    
+    let eLv = Math.min(99, 1 + (seed % 85));
+    let eAtk = 15 + (seed2 % 280);
+    let eDef = 5 + (seed % 150);
+    let eHit = 60 + (seed2 % 41);
+    
+    let nameArr = ["ロト", "レックス", "アベル", "ソフィア", "ライト", "伝説の勇者", "天空騎士", "大魔道士"];
+    pvpEnemyName = nameArr[seed % nameArr.length];
+    pvpEnemyHitRate = eHit / 100;
+    
+    pvpBackupHp = playerHp;
+    pvpBackupMaxHp = playerMaxHp;
+    
+    playerMaxHp += 500;
+    playerHp = playerMaxHp;
+    updateHpUi();
+    
+    isInBattle = true;
+    isPvpMode = true;
+    updateNavBarState();
+    
+    activeBuffs = { burn: 0, guard: false, stun: false, charge: false };
+    battleSp = 0;
+    updateSpBar();
+    
+    enemyMaxHp = 100 + (eLv - 1) * 12 + 500;
+    enemyHp = enemyMaxHp;
+    enemyAtk = eAtk;
+    enemyInterval = 3;
+    enemyCountdown = enemyInterval;
+    enemyName = `${pvpEnemyName}の幻影`;
+    
+    document.getElementById("monster").innerText = "🤺";
+    document.getElementById("monster-name").innerText = `${enemyName} (Lv.${eLv})`;
+    document.getElementById("enemy-hp").innerText = enemyHp;
+    document.getElementById("enemy-max-hp").innerText = enemyMaxHp;
+    document.getElementById("enemy-turn-countdown").innerText = enemyCountdown;
+    
+    document.getElementById("message").innerText = `ライバル勇者「${pvpEnemyName}」のデータから生成された幻影との対戦！固定HP500ボーナス加算の長期戦だ！`;
+    
+    playBgm('battlePvp');
+    switchPage('quest-battle');
+    generateQuiz();
+}
+
+function cleanupPvpBattleEnd() {
+    isPvpMode = false;
+    playerMaxHp = pvpBackupMaxHp;
+    playerHp = Math.min(playerMaxHp, pvpBackupHp);
+    updateHpUi();
+    playBgm('normalBgm');
+}
+
+// ==================== ガチャ・装備管理（完全維持） ====================
+function renderEquipPage() {
+    let wHit = 100;
+    if(saveData.totalQuestions > 0) {
+        wHit = Math.round((saveData.correctAnswers / saveData.totalQuestions) * 100);
+    }
+    document.getElementById("stats-total-questions").innerText = saveData.totalQuestions;
+    document.getElementById("stats-correct-answers").innerText = saveData.correctAnswers;
+    document.getElementById("stats-hit-rate").innerText = wHit;
+    document.getElementById("item-yakuso-count").innerText = saveData.yakuso;
+    
+    let wHtml = "";
+    for(let name in weaponInventory) {
+        let count = weaponInventory[name];
+        let info = weaponsMaster[name];
+        let isEq = saveData.weapon === name;
+        wHtml += `<div class="equip-item">
+            <div><strong class="rarity-${info.rarity}">[${info.rarity}] ${name}</strong><br><span style="font-size:12px; color:#aaa;">攻撃力 +${info.atk} (限凸:+${count})</span></div>
+            <div>
+                ${isEq ? '<span style="color:#00ffcc; font-size:13px; font-weight:bold; margin-right:5px;">装備中</span>' : `<button class="equip-sub-btn" onclick="equipItem('weapon', '${escapeStr(name)}')">装備</button>`}
+                ${name !== "ひのきのぼう" ? `<button class="equip-sub-btn sell-btn" onclick="sellItem('weapon', '${escapeStr(name)}')">売却</button>` : ""}
+            </div>
+        </div>`;
+    }
+    document.getElementById("weapon-list").innerHTML = wHtml;
+    
+    let aHtml = "";
+    for(let name in armorInventory) {
+        let count = armorInventory[name];
+        let info = armorsMaster[name];
+        let isEq = saveData.armor === name;
+        aHtml += `<div class="equip-item">
+            <div><strong class="rarity-${info.rarity}">[${info.rarity}] ${name}</strong><br><span style="font-size:12px; color:#aaa;">防御力 +${info.def} (限凸:+${count})</span></div>
+            <div>
+                ${isEq ? '<span style="color:#00ffcc; font-size:13px; font-weight:bold; margin-right:5px;">装備中</span>' : `<button class="equip-sub-btn" onclick="equipItem('armor', '${escapeStr(name)}')">装備</button>`}
+                ${name !== "ぬののふく" ? `<button class="equip-sub-btn sell-btn" onclick="sellItem('armor', '${escapeStr(name)}')">売却</button>` : ""}
+            </div>
+        </div>`;
+    }
+    document.getElementById("armor-list").innerHTML = aHtml;
+}
+
+function drawGacha(times) {
+    let cost = times * 100;
+    if(saveData.gold < cost) {
+        alert("ゴールドが足りません！クエストで稼いできてください。");
+        return;
+    }
+    saveData.gold -= cost;
+    playSe('seGacha');
+    
+    let pool = [
+        { name: "かわのたて", type: "weapon" },
+        { name: "どうのつるぎ", type: "weapon" },
+        { name: "鉄の剣", type: "weapon" },
+        { name: "鉄の盾", type: "armor" },
+        { name: "はがねのつるぎ", type: "weapon" },
+        { name: "はがねの鎧", type: "armor" },
+        { name: "まどろみの剣", type: "weapon" },
+        { name: "まほうのよろい", type: "armor" },
+        { name: "ひかりのつるぎ", type: "weapon" },
+        { name: "みかがみの盾", type: "armor" },
+        { name: "ロトの剣", type: "weapon" },
+        { name: "ロトの鎧", type: "armor" },
+        { name: "天空のつるぎ", type: "weapon" },
+        { name: "天空のよろい", type: "armor" }
+    ];
+    
+    let resultLog = [];
+    for(let t=0; t<times; t++) {
+        let dice = Math.random() * 100;
+        if(dice < 50) {
+            saveData.yakuso++;
+            resultLog.push(`<span style="color:#aaffaa;">🌿 やくそう</span> を手に入れた！`);
+        } else {
+            let itemDice = Math.random() * 100;
+            let picked = pool[0];
+            if(itemDice < 1.0) {
+                picked = Math.random() < 0.5 ? pool[12] : pool[13]; // UR
+            } else if(itemDice < 4.0) {
+                let sArr = [pool[8], pool[9], pool[10], pool[11]];
+                picked = sArr[Math.floor(Math.random() * sArr.length)]; // SSR
+            } else if(itemDice < 12.0) {
+                let srArr = [pool[4], pool[5], pool[6], pool[7]];
+                picked = srArr[Math.floor(Math.random() * srArr.length)]; // SR
+            } else {
+                let rArr = [pool[0], pool[1], pool[2], pool[3]];
+                picked = rArr[Math.floor(Math.random() * rArr.length)]; // R
+            }
+            
+            if(picked.type === "weapon") {
+                if(weaponInventory[picked.name] !== undefined) {
+                    if(weaponInventory[picked.name] < 5) {
+                        weaponInventory[picked.name]++;
+                        resultLog.push(`⚔️ <strong>${picked.name}</strong> 被り！自動限界突破 (+${weaponInventory[picked.name]})`);
+                    } else {
+                        saveData.gold += 150;
+                        resultLog.push(`⚔️ <strong>${picked.name}</strong> 限界突破MAXのため自動換金され <span style="color:#ffcc00;">+150G</span>`);
+                    }
+                } else {
+                    weaponInventory[picked.name] = 0;
+                    resultLog.push(`⚔️ <strong style="color:#ffcc00;">${picked.name}</strong> を新しく入手した！`);
+                }
+            } else {
+                if(armorInventory[picked.name] !== undefined) {
+                    if(armorInventory[picked.name] < 5) {
+                        armorInventory[picked.name]++;
+                        resultLog.push(`🛡️ <strong>${picked.name}</strong> 被り！自動限界突破 (+${armorInventory[picked.name]})`);
+                    } else {
+                        saveData.gold += 150;
+                        resultLog.push(`🛡️ <strong>${picked.name}</strong> 限界突破MAXのため自動換金され <span style="color:#ffcc00;">+150G</span>`);
+                    }
+                } else {
+                    armorInventory[picked.name] = 0;
+                    resultLog.push(`🛡️ <strong style="color:#3399ff;">${picked.name}</strong> を新しく入手した！`);
+                }
+            }
+        }
+    }
+    
+    saveGameData();
+    calculateFinalStatus();
+    
+    let resDiv = document.getElementById("gacha-result");
+    resDiv.style.display = "block";
+    resDiv.innerHTML = `<strong>【ガチャ結果】</strong><br>` + resultLog.join("<br>");
+}
+
+function equipItem(type, name) {
+    if(type === 'weapon') {
+        saveData.weapon = name;
+        saveData.weaponPlus = weaponInventory[name] || 0;
+    } else {
+        saveData.armor = name;
+        saveData.armorPlus = armorInventory[name] || 0;
+    }
+    saveGameData();
+    calculateFinalStatus();
+    renderEquipPage();
+}
+
+function sellItem(type, name) {
+    if(confirm(`${name} を売却して100Gにしますか？(限界突破数もリセットされます)`)) {
+        if(type === 'weapon') {
+            delete weaponInventory[name];
+            if(saveData.weapon === name) { saveData.weapon = "ひのきのぼう"; saveData.weaponPlus = 0; }
+        } else {
+            delete armorInventory[name];
+            if(saveData.armor === name) { saveData.armor = "ぬののふく"; saveData.armorPlus = 0; }
+        }
+        saveData.gold += 100;
+        saveGameData();
+        calculateFinalStatus();
+        renderEquipPage();
+    }
+}
+
+function useYakuso() {
+    if(saveData.yakuso <= 0) { alert("やくそうを持っていません！"); return; }
+    if(playerHp >= playerMaxHp) { alert("HPはすでに満タンです！"); return; }
+    saveData.yakuso--;
+    playerHp = Math.min(playerMaxHp, playerHp + 50);
+    updateHpUi();
+    saveGameData();
+    renderEquipPage();
+    alert("やくそうを1個使い、HPが50回復した！");
+}
+
+function useYakusoMax() {
+    if(saveData.yakuso <= 0) { alert("やくそうを持っていません！"); return; }
+    if(playerHp >= playerMaxHp) { alert("HPはすでに満タンです！"); return; }
+    let count = 0;
+    while(saveData.yakuso > 0 && playerHp < playerMaxHp) {
+        saveData.yakuso--;
+        playerHp = Math.min(playerMaxHp, playerHp + 50);
+        count++;
+    }
+    updateHpUi();
+    saveGameData();
+    renderEquipPage();
+    alert(`やくそうを ${count} 個使い、HPを最大まで回復した！`);
+}
+
+function changePlayerName() {
+    let nameStr = document.getElementById("setting-name-input").value;
+    let filterName = nameStr.replace(/[^a-zA-Z0-9ぁ-んァ-ヶ]/g, "");
+    document.getElementById("header-player-name").innerText = filterName || "勇者";
+}
+
+// ==================== セーブデータ保存・読み込み ====================
+function saveGameData() {
+    localStorage.setItem("leap_quest_save", JSON.stringify(saveData));
+    localStorage.setItem("leap_quest_w_inv", JSON.stringify(weaponInventory));
+    localStorage.setItem("leap_quest_a_inv", JSON.stringify(armorInventory));
+}
+
+function loadGameData() {
+    let s = localStorage.getItem("leap_quest_save");
+    let w = localStorage.getItem("leap_quest_w_inv");
+    let a = localStorage.getItem("leap_quest_a_inv");
+    if(s) saveData = JSON.parse(s);
+    if(w) weaponInventory = JSON.parse(w);
+    if(a) armorInventory = JSON.parse(a);
+}
+
+function resetAllData() {
+    if(confirm("【警告】すべてのセーブデータ、ゴールド、ガチャ装備が永久に消去されます。本当によろしいですか？")) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+// ==================== ユーティリティ ====================
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+function escapeStr(str) {
+    return str.replace(/'/g, "\\'");
+}
 </script>
-
 </body>
 </html>
