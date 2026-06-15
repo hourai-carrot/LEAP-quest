@@ -937,6 +937,7 @@ let isDead = false; let spGauge = 0; let hasBarrier = false;
 let currentTurnCount = 0; let enemyGuardTurns = 0;   
 let playerBurnTurns = 0; let playerStunned = false;  
 let isInBattle = false; let battleNextAction = null;
+let answerLocked = false;
 
 let isPvpMode = false;
 let pvpEnemyData = null;
@@ -1158,6 +1159,7 @@ function useUltimate(type) {
 }
 
 function nextTurn() {
+    answerLocked = false;
     if(isDead || document.getElementById('page-quest-battle').style.display === 'none') return;
     if (enemyHp <= 0) { processEndTurn(); return; }
     
@@ -1205,7 +1207,8 @@ function nextTurn() {
 }
 
 function selectAnswer(selected) {
-    if(isDead || battleNextAction) return;
+    if(isDead || battleNextAction || answerLocked) return;
+    answerLocked = true;
     currentTurnCount++;
     saveData.totalQuestions++;
     
@@ -1528,10 +1531,10 @@ function gameOver() {
 
 function revivePlayer() { 
     isDead = false; 
-    if(document.getElementById('page-quest-battle').style.display === 'block' && !isPvpMode) {
+    if(!isPvpMode) {
         // 通常バトル敗北時のみ教会復活
-        playerHp = playerMaxHp; // ⭕ 実際のHPを満タン（MAX）にする！
-        updateUi();             // ⭕ 画面上のHPバーや数字の表示を最新にする！ 
+        saveData.hp = getPlayerMaxHp(); // ⭕ 実際のHPを満タン（MAX）にする！
+        updateUI();             // ⭕ 画面上のHPバーや数字の表示を最新にする！ 
         saveGame(); 
         switchPage('quest-hub'); 
     } else {
