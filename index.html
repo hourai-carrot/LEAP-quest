@@ -473,9 +473,412 @@ const vocabulary = [
     { w: "breathe", j: "呼吸する", ex: "breathe deeply", tr: "深呼吸する", simW: ["blame", "practice", "suffer"], simJ: ["息をする", "生きる", "リラックスする", "止まる"] },
     { w: "thirsty", j: "のどが渇いた", ex: "I am thirsty.", tr: "私はのどが渇いた。", simW: ["thirty", "talent", "suffer"], simJ: ["切望して", "飢えた", "疲れた", "熱い"] },
     { w: "physical", j: "身体的な", ex: "physical health", tr: "身体的な健康", simW: ["medical", "artificial", "material"], simJ: ["物理的な", "医療の", "科学的な", "外見の"] },
-    { w: "fever", j: "体温 of 熱", ex: "have a high fever", tr: "高熱がある", simW: ["form", "effort", "breathe"], simJ: ["熱狂", "病気", "興奮", "頭痛"] },
+    { w: "fever", j: "熱", ex: "have a high fever", tr: "高熱がある", simW: ["form", "effort", "breathe"], simJ: ["熱狂", "病気", "興奮", "頭痛"] },
     { w: "strength", j: "体力，力", ex: "physical strength", tr: "体力", simW: ["stress", "skill", "talent"], simJ: ["力", "権力", "健康", "能力"] },
-    { w: "tear", j: "涙", ex: "eyes full of tears", tr: "涙でいっぱいの目", simW: ["tip", "talent", "technology"], simJ: ["引き裂く", "弱さ", "悲しみ", "叫び"] }
+    { w: "tear", j: "涙", ex: "eyes full of tears", tr: "涙でいっぱいの目", simW: ["tip", "talent", "technology"], simJ: ["引き裂く", "弱さ", "悲しみ", "叫び"]
+    },
+    {
+    w: "tradition",
+    j: "伝統",
+    ex: "This festival is an old tradition.",
+    tr: "この祭りは古い伝統だ。",
+    simW: ["custom", "culture", "history"],
+    simJ: ["文化", "習慣", "伝統", "歴史"]
+},
+
+{
+    w: "society",
+    j: "社会",
+    ex: "We live in a modern society.",
+    tr: "私たちは現代社会に生きている。",
+    simW: ["community", "nation", "company"],
+    simJ: ["国家", "組織", "社会", "集団"]
+},
+
+{
+    w: "law",
+    j: "法律",
+    ex: "Everyone must obey the law.",
+    tr: "誰もが法律を守らなければならない。",
+    simW: ["rule", "right", "system"],
+    simJ: ["規則", "法律", "制度", "命令"]
+},
+
+{
+    w: "ancestor",
+    j: "祖先",
+    ex: "My ancestors came from this region.",
+    tr: "私の祖先はこの地域の出身だ。",
+    simW: ["relative", "citizen", "native"],
+    simJ: ["親戚", "住民", "祖先", "家族"]
+},
+
+{
+    w: "population",
+    j: "人口",
+    ex: "The population of the city is increasing.",
+    tr: "その都市の人口は増加している。",
+    simW: ["people", "nation", "society"],
+    simJ: ["住民", "人口", "国民", "社会"]
+},
+
+{
+    w: "native",
+    j: "母国の",
+    ex: "She is a native speaker of English.",
+    tr: "彼女は英語のネイティブスピーカーだ。",
+    simW: ["local", "foreign", "natural"],
+    simJ: ["地元の", "外国の", "母国の", "自然の"]
+},
+
+{
+    w: "abroad",
+    j: "海外で",
+    ex: "He studied abroad last year.",
+    tr: "彼は昨年海外で勉強した。",
+    simW: ["outside", "away", "overseas"],
+    simJ: ["国内で", "遠くで", "海外で", "近くで"]
+},
+
+{
+    w: "local",
+    j: "地元の",
+    ex: "I bought vegetables at a local store.",
+    tr: "私は地元の店で野菜を買った。",
+    simW: ["native", "public", "regional"],
+    simJ: ["公共の", "地元の", "国際的な", "全国的な"]
+},
+
+{
+    w: "survey",
+    j: "調査",
+    ex: "The survey showed interesting results.",
+    tr: "その調査は興味深い結果を示した。",
+    simW: ["research", "study", "report"],
+    simJ: ["研究", "調査", "報告", "分析"]
+},
+
+{
+    w: "value",
+    j: "価値",
+    ex: "Education has great value.",
+    tr: "教育には大きな価値がある。",
+    simW: ["price", "worth", "benefit"],
+    simJ: ["利益", "価値", "価格", "費用"]
+},
+
+{
+    w: "treasure",
+    j: "宝",
+    ex: "The pirates searched for treasure.",
+    tr: "海賊たちは宝を探した。",
+    simW: ["gold", "wealth", "memory"],
+    simJ: ["財産", "宝", "資源", "資金"]
+},
+
+{
+    w: "fashion",
+    j: "流行",
+    ex: "Fashion changes every year.",
+    tr: "流行は毎年変化する。",
+    simW: ["style", "trend", "design"],
+    simJ: ["習慣", "流行", "芸術", "伝統"]
+},
+
+{
+    w: "public",
+    j: "公共の",
+    ex: "This is a public park.",
+    tr: "これは公共の公園だ。",
+    simW: ["private", "local", "social"],
+    simJ: ["個人の", "公共の", "地域の", "秘密の"]
+},
+
+{
+    w: "evidence",
+    j: "証拠",
+    ex: "The police found important evidence.",
+    tr: "警察は重要な証拠を発見した。",
+    simW: ["fact", "proof", "record"],
+    simJ: ["証拠", "記録", "情報", "証言"]
+},
+
+{
+    w: "vote",
+    j: "投票",
+    ex: "Many people voted in the election.",
+    tr: "多くの人が選挙で投票した。",
+    simW: ["choose", "elect", "support"],
+    simJ: ["投票", "選択", "推薦", "支持"]
+},
+
+{
+    w: "government",
+    j: "政府",
+    ex: "The government announced a new policy.",
+    tr: "政府は新しい政策を発表した。",
+    simW: ["nation", "state", "authority"],
+    simJ: ["国民", "政府", "議会", "法律"]
+},
+
+{
+    w: "nation",
+    j: "国家",
+    ex: "Japan is an island nation.",
+    tr: "日本は島国だ。",
+    simW: ["country", "state", "society"],
+    simJ: ["国家", "社会", "都市", "地域"]
+},
+
+{
+    w: "capital",
+    j: "首都",
+    ex: "Tokyo is the capital of Japan.",
+    tr: "東京は日本の首都だ。",
+    simW: ["city", "center", "state"],
+    simJ: ["州", "首都", "地方", "都市"]
+},
+
+{
+    w: "state",
+    j: "州",
+    ex: "California is a large state.",
+    tr: "カリフォルニアは大きな州だ。",
+    simW: ["nation", "region", "area"],
+    simJ: ["州", "国家", "地域", "都市"]
+},
+
+{
+    w: "political",
+    j: "政治的な",
+    ex: "They discussed political issues.",
+    tr: "彼らは政治的な問題について議論した。",
+    simW: ["social", "economic", "public"],
+    simJ: ["経済的な", "政治的な", "社会的な", "文化的な"]
+},
+{
+    w: "price",
+    j: "価格",
+    ex: "The price of this book is high.",
+    tr: "この本の価格は高い。",
+    simW: ["cost", "value", "trade"],
+    simJ: ["価値", "費用", "価格", "利益"]
+},
+
+{
+    w: "sum",
+    j: "合計",
+    ex: "The sum of the numbers is 100.",
+    tr: "その数字の合計は100だ。",
+    simW: ["total", "result", "amount"],
+    simJ: ["結果", "平均", "合計", "金額"]
+},
+
+{
+    w: "budget",
+    j: "予算",
+    ex: "We need a larger budget.",
+    tr: "私たちはもっと大きな予算が必要だ。",
+    simW: ["plan", "fee", "cost"],
+    simJ: ["予算", "計画", "費用", "料金"]
+},
+
+{
+    w: "fee",
+    j: "料金",
+    ex: "The entrance fee is 500 yen.",
+    tr: "入場料は500円だ。",
+    simW: ["fare", "price", "cost"],
+    simJ: ["運賃", "価格", "料金", "税金"]
+},
+
+{
+    w: "fare",
+    j: "運賃",
+    ex: "The bus fare has increased.",
+    tr: "バス運賃が値上がりした。",
+    simW: ["fee", "cost", "bill"],
+    simJ: ["運賃", "料金", "請求書", "代金"]
+},
+
+{
+    w: "bill",
+    j: "請求書",
+    ex: "I paid the bill after dinner.",
+    tr: "私は夕食後に請求書を払った。",
+    simW: ["fee", "fare", "budget"],
+    simJ: ["請求書", "予算", "料金", "契約"]
+},
+
+{
+    w: "trade",
+    j: "貿易",
+    ex: "Trade between the two countries increased.",
+    tr: "その二国間の貿易は増加した。",
+    simW: ["business", "market", "economy"],
+    simJ: ["商業", "市場", "貿易", "産業"]
+},
+
+{
+    w: "wealth",
+    j: "富",
+    ex: "The country gained great wealth.",
+    tr: "その国は大きな富を得た。",
+    simW: ["money", "treasure", "economy"],
+    simJ: ["富", "財宝", "資産", "収入"]
+},
+
+{
+    w: "economy",
+    j: "経済",
+    ex: "The economy is growing steadily.",
+    tr: "経済は着実に成長している。",
+    simW: ["industry", "trade", "market"],
+    simJ: ["産業", "経済", "市場", "貿易"]
+},
+
+{
+    w: "cost",
+    j: "費用",
+    ex: "The cost of living is rising.",
+    tr: "生活費が上昇している。",
+    simW: ["price", "fee", "value"],
+    simJ: ["価格", "料金", "費用", "価値"]
+},
+
+{
+    w: "company",
+    j: "会社",
+    ex: "She works for a large company.",
+    tr: "彼女は大企業で働いている。",
+    simW: ["office", "business", "society"],
+    simJ: ["企業", "会社", "社会", "組織"]
+},
+
+{
+    w: "task",
+    j: "仕事",
+    ex: "I finished my task quickly.",
+    tr: "私は仕事を素早く終えた。",
+    simW: ["job", "work", "plan"],
+    simJ: ["計画", "仕事", "任務", "役割"]
+},
+
+{
+    w: "earn",
+    j: "稼ぐ",
+    ex: "He earns a lot of money.",
+    tr: "彼はたくさんのお金を稼ぐ。",
+    simW: ["get", "win", "receive"],
+    simJ: ["受け取る", "得る", "稼ぐ", "集める"]
+},
+{
+    w: "hurt",
+    j: "傷つける",
+    ex: "His words hurt her feelings.",
+    tr: "彼の言葉は彼女の気持ちを傷つけた。",
+    simW: ["injure", "damage", "help"],
+    simJ: ["助ける", "傷つける", "守る", "励ます"]
+},
+
+{
+    w: "injure",
+    j: "けがをさせる",
+    ex: "Several people were injured in the accident.",
+    tr: "その事故で数人がけがをした。",
+    simW: ["hurt", "damage", "destroy"],
+    simJ: ["けがをさせる", "壊す", "守る", "治療する"]
+},
+
+{
+    w: "damage",
+    j: "損害を与える",
+    ex: "The storm damaged many houses.",
+    tr: "その嵐は多くの家に損害を与えた。",
+    simW: ["destroy", "harm", "injure"],
+    simJ: ["修理する", "損害を与える", "保護する", "建設する"]
+},
+
+{
+    w: "destroy",
+    j: "破壊する",
+    ex: "The fire destroyed the building.",
+    tr: "火事がその建物を破壊した。",
+    simW: ["damage", "ruin", "create"],
+    simJ: ["建設する", "破壊する", "保存する", "修復する"]
+},
+
+{
+    w: "ruin",
+    j: "台無しにする",
+    ex: "The rain ruined our picnic.",
+    tr: "雨が私たちのピクニックを台無しにした。",
+    simW: ["destroy", "damage", "improve"],
+    simJ: ["改善する", "完成させる", "台無しにする", "成功させる"]
+},
+
+{
+    w: "danger",
+    j: "危険",
+    ex: "Swimming here is a danger.",
+    tr: "ここで泳ぐのは危険だ。",
+    simW: ["risk", "fear", "safety"],
+    simJ: ["安全", "危険", "安心", "保護"]
+},
+
+{
+    w: "neighbor",
+    j: "近所の人",
+    ex: "Our neighbor is very kind.",
+    tr: "私たちの近所の人はとても親切だ。",
+    simW: ["friend", "citizen", "relative"],
+    simJ: ["親戚", "友人", "近所の人", "同僚"]
+},
+
+{
+    w: "audience",
+    j: "観客",
+    ex: "The audience enjoyed the concert.",
+    tr: "観客はそのコンサートを楽しんだ。",
+    simW: ["crowd", "viewer", "guest"],
+    simJ: ["観客", "出演者", "司会者", "選手"]
+},
+
+{
+    w: "crowd",
+    j: "群衆",
+    ex: "A large crowd gathered in the square.",
+    tr: "広場に大勢の群衆が集まった。",
+    simW: ["group", "audience", "team"],
+    simJ: ["群衆", "観客", "仲間", "組織"]
+},
+
+{
+    w: "author",
+    j: "著者",
+    ex: "She is the author of this novel.",
+    tr: "彼女はこの小説の著者だ。",
+    simW: ["writer", "reader", "editor"],
+    simJ: ["読者", "著者", "編集者", "評論家"]
+},
+
+{
+    w: "staff",
+    j: "職員",
+    ex: "The hotel staff were helpful.",
+    tr: "ホテルの職員は親切だった。",
+    simW: ["worker", "member", "customer"],
+    simJ: ["客", "職員", "利用者", "観光客"]
+},
+
+{
+    w: "clerk",
+    j: "店員",
+    ex: "The clerk helped me find the book.",
+    tr: "その店員は本を探すのを手伝ってくれた。",
+    simW: ["staff", "manager", "customer"],
+    simJ: ["店員", "客", "管理者", "社長"]
+}
 ];
 
 const questConfigs = {
