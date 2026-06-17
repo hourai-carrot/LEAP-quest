@@ -882,11 +882,11 @@ const vocabulary = [
 ];
 
 const questConfigs = {
-    easy: { name: "ちびスライム", emoji: "💧", hp: 35, atk: 12, gold: 150, maxTurns: 5 },
-    normal: { name: "魔導ドラキー", emoji: "🦇", hp: 80, atk: 25, gold: 400, maxTurns: 5 },
-    hard: { name: "激怒ゴーレム", emoji: "🧱", hp: 180, atk: 55, gold: 700, maxTurns: 4 },
-    inferno: { name: "破壊神・竜王", emoji: "🐉", hp: 500, atk: 160, gold: 1000, maxTurns: 4 },
-    despair: { name: "虚構の騎士", emoji: "🌌", hp: 4000, atk: 400, gold: 10000, maxTurns: 3 }
+    easy: { name: "ちびスライム", emoji: "💧", hp: 35, atk: 12, gold: 150, lvGain: 1, maxTurns: 5 },
+    normal: { name: "魔導ドラキー", emoji: "🦇", hp: 80, atk: 25, gold: 400, lvGain: 2, maxTurns: 5 },
+    hard: { name: "激怒ゴーレム", emoji: "🧱", hp: 180, atk: 55, gold: 700, lvGain: 3, maxTurns: 4 },
+    inferno: { name: "破壊神・竜王", emoji: "🐉", hp: 500, atk: 160, gold: 1000, lvGain: 5, maxTurns: 4 },
+    despair: { name: "虚構の騎士", emoji: "🌌", hp: 4000, atk: 400, gold: 10000, lvGain: 8, maxTurns: 3 }
 };
 
 const weaponListKeys = ["ひのきのぼう", "鉄の剣", "どうのつるぎ", "はがねのつるぎ", "まどろみの剣", "ロトの剣", "ひかりのつるぎ", "天空のつるぎ", "スライムのぼう", "するどいつるぎ", "いわのつるぎ", "りゅうのつるぎ", "はめつの杖"];
@@ -1773,7 +1773,7 @@ function processEndTurn() {
         }
 
         const config = questConfigs[currentDifficulty];
-        saveData.gold += config.gold; saveData.lv++;
+        saveData.gold += config.gold; saveData.lv += config.lvGain;
         
         const newMaxHp = getPlayerMaxHp();
         const borderHp = Math.floor(newMaxHp * 0.7);
