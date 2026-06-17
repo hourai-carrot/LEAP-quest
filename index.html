@@ -371,7 +371,8 @@ const audioFiles = {
     seDamageTake: 'se_damage.mp3',
     seGacha: 'se_gacha.mp3',
     seVictory: 'se_victory.mp3',
-    seGameOver: 'se_gameover.mp3'
+    seGameOver: 'se_gameover.mp3',
+    battleHero: "bgmhero.mp3",
 };
 
 let currentBgm = null;
@@ -1372,6 +1373,8 @@ function startQuest(difficulty) {
     if (['easy', 'normal', 'hard'].includes(difficulty)) playBgm('battleEasyNormalHard');
     else if (difficulty === 'inferno') playBgm('battleInferno');
     else if (difficulty === 'despair') playBgm('battleDespair');
+    else if (difficulty === 'hero')
+    playBgm('battleHero');
 
     initBattleUI();
     document.getElementById("monster").innerText = questConfigs[difficulty].emoji;
