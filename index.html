@@ -224,6 +224,10 @@
                 <strong style="color:#cc66ff; text-shadow: 0 0 3px #cc66ff;">【絶望】虚構の騎士</strong><br>
                 <span style="font-size:12px; color:#ccc;">形式: 最高難度例文英訳 / 報酬: 10000G / 敵攻撃: 3ターンごと</span>
             </button>
+            <button class="quest-select-btn" onclick="startQuest('hero')">
+    <strong style="color:#ffff66;">【終焉】かつての勇者</strong><br>
+    <span style="font-size:12px; color:#ccc;">形式: 全問題対応 / 報酬: 30000G / 敵攻撃: 2ターンごと</span>
+</button>
         </div>
 
         <div id="page-pvp-hub" class="page">
@@ -886,7 +890,16 @@ const questConfigs = {
     normal: { name: "魔導ドラキー", emoji: "🦇", hp: 80, atk: 25, gold: 400, lvGain: 2, maxTurns: 5 },
     hard: { name: "激怒ゴーレム", emoji: "🧱", hp: 180, atk: 55, gold: 700, lvGain: 3, maxTurns: 4 },
     inferno: { name: "破壊神・竜王", emoji: "🐉", hp: 500, atk: 160, gold: 1000, lvGain: 5, maxTurns: 4 },
-    despair: { name: "虚構の騎士", emoji: "🌌", hp: 4000, atk: 400, gold: 10000, lvGain: 8, maxTurns: 3 }
+    despair: { name: "虚構の騎士", emoji: "🌌", hp: 4000, atk: 400, gold: 10000, lvGain: 8, maxTurns: 3 },
+    hero: {
+    name: "かつての勇者",
+    emoji: "⚔️",
+    hp: 18000,
+    atk: 500,
+    gold: 30000,
+    lvGain: 15,
+    maxTurns: 2
+}
 };
 
 const weaponListKeys = ["ひのきのぼう", "鉄の剣", "どうのつるぎ", "はがねのつるぎ", "まどろみの剣", "ロトの剣", "ひかりのつるぎ", "天空のつるぎ", "スライムのぼう", "するどいつるぎ", "いわのつるぎ", "りゅうのつるぎ", "はめつの杖"];
