@@ -1910,9 +1910,35 @@ function processEndTurn() {
             }
         }
         else if (currentDifficulty === 'hero') {
-    enemySkillMsg = `🛡️ かつての勇者は盾を構えた！\n`;
-    enemyGuardTurns = 1;
-    enemySkillMsg += `次の攻撃を完全に無効化する！`;
+
+    enemySkillMsg = `⚔️ かつての勇者の斬撃！\n`;
+
+    if (hasBarrier) {
+        hasBarrier = false;
+        enemySkillMsg += `しかしバリアが攻撃を防いだ！`;
+    } else {
+
+        saveData.hp = Math.max(0, saveData.hp - finalBossDmg);
+        popDamageEffect('player', finalBossDmg);
+
+        enemySkillMsg += `プレイヤーは ${finalBossDmg} のダメージを受けた！\n`;
+
+        if (actionRand < 0.5) {
+
+            saveData.hp = Math.max(0, saveData.hp - 150);
+            popDamageEffect('player', 150);
+
+            enemySkillMsg += `\n🔥 かつての勇者の炎魔法！\n`;
+            enemySkillMsg += `150の固定ダメージを受けた！`;
+
+        } else {
+
+            enemyGuardTurns = 1;
+
+            enemySkillMsg += `\n🛡️ かつての勇者は盾を構えた！\n`;
+            enemySkillMsg += `次の攻撃をほぼ無効化する！`;
+        }
+    }
 }
 
         saveGame(); document.getElementById("player-hp").innerText = saveData.hp; updateStatusBadges();
